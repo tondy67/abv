@@ -1,0 +1,11 @@
+{
+  "name": "abv",
+  "url": "http://tondy.com/",
+  "license": "BSD",
+  "tags": ["gui", "web", "shell"],
+  "description": "haxe abstract machine",
+  "version": "1.0.4",
+  "releasenote": "none",
+  "contributors": ["tondy"],
+  "dependencies": { }
+}
