@@ -1,6 +1,6 @@
 abv
 ===
 
-[Haxe](haxe.org) abstract machine
+[Haxe](http://haxe.org) abstract machine
 
 **under development!**
