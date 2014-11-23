@@ -1,6 +1,6 @@
 {
   "name": "abv",
-  "url": "http://tondy.com/",
+  "url": "https://github.com/tondy67/abv",
   "license": "BSD",
   "tags": ["gui", "web", "shell"],
   "description": "haxe abstract machine",
