@@ -1,4 +1,4 @@
-package abv;
+package abv.lib;
 
 /**
  * Tools
@@ -6,11 +6,28 @@ package abv;
 class Tools{
 
 	static var logData:Array<String> = [];
-	static var start:Float = Sys.time();
+	static var start = Sys.time();
 
 	static function __init__()
 	{
     }// __init__()
+
+	public static inline function json(s:String)
+	{
+		var r:Dynamic = null;
+		try r = haxe.Json.parse(s) catch (m:Dynamic) { log("json: "+m); } 
+		return r;
+	}// json()
+	
+	public static inline function utf8(s:Null<String>,msg="")
+	{
+		var r = false;
+		if(good(s,"utf8")){
+			r = haxe.Utf8.validate(s);
+			if(!r)log(msg + ": Not utf8"); 
+		}
+		return r;
+	}// utf8()
 
 	public static inline function good(s:Null<String>,msg="")
 	{ 
@@ -87,17 +104,28 @@ class Tools{
 
 	public static inline function log(msg="")
 	{
-		if(start == 0)start = Sys.time();
-		if(msg == "")msg = "" + (Sys.time() - start);
+		if((msg == null)||(msg == ""))msg = "" + (Sys.time() - start);
 		logData.push(msg);
 	}// log()
 
-	public static inline function getLog()
+	public static function getLog(line=0,filter="")
 	{
-		return logData;
-	}// log()
+		var r:Array<String> = [];
+
+		if(line == range(line,logData.length,1)){
+			if(good(logData[line],'getLog: $line'))r.push(logData[line]);
+		}else r = logData;
+
+		if(good(filter,'getLog: $filter')){
+			var t:Array<String> = [];
+			for(l in logData)if(l.indexOf(filter) != -1)t.push(l);
+			r = t;
+		}
+		
+		return r;
+	}// getLog()
 
 	
 
-}// abvm.Tools
+}// abv.lib.Tools
 

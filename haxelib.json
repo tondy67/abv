@@ -4,7 +4,7 @@
   "license": "BSD",
   "tags": ["gui", "web", "shell"],
   "description": "haxe abstract machine",
-  "version": "1.0.4",
+  "version": "0.0.4",
   "releasenote": "none",
   "contributors": ["tondy"],
   "dependencies": { }

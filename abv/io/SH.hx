@@ -4,8 +4,8 @@ import sys.FileSystem;
 import sys.io.Process;
 import sys.io.File;
 
-using StringTools;
-using abv.Tools;
+using abv.lib.TP;
+using abv.lib.Tools;
 
 /**
  * This class mimics Bash Shell 
@@ -27,21 +27,6 @@ class SH{
 		echo("trim\n");
 	}// trim()
 
-	public static function replace(src:String, what:String, with:String)
-	{
-		echo("replace\n");
-	}// replace()
-
-	public static function find(path:String,what:String,exec="")
-	{
-		echo("find\n");
-	}// find()
-	
-	public static function grep(src:String,what:String,opt="")
-	{
-		echo('grep: $src $what $opt \n');
-	}// grep()
-	
 	public static function ln(path:String,link:String,opt="s")
 	{
 		echo('ln: $path $link $opt \n');
@@ -153,10 +138,10 @@ class SH{
 	}// read()
 
 	public static inline function echo(msg="",path="",append=false)
-	{
+	{// TODO: colors
 		if(path != ""){
-			if(!path.dir("echo"))File.saveContent(path, msg + " ");
-		}else if(msg.good()){
+			if(!path.dir('echo $path'))File.saveContent(path, msg + " ");
+		}else if(msg.good('echo $msg')){
 			if(verbose) Sys.print(msg);
 		}else if(verbose) Sys.print("\n");
 	}//echo()
@@ -186,9 +171,12 @@ class SH{
 		if(s.good() && v.good())Sys.putEnv(s,v);
 	}//export()
 
-	public static inline function env()
+	public static inline function env(what="")
 	{
-		return Sys.environment();
+		var r:Map<String,String> = new Map();
+		if(what.good('env $what'))r.set(what,Sys.getEnv(what));
+		else r = Sys.environment();
+		return r;
 	}//env()
 
 	public static inline function shell(cmd:String, args:Array<String>)
@@ -242,11 +230,16 @@ class SH{
 		if(path.dir('cd: $path'))Sys.setCwd(path);
 	}// cd()
 	
+	public static inline function zip(path:String,file:String,opt="r")
+	{
+		if(path.good('zip: $path'))echo('zip: $path $opt');
+	}// zip()
+	
 	public static function execute(script:String)
 	{
-		var cmd = ["ls","mkdir","rm","pwd","cd","mv","cp","echo","clear",
+		var cmd = ["TP","json","Math","ls","mkdir","rm","pwd","cd","mv","cp","echo","clear",
 		"compile","read","exec","export","ds","cat","shell",
-		"date","time","uname","ln","grep","find","replace","trim"];
+		"date","time","uname","ln","zip"];
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
@@ -255,6 +248,10 @@ class SH{
 		for(c in cmd){ //trace(c);
 			if(ip.variables.get(c) != null)continue; 
 			switch(c){
+				case "TP": ip.variables.set("TP",TP);
+				case "Math": ip.variables.set("Math",Math);
+				case "json": ip.variables.set("json",Tools.json);
+//
 				case "ls": ip.variables.set("ls",ls);
 				case "mkdir": ip.variables.set("mkdir",mkdir);
 				case "rm": ip.variables.set("rm",rm);
@@ -275,10 +272,7 @@ class SH{
 				case "time": ip.variables.set("time",time);
 				case "uname": ip.variables.set("uname",uname);
 				case "ln": ip.variables.set("ln",ln);
-				case "grep": ip.variables.set("grep",grep);
-				case "find": ip.variables.set("find",find);
-				case "replace": ip.variables.set("replace",replace);
-				case "trim": ip.variables.set("trim",trim);
+				case "zip": ip.variables.set("zip",zip);
 			}
 		}
 		
@@ -287,5 +281,5 @@ class SH{
 //		if(f != null)f();
 	}// execute() 
 
-}// abvm.io.SH
+}// abv.io.SH
 
