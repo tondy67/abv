@@ -4,8 +4,10 @@ import sys.FileSystem;
 import sys.io.Process;
 import sys.io.File;
 
-using abv.lib.TP;
+import abv.AM;
+
 using abv.lib.Tools;
+using abv.lib.TP;
 
 /**
  * This class mimics Bash Shell 
@@ -13,23 +15,12 @@ using abv.lib.Tools;
 class SH{
 
 	public static var ds:Dynamic = null;
-	public static var verbose = true;
-	static var files:List<String>;
+	static var files = new List<String>();
 	static var platform = "";
-
-	static function __init__()
-	{
-		files = new List();
-    }// __init__()
-
-	public static function trim(s:String, opt="")
-	{
-		echo("trim\n");
-	}// trim()
 
 	public static function ln(path:String,link:String,opt="s")
 	{
-		echo('ln: $path $link $opt \n');
+		log('ln: $path $link $opt');
 	}// ln()
 	
 	public static inline function ls(path=".",opt="")
@@ -60,45 +51,17 @@ class SH{
 	
 	public static function cp(src:String,dst:String,opt="")
 	{
-		if(!src.good("cp: src is null")) return;
-		else if(!FileSystem.exists(src)){Tools.log('cp: $src: not exists');return;}
+		if(!src.good("cp: src")) return;
+		else if(!src.exists('cp: $src')) return;
 		
 		File.copy(src,dst);
 	}// cp()
 	
-	public static inline function dirname(path:String)
-	{
-		var sep = "/";
-		var r = ".";
-		var a = path.split(sep); 
-		if(a.length > 1){
-			a.pop();
-			r = a.join(sep);
-		}
-		return r;
-	}// dirname()
-	
-	public static inline function basename(path:String)
-	{
-		var sep = "/";
-		var a = path.split(sep);
-		var r = a.pop(); 
-		return r;
-	}// basename()
-	
-	public static function extname(path:String)
-	{
-		var sep = ".";
-		var a = path.split(sep);
-		var r = a.pop(); 
-		return r;
-	}// extname()
-
 	public static function rm(path="")
 	{
 		if(!path.good("rm")) return;
 		else if(!path.exists('rm: $path')) return;
-		else if(!FileSystem.fullPath(dirname(path)).startsWith(pwd()))
+		else if(!FileSystem.fullPath(path.dirname()).startsWith(pwd()))
 			throw "rm: Not permitted outside current directory!";
 
 		if(path.dir()){
@@ -142,13 +105,18 @@ class SH{
 		if(path != ""){
 			if(!path.dir('echo $path'))File.saveContent(path, msg + " ");
 		}else if(msg.good('echo $msg')){
-			if(verbose) Sys.print(msg);
-		}else if(verbose) Sys.print("\n");
+			if(AM.verbose>0) Sys.print(msg);
+		}else if(AM.verbose>0) Sys.println("");
 	}//echo()
+	
+	public static inline function print(msg="")
+	{ 
+		return echo(msg);
+	}// print()
 	
 	public static inline function compile(target:String,opt:Array<String>,compiler="haxe")
 	{
-		Tools.log('compile: $compiler $target $opt');
+		log('compile: $compiler $target $opt');
 	}// compile()
 	
 	public static inline function exec(cmd:String,args:Array<String>=null)
@@ -192,10 +160,10 @@ class SH{
 	public static inline function cat(path="")
 	{
 		var r = "";
-
-		if(path.exists("cat") && !path.dir('cat: $path')){
+		var s = 'cat: $path';
+		if(path.exists(s) && !path.dir(s)){
 			try r = File.getContent(path)
-			catch(m:Dynamic){Tools.log('cat: $path: ' + m);}
+			catch(m:Dynamic){Tools.log(s + " "+m);}
 		}
 		
 		return r;
@@ -234,6 +202,11 @@ class SH{
 	{
 		if(path.good('zip: $path'))echo('zip: $path $opt');
 	}// zip()
+	
+	public static inline function log(msg="")
+	{
+		Tools.log(msg);
+	}// log()
 	
 	public static function execute(script:String)
 	{

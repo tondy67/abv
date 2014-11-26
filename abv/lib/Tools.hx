@@ -1,5 +1,8 @@
 package abv.lib;
 
+
+using StringTools;
+
 /**
  * Tools
  **/
@@ -24,7 +27,7 @@ class Tools{
 		var r = false;
 		if(good(s,"utf8")){
 			r = haxe.Utf8.validate(s);
-			if(!r)log(msg + ": Not utf8"); 
+			if(!r)log(msg + "Not utf8"); 
 		}
 		return r;
 	}// utf8()
@@ -32,33 +35,48 @@ class Tools{
 	public static inline function good(s:Null<String>,msg="")
 	{ 
 		var r = true;
+		var v = msg == ""?false:true;
 
 		if(s == null){
-			log(msg + ": Null"); 
+			if(v)log(msg + ": Null"); 
 			r = false;
 		}else if(s == ""){
-			log(msg + ": Empty"); 
+			if(v)log(msg + ": Empty"); 
 			r = false;
 		}
 		
 		return r;
 	}// good()
 
+	public static inline function has(src:String,what:String,start=0)
+	{
+		var r = false; 
+
+		if(good(src,"has: src") && good(what,"has: what")){
+			var len = src.length;
+			start = Std.int(range(start,len-1,0)); 
+			var t = src.indexOf(what,start);
+			if((t >= 0)&&(t < len))r = true;
+		}
+		
+		return r;
+	}// has()
+
 	public static inline function num(f:Null<Float>,msg="")
 	{ 
 		var r = true;
 
 		if(f == null){
-			log(msg + ": Null value"); 
+			log(msg + "Null value"); 
 			r = false;
 		}else if(f == Math.NaN){
-			log(msg + ": NaN value"); 
+			log(msg + "NaN value"); 
 			r = false;
 		}else if(f == Math.NEGATIVE_INFINITY){
-			log(msg + ": NEGATIVE_INFINITY value"); 
+			log(msg + "NEGATIVE_INFINITY value"); 
 			r = false;
 		}else if(f == Math.POSITIVE_INFINITY){
-			log(msg + ": POSITIVE_INFINITY value"); 
+			log(msg + "POSITIVE_INFINITY value"); 
 			r = false;
 		}
 
@@ -85,7 +103,7 @@ class Tools{
 		var r = true;
 		
 		if(good(path,msg) && !sys.FileSystem.exists(path)){
-			log(msg + ": No such file or directory"); 
+			if(msg != "")log(msg + ": No such file or directory"); 
 			r = false;
 		}
 
@@ -102,9 +120,50 @@ class Tools{
 		return str.toLowerCase() == cmp.toLowerCase();
 	}// eq()
 
+	public static inline function dirname(path:String)
+	{
+		var sep = "/";
+		var r = ".";
+		var a = path.trim().split(sep); 
+		if(a.length > 1){
+			var last = a.pop();
+			if(!good(last))last = a.pop();
+			r = a.join(sep);
+		}
+		return r;
+	}// dirname()
+	
+	public static inline function basename(path:String)
+	{
+		var sep = "/";
+		var a = path.trim().split(sep); 
+		var last = a.pop();
+		if(!good(last))last = a.pop();
+		return last;
+	}// basename()
+	
+	public static function extname(path:String)
+	{
+		var r = "", sep = ".", name = basename(path); 
+		if(good(name,"ext")){
+			var a = name.split(sep); 
+			if(a.length > 1){
+				r = a.pop();
+				if(!good(r))r = a.pop();
+			}
+		}
+		return r;
+	}// extname()
+
+	public static inline function sort<T>(a:Array<T>, cmp:T->T->Int)
+	{
+		if((a != null)&&(cmp != null))haxe.ds.ArraySort.sort(a, cmp);
+	}// sort<T>()
+	
 	public static inline function log(msg="")
 	{
-		if((msg == null)||(msg == ""))msg = "" + (Sys.time() - start);
+		if((msg == null)||(msg == ""))msg = "> time: " + (Sys.time() - start);
+		else msg = "> "+msg;
 		logData.push(msg);
 	}// log()
 
@@ -116,7 +175,7 @@ class Tools{
 			if(good(logData[line],'getLog: $line'))r.push(logData[line]);
 		}else r = logData;
 
-		if(good(filter,'getLog: $filter')){
+		if(filter != ""){
 			var t:Array<String> = [];
 			for(l in logData)if(l.indexOf(filter) != -1)t.push(l);
 			r = t;

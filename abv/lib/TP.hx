@@ -16,6 +16,15 @@ class TP{
 		return r;
 	}// length()
 
+	public static inline function order(a:Array<String>,cmp:String->String->Int=null)
+	{
+		if(a != null){
+			if(cmp == null)
+				cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
+			Tools.sort(a, cmp);
+		}
+	}// sort()
+
 	public static inline function chr(code:Int)
 	{
 		var r = new Utf8();
@@ -111,16 +120,16 @@ class TP{
 		return r;
 	}// ltrim()
 
-	public static inline function isEof(c:Int)
+	public static inline function eof(c:Int)
 	{
 		return StringTools.isEof(c);
-	}//isEof()
+	}//eof()
 	
-	public static inline function isSpace(s:String, pos:Int)
+	public static inline function space(s:String, pos:Int)
 	{
 		var cur = length(s.substr(0,pos));
 		return StringTools.isSpace(s, cur);
-	}//isSpace()
+	}//space()
 	
 	public static inline function lpad(s:String, c:String, l:Int)
 	{
@@ -133,7 +142,7 @@ class TP{
 	}//rpad()
 	
 	public static inline function replace(s:String, sub:String, by:String)
-	{
+	{// todo: regex
 		var r = "";
 
 		if(s.good("replace")) r = StringTools.replace(s,sub,by);
@@ -141,18 +150,36 @@ class TP{
 		return r;
 	}// replace()
 
-	public static inline function find(src:String,what:String,pos=0,len=0)
+	public static inline function has(src:String,what:String,start=0)
 	{
+		return src.has(what,start);
+	}
+	public static inline function search(src:String,what:String,start=0)
+	{// todo: regex
+		var r = -1;
+
+		if(src.good("search: src") && what.good("search: what")){
+			var len = src.length;
+			start = Std.int(start.range(len-1,0));
+			var i = src.indexOf(what,start);
+			if((i >= 0)&&(i < len))r = length(src.substr(0,i));
+		}
+		
+		return r;
+	}// search()
+
+	public static inline function find(src:String,what:String,start=0,len=0)
+	{// todo: regex
 		var r:Array<Int> = [];
 
 		if(src.good("find: src") && what.good("find: what")){
 			var srclen = length(src);
 			if(len == 0)len = srclen;
-			pos = Std.int(pos.range(srclen,0));
-			len = Std.int(len.range(srclen-pos,0));
+			start = Std.int(start.range(srclen,0));
+			len = Std.int(len.range(srclen-start,0));
 
 			var cur = 0,i = 0;
-			var str = sub(src,pos,len); //trace(str.length);
+			var str = sub(src,start,len); //trace(str.length);
  
 			while(cur < str.length){ 
 				i = str.indexOf(what,cur); //trace(i+":"+cur+":"+str.length);
@@ -166,6 +193,18 @@ class TP{
 		
 		return r;
 	}// find()
+
+	public static inline function extract(src:String,open="[",close="]")
+	{	
+		var r:Array<String> = [];
+
+		if(src.good("extract: src") && open.good("extract: open") 
+		&& close.good("extract: close")){
+			// todo	
+		}
+		
+		return r;
+	}// extract()
 
 }// abv.lib.TP
 
