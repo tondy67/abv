@@ -1,19 +1,27 @@
-package abv.lib;
+package abv;
 
+import abv.AM;
+import abv.lib.Timer;
+import abv.lib.math.MT;
+import abv.sys.ST;
 
 using StringTools;
 
 /**
- * Tools
+ * Common Constants & Tools
+ * 
  **/
-class Tools{
+@:dce
+class CT{
+//--- constants
+	public static inline var AUTO:Int 		= -1;
+	public static inline var PI:Float 		= 3.141592653589793;
+// degree, radian
+	public static inline var DEG:Float 		= 0.01745329251;
+	public static inline var RAD:Float 		= 57.295779513;
 
 	static var logData:Array<String> = [];
-	static var start = Sys.time();
-
-	static function __init__()
-	{
-    }// __init__()
+	static var start = Timer.stamp();
 
 	public static inline function json(s:String)
 	{
@@ -32,29 +40,44 @@ class Tools{
 		return r;
 	}// utf8()
 
-	public static inline function good(s:Null<String>,msg="")
+	public static inline function fields(o:Dynamic)
+	{ 
+		var r:Array<String> = []; 
+		if(o != null){
+			switch(Type.typeof(o)){
+				case TObject: 
+					var t:Dynamic = null;
+					try t = Reflect.fields(o)catch(m:Dynamic){};
+					if(t != null)r = t;
+				default: trace("Only Anonymous structures!");
+			}
+		}
+		return r;
+	}// fields<T>()
+
+	public static inline function good(v:String,msg="")
 	{ 
 		var r = true;
-		var v = msg == ""?false:true;
-
-		if(s == null){
-			if(v)log(msg + ": Null"); 
+		var m = function(s){if(msg != "")log(s);}
+		
+		if(v == null){
+			m('$msg: Null String'); 
 			r = false;
-		}else if(s == ""){
-			if(v)log(msg + ": Empty"); 
+		}else if(v == ""){
+			m('$msg: Empty String');
 			r = false;
 		}
 		
 		return r;
 	}// good()
-
+	
 	public static inline function has(src:String,what:String,start=0)
 	{
 		var r = false; 
 
 		if(good(src,"has: src") && good(what,"has: what")){
 			var len = src.length;
-			start = Std.int(range(start,len-1,0)); 
+			start = Std.int(MT.range(start,len-1,0)); 
 			var t = src.indexOf(what,start);
 			if((t >= 0)&&(t < len))r = true;
 		}
@@ -62,59 +85,6 @@ class Tools{
 		return r;
 	}// has()
 
-	public static inline function num(f:Null<Float>,msg="")
-	{ 
-		var r = true;
-
-		if(f == null){
-			log(msg + "Null value"); 
-			r = false;
-		}else if(f == Math.NaN){
-			log(msg + "NaN value"); 
-			r = false;
-		}else if(f == Math.NEGATIVE_INFINITY){
-			log(msg + "NEGATIVE_INFINITY value"); 
-			r = false;
-		}else if(f == Math.POSITIVE_INFINITY){
-			log(msg + "POSITIVE_INFINITY value"); 
-			r = false;
-		}
-
-		return r;
-	}// num()
-
-	public static inline function range(f:Null<Float>,max:Float, min:Float=0)
-	{
-		if(num(f,"range")){
-			if(f >= max)f = max;
-			else if(f <= min)f = min; 
-		}else f = 0;
-		
-		return f;
-	}// range()
-	
-	public static inline function clear<T>(a:Array<T>)
-	{
-#if (cpp||php) a.splice(0,a.length); #else untyped a.length = 0; #end
-    }// clear()
-	
-	public static inline function exists(path:Null<String>,msg="")
-	{ 
-		var r = true;
-		
-		if(good(path,msg) && !sys.FileSystem.exists(path)){
-			if(msg != "")log(msg + ": No such file or directory"); 
-			r = false;
-		}
-
-		return r;
-	}// exists()
-
-	public static inline function dir(path:String,msg="")
-	{
-		return exists(path,msg) && sys.FileSystem.isDirectory(path);
-	}// dir()
-	
 	public static inline function eq(str:String,cmp:String)
 	{
 		return str.toLowerCase() == cmp.toLowerCase();
@@ -162,16 +132,20 @@ class Tools{
 	
 	public static inline function log(msg="")
 	{
-		if((msg == null)||(msg == ""))msg = "> time: " + (Sys.time() - start);
+		var d = Timer.stamp() - start;
+		var now = "now:", pnow = '> $now $d', err="err:",perr='> $err $d';
+		if((msg == null)||(msg == ""))msg = pnow;
+		else if(msg.startsWith(now))msg = pnow + msg.replace(now,":");
+		else if(msg.startsWith(err))msg = perr + msg.replace(err,":");
 		else msg = "> "+msg;
 		logData.push(msg);
 	}// log()
 
-	public static function getLog(line=0,filter="")
+	public static inline function getLog(line=0,filter="")
 	{
 		var r:Array<String> = [];
 
-		if(line == range(line,logData.length,1)){
+		if(line == MT.range(line,logData.length,1)){
 			if(good(logData[line],'getLog: $line'))r.push(logData[line]);
 		}else r = logData;
 
@@ -184,7 +158,32 @@ class Tools{
 		return r;
 	}// getLog()
 
-	
+///
+	public static inline function printLog()
+	{   
+		ST.printLog();
+	}// printLog()
 
-}// abv.lib.Tools
+	public static inline function clear<T>(a:Array<T>)
+	{
+		ST.clear(a);
+    }// clear()
+	
+	public static inline function exists(path:Null<String>,msg="")
+	{ 
+		return ST.exists(path,msg);
+	}// exists()
+
+	public static inline function dir(path:String,msg="")
+	{
+		return ST.dir(path,msg);
+	}// dir()
+	
+	public static inline function print(msg="",level=1)
+	{   
+		ST.print(msg,level);
+	}// print()
+
+
+}// abv.CT
 

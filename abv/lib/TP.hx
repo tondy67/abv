@@ -3,7 +3,8 @@ package abv.lib;
 import haxe.Utf8;
 import StringTools;
 
-using abv.lib.Tools;
+using abv.CT;
+using abv.lib.math.MT;
 
 /**
  * TextProcessing encapsulate haxe String,StringTools,Utf8
@@ -21,7 +22,7 @@ class TP{
 		if(a != null){
 			if(cmp == null)
 				cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-			Tools.sort(a, cmp);
+			CT.sort(a, cmp);
 		}
 	}// sort()
 
@@ -29,7 +30,7 @@ class TP{
 	{
 		var r = new Utf8();
 
-		if(code.num('chr'))r.addChar(code);
+		if(code.good('chr'))r.addChar(code);
 
 		return r+"";
 	}// chr()
@@ -39,19 +40,19 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic){Tools.log('ord: $char');}
+		catch(m:Dynamic){CT.log('ord: $char');}
 
 		return r;
 	}// chr()
 
-	public static inline function sub(s:String, pos:Int, len:Int)
+	public static inline function substr(s:String, pos:Int, len:Int)
 	{
 		var r = "", f = "encode";
 
-		if(s.good(f)&&pos.num(f)&&len.num(f))r = Utf8.sub(s, pos, len);
+		if(s.good(f)&&pos.good(f)&&len.good(f))r = Utf8.sub(s, pos, len);
 		
 		return r;
-	}// sub()
+	}// substr()
 
 	public static inline function encode(s:String)
 	{
@@ -116,7 +117,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic){Tools.log("hex: "+m);}
+		catch(m:Dynamic){CT.log("hex: "+m);}
 		return r;
 	}// ltrim()
 
@@ -179,7 +180,7 @@ class TP{
 			len = Std.int(len.range(srclen-start,0));
 
 			var cur = 0,i = 0;
-			var str = sub(src,start,len); //trace(str.length);
+			var str = substr(src,start,len); //trace(str.length);
  
 			while(cur < str.length){ 
 				i = str.indexOf(what,cur); //trace(i+":"+cur+":"+str.length);

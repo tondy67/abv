@@ -5,8 +5,9 @@ import sys.io.Process;
 import sys.io.File;
 
 import abv.AM;
+import abv.lib.Timer;
 
-using abv.lib.Tools;
+using abv.CT;
 using abv.lib.TP;
 
 /**
@@ -163,7 +164,7 @@ class SH{
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.dir(s)){
 			try r = File.getContent(path)
-			catch(m:Dynamic){Tools.log(s + " "+m);}
+			catch(m:Dynamic){CT.log(s + " "+m);}
 		}
 		
 		return r;
@@ -179,7 +180,7 @@ class SH{
 
 	public static inline function time()
 	{
-		return Sys.time();
+		return Timer.stamp();
 	}// time()
 
 	public static inline function uname()
@@ -205,7 +206,7 @@ class SH{
 	
 	public static inline function log(msg="")
 	{
-		Tools.log(msg);
+		CT.log(msg);
 	}// log()
 	
 	public static function execute(script:String)
@@ -223,7 +224,7 @@ class SH{
 			switch(c){
 				case "TP": ip.variables.set("TP",TP);
 				case "Math": ip.variables.set("Math",Math);
-				case "json": ip.variables.set("json",Tools.json);
+				case "json": ip.variables.set("json",CT.json);
 //
 				case "ls": ip.variables.set("ls",ls);
 				case "mkdir": ip.variables.set("mkdir",mkdir);

@@ -1,16 +1,15 @@
 package abv.sys.cpp;
 
-import haxe.Timer;
+import abv.lib.Timer;
 
-using abv.lib.Tools;
+using abv.CT;
 
 class AM {
 	
 	public static var verbose = 9;
 	
-	public var args(get,never):Array<String>;
-	var _args = [""];
-	function get_args(){return _args;}
+	static var _args:Array<String>;
+	static var _env:Map<String,String>;
 
 	var last = Timer.stamp();
 	var err = 0;
@@ -18,13 +17,12 @@ class AM {
 	
 	public function new(_config="")
 	{
-		_args = parseArgs(); 
-		
-		if(args.length == 0){ 
-			print(help());
+		args();
+		if(_args.length == 0){ 
+			help().print();
 			exit();
-		}else if(args[0].eq("help")){
-			print(help("help"));
+		}else if(_args[0].eq("help")){
+			help("help").print();
 			exit();
 		}else{
 			cfg = config(_config);
@@ -32,10 +30,17 @@ class AM {
 		}
  	}// new()
 
-	function parseArgs()
+	public static inline function args()      
 	{
-		return Sys.args();
-	}//parseArgs()
+		if(_args == null) _args = Sys.args();
+		return _args.copy();
+	}//args()
+	
+	public static inline function env()      
+	{
+		if(_env == null) _env = Sys.environment();
+		return _env;
+	}//env()
 	
 	function config(s:String) 
 	{
@@ -66,19 +71,6 @@ class AM {
 		Sys.exit(err);
 	}// exit()
 
-	function log(msg="")
-	{   
-		Tools.log(msg);
-	}// log()
-
-	function print(msg="",level=1)
-	{   
-		if(verbose >= level){
-			Sys.println(msg);
-			log(msg);
-		}
-	}// print()
-
 /**
  * AbstractMachine properties
  **/
@@ -90,7 +82,6 @@ class AM {
 		try os = Sys.systemName().toLowerCase() catch(m:Dynamic){} 
 		try home = Sys.getEnv("HOME") catch(m:Dynamic){}  
 
-		if(os == "mac")os = "osx";
 #if neko 
 		run = "neko";
 #elseif windows
