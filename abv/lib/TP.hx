@@ -24,7 +24,7 @@ class TP{
 				cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
 			CT.sort(a, cmp);
 		}
-	}// sort()
+	}// order()
 
 	public static inline function chr(code:Int)
 	{

@@ -1,4 +1,6 @@
 package abv.lib.math;
+
+import abv.CT;
 /**
  * MathTools
  **/
@@ -7,16 +9,15 @@ class MT{
 	public static inline function good(v:Null<Float>,msg="")
 	{ 
 		var r = true;
-		var m = function(s){if(msg != "")log(s);}
 
 		if(v == null){
-			m('$msg: Null number'); 
+			log("Null number",msg); 
 			r = false;
 		}else if(Math.isNaN(v)){
-			m('$msg: NaN number'); 
+			log("NaN number",msg); 
 			r = false;
 		}else if(!Math.isFinite(v)){
-			m('$msg: Not number'); 
+			log("Not number",msg); 
 			r = false;
 		}
 
@@ -33,7 +34,12 @@ class MT{
 		return f;
 	}// range()
 
-	static inline function log(msg=""){CT.log(msg);}
+	static inline function log(s="",msg="")
+	{
+		if(msg != "") msg += ": ";
+		if(s != "") CT.log('$msg $s');
+	}// log()
+
 
 }// abv.lib.math.MT
 

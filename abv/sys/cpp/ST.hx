@@ -2,6 +2,8 @@ package abv.sys.cpp;
 
 import abv.CT;
 import sys.FileSystem;
+
+using StringTools;
 /**
  * SystemTools
  **/
@@ -9,8 +11,15 @@ class ST{
 
 	public static inline function printLog()
 	{   
-		if(AM.verbose > 0){
-			for(m in CT.getLog())Sys.println(m);
+		var rst = "\x1b[0m";
+		var line = "\x1b[33;1m>" + rst;
+		var bold = "\x1b[1m";
+		var red = "\x1b[31;1m"; 
+
+		for(m in CT.getLog()){
+			m = m.replace("now:",bold+"now:"+rst);
+			m = m.replace("err:",red+"err:"+rst);
+			Sys.println('$line $m $rst');
 		}
 	}// printLog()
 

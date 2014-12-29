@@ -7,10 +7,13 @@ using abv.CT;
 class AM {
 	
 	public static var verbose = 9;
+	public static var useArgs = true;
 	
 	static var _args:Array<String>;
 	static var _env:Map<String,String>;
 
+    var updateTime:Float 	= 0;
+    var exitTime:Float 		= 0;
 	var last = Timer.stamp();
 	var err = 0;
 	var cfg:Map<String,String>;
@@ -18,11 +21,13 @@ class AM {
 	public function new(_config="")
 	{
 		args();
-		if(_args.length == 0){ 
-			help().print();
+
+		if(!useArgs){}
+		else if(_args.length == 0){ 
+			print(help());
 			exit();
 		}else if(_args[0].eq("help")){
-			help("help").print();
+			print(help("help"));
 			exit();
 		}else{
 			cfg = config(_config);
@@ -53,7 +58,7 @@ class AM {
 	{
 	}// init()
 	
-	function update(delta:Float)
+	function update(delta:Null<Float> = null)
 	{   
 	}// update()
 
@@ -66,10 +71,21 @@ class AM {
 		return r;
 	}// help()
 
+	function sleep(seconds:Float)
+	{
+		Sys.sleep(seconds);
+	}// sleep()
+
 	function exit()
 	{
 		Sys.exit(err);
 	}// exit()
+
+	function print(msg="",level=1)
+	{
+		CT.print(msg,level);
+	}// print()
+
 
 /**
  * AbstractMachine properties

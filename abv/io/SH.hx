@@ -19,7 +19,7 @@ class SH{
 	static var files = new List<String>();
 	static var platform = "";
 
-	public static function ln(path:String,link:String,opt="s")
+	public static function ln(path:Null<String>,link:String,opt="s")
 	{
 		log('ln: $path $link $opt');
 	}// ln()
@@ -39,7 +39,7 @@ class SH{
 		return r;
 	}// ls()
 	
-	public static function ls_R(path:String)
+	public static function ls_R(path:Null<String>)
 	{
 		var c = ""; 
 		var f:Array<String> = path.dir('ls_R: $path')?FileSystem.readDirectory(path):[];
@@ -76,7 +76,7 @@ class SH{
 		}else if(path.exists('rm: $path'))FileSystem.deleteFile(path);
 	}// rm()
 	
-	public static inline function mkdir(path:String,opt="p")
+	public static inline function mkdir(path:Null<String>,opt="p")
 	{
 		if(path.good("mkdir") && !path.dir('mkdir: $path')) 
 			FileSystem.createDirectory(path);
@@ -112,12 +112,12 @@ class SH{
 	
 	public static inline function print(msg="")
 	{ 
-		return echo(msg);
+		echo(msg + "\n");
 	}// print()
 	
 	public static inline function compile(target:String,opt:Array<String>,compiler="haxe")
 	{
-		log('compile: $compiler $target $opt');
+		log('compile: $compiler $target ${opt}');
 	}// compile()
 	
 	public static inline function exec(cmd:String,args:Array<String>=null)
@@ -158,9 +158,9 @@ class SH{
 		return p;
 	}//shell()
 
-	public static inline function cat(path="")
+	public static inline function cat(path:Null<String>)
 	{
-		var r = "";
+		var r:Null<String> = "";
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.dir(s)){
 			try r = File.getContent(path)
@@ -194,12 +194,12 @@ class SH{
 		return Sys.getCwd();
 	}// pwd()
 	
-	public static inline function cd(path:String)
+	public static inline function cd(path:Null<String>)
 	{
 		if(path.dir('cd: $path'))Sys.setCwd(path);
 	}// cd()
 	
-	public static inline function zip(path:String,file:String,opt="r")
+	public static inline function zip(path:Null<String>,file:String,opt="r")
 	{
 		if(path.good('zip: $path'))echo('zip: $path $opt');
 	}// zip()
@@ -211,9 +211,9 @@ class SH{
 	
 	public static function execute(script:String)
 	{
-		var cmd = ["TP","json","Math","ls","mkdir","rm","pwd","cd","mv","cp","echo","clear",
-		"compile","read","exec","export","ds","cat","shell",
-		"date","time","uname","ln","zip"];
+		var cmd = ["ds","TP","Math","json","good","fields","ls","mkdir","rm","pwd","cd",
+		"mv","cp","echo","print","clear","compile","read","exec","export",
+		"cat","shell","date","time","uname","ln","zip"];
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
@@ -222,9 +222,13 @@ class SH{
 		for(c in cmd){ //trace(c);
 			if(ip.variables.get(c) != null)continue; 
 			switch(c){
+				case "ds": ip.variables.set("ds",ds);
+//
 				case "TP": ip.variables.set("TP",TP);
 				case "Math": ip.variables.set("Math",Math);
 				case "json": ip.variables.set("json",CT.json);
+				case "good": ip.variables.set("good",good);
+				case "fields": ip.variables.set("fields",CT.fields);
 //
 				case "ls": ip.variables.set("ls",ls);
 				case "mkdir": ip.variables.set("mkdir",mkdir);
@@ -234,12 +238,12 @@ class SH{
 				case "mv": ip.variables.set("mv",mv);
 				case "cp": ip.variables.set("cp",cp);
 				case "echo": ip.variables.set("echo",echo);
+				case "print": ip.variables.set("print",print);
 				case "clear": ip.variables.set("clear",clear);
 				case "compile": ip.variables.set("compile",compile);
 				case "read": ip.variables.set("read",read);
 				case "exec": ip.variables.set("exec",exec);
 				case "export": ip.variables.set("export",export);
-				case "ds": ip.variables.set("ds",ds);
 				case "cat": ip.variables.set("cat",cat);
 				case "shell": ip.variables.set("shell",shell);
 				case "date": ip.variables.set("date",date);
@@ -254,6 +258,12 @@ class SH{
 //		var f = ip.variables.get("update"); 
 //		if(f != null)f();
 	}// execute() 
+
+	public static function good(v:Dynamic)
+	{
+		return Reflect.isObject(v);
+	}// good()
+	
 
 }// abv.io.SH
 
