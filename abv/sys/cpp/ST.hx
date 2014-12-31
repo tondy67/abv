@@ -40,6 +40,15 @@ class ST{
 		return r;
 	}// exists()
 
+	public static inline function getDir(path:String,msg="")
+	{
+		var a:Array<String> = [];
+		
+		if(dir(path,msg))a = FileSystem.readDirectory(path);
+		
+		return a;
+	}// getDir()
+	
 	public static inline function dir(path:String,msg="")
 	{
 		return exists(path,msg) && FileSystem.isDirectory(path);

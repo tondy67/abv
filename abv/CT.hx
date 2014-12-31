@@ -87,6 +87,16 @@ class CT{
 		return r;
 	}// fields()
 
+	public static inline function splitt(v:String,sep=",")
+	{ 
+		var a:Array<String> = [];
+		if(good(v,"splitt")){
+			a = v.split(sep);
+			for(i in 0...a.length)a[i] = a[i].trim();
+		}
+		return a;
+	}// splitt()
+	
 	public static inline function good(v:String,msg="")
 	{ 
 		var r = true;
@@ -135,13 +145,19 @@ class CT{
 		return r;
 	}// dirname()
 	
-	public static inline function basename(path:Null<String>)
+	public static inline function basename(path:Null<String>,ext=true)
 	{
+		var r = "";
 		var sep = "/";
 		var a = path.trim().split(sep); 
-		var last = a.pop();
-		if(!good(last))last = a.pop();
-		return last;
+		r = a.pop();
+		if(!good(r))r = a.pop();
+		if(!ext){
+			var t = r.split(".");
+			r = t[0];
+		}
+		
+		return r;
 	}// basename()
 	
 	public static function extname(path:Null<String>)
@@ -217,6 +233,11 @@ class CT{
 		return ST.exists(path,msg);
 	}// exists()
 
+	public static inline function getDir(path:String,msg="")
+	{
+		return ST.getDir(path,msg);
+	}// getDir()
+	
 	public static inline function dir(path:Null<String>,msg="")
 	{
 		return ST.dir(path,msg);

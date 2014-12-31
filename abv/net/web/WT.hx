@@ -2,19 +2,19 @@ package abv.net.web;
 /**
  * WebTools
  **/
+import sys.FileSystem;
+import abv.net.web.Icons;
+
 using StringTools;
 using abv.CT;
  
 typedef Srv = abv.net.web.WebServer;
-typedef FS = sys.FileSystem;
-typedef FL = sys.io.File;
 
 class WT{
 
 	public static var tz = CT.timezone();
 	public static var dow = CT.dow();
 	public static var month = CT.month();
-	public static var icons = "img";
 
 	public static var methods = ["GET","POST","HEAD"];
 	public static var versions = ["HTTP/1.0","HTTP/1.1"];
@@ -174,7 +174,7 @@ class WT{
 		}
 		var code = ctx["status"] + " " + responseCode[ctx["status"]];
 		if(ctx["title"] == "")ctx["title"] = code;
-		if(ctx["body"] == "")ctx["body"] = '${ctx["query"]} <hr><address>${Srv.sign}</address>';
+		if(ctx["body"] == "")ctx["body"] = '<h2>$code</h2>${ctx["query"]} <hr><address>${Srv.sign}</address>';
 		var r = "";
 
 		if(ctx["status"] == "303"){
@@ -218,33 +218,58 @@ Keep-Alive: timeout=5' + "\r\n\r\n" + body;
 		return r;
 	}// getDate()
 
-	public static function getDir(path=".",prefix="/?dir=")
+	public static function dirIndex(path=".",prefix="/fs/")
 	{
 		var r = "",ext = "",type = "";
 		if(!path.good())path=".";
-		if(!FS.exists(path))return r;
+		if(!FileSystem.exists(path))return r;
 		var f = "";
-		var a = FS.readDirectory(path);	
+		var a = FileSystem.readDirectory(path);	
 		var dirs:Array<String> = [];
 		var files:Array<String> = [];
 		for(p in a){
-			if(FS.isDirectory(path+"/"+p))dirs.push(p);else files.push(p);
+			if(FileSystem.isDirectory(path+"/"+p))dirs.push(p);else files.push(p);
 		}
 		dirs.sortAZ();
 		dirs.unshift("..");
 		files.sortAZ();
 		for(p in dirs){
 			f = p == ".."?path.dirname():path+"/"+p;
-			r += '<img src="$icons/dir.png" alt="dir.png" width="16" height="16" /> <a href="$prefix$f">$p/</a><br>';
+			r += '<img src="${Icons.p}dir.png" alt="dir.png" width="16" height="16" /> <a href="$prefix$f">$p/</a><br>';
 		}
 		for(p in files){
 			type = ext2type(p.extname());
-			r += '<img src="$icons/$type.png" alt="$type.png" width="16" height="16" /> $p<br>';
+			r += '<img src="${Icons.p}$type.png" alt="$type.png" width="16" height="16" /> $p<br>';
 		}
 		
 		return r;	
-	}// getDir()
+	}// dirIndex()
 
+	public static inline function getIcon(n:String)
+	{
+		var r = "";
+		switch(n){
+			case "bin": r = Icons.bin;
+			case "cpp": r = Icons.cpp;
+			case "dir": r = Icons.dir;
+			case "favicon": r = Icons.favicon;
+			case "h": r = Icons.h;
+			case "htm": r = Icons.htm;
+			case "hx": r = Icons.hx;
+			case "img": r = Icons.img;
+			case "mp3": r = Icons.mp3;
+			case "mp4": r = Icons.mp4;
+			case "non": r = Icons.non;
+			case "pdf": r = Icons.pdf;
+			case "scr": r = Icons.scr;
+			case "txt": r = Icons.txt;
+			case "zip": r = Icons.zip;
+			default: r = Icons.non;
+		}
+		
+		return haxe.crypto.Base64.decode(r)+"";
+	}// getIcon()
+	
 	public static function ext2type(ext:String)
 	{
  	         
