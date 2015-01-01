@@ -12,17 +12,16 @@ class WebClient{
 
 	public function new()
 	{
+		var url = "http://localhost:5000/path/to/index.hxs?n=hako&v=1";
 		var req = 
-'GET /?ttt=ddd HTTP/1.1
-Host: localhost:5000
-Connection: keep-alive
-Accept: text/html
-User-Agent: Hako
-Accept-Language: en-US,en';
-		req = req + "\r\n\r\n";
+'GET $url HTTP/1.1' + "\r\n" +
+"Connection: keep-alive\r\n" +
+"Accept: text/html\r\n" +
+"User-Agent: Hako\r\n" +
+"Accept-Language: en-US,en\r\n" + "\r\n";
 		
 		
-		Sys.println("open");
+		Sys.println("open: "+url);
 		var sock = new Socket();
 		sock.connect(new Host("localhost"), 5000);
 		var t = haxe.Timer.stamp();

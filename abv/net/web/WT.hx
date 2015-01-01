@@ -4,11 +4,11 @@ package abv.net.web;
  **/
 import sys.FileSystem;
 import abv.net.web.Icons;
+import abv.net.web.WebServer;
 
 using StringTools;
 using abv.CT;
  
-typedef Srv = abv.net.web.WebServer;
 
 class WT{
 
@@ -121,89 +121,127 @@ class WT{
 	public static var extMp4 = ["mp4","avi","flv","mov","webm"];
 	public static var extVar = ["cpp","h","hx","pdf"];  
 
+	public static inline function parseURI(s:String)
+	{
+		s = s.trim();
+		var a:Array<String>;
+		var r = [
+			"protocol" => "",
+			"host" => "",
+			"port" => "80",
+			"request" => "",
+			"path" => "",
+			"query" => ""];
+
+		if(s.indexOf("://") != -1){
+			a = s.splitt("://");
+			r["protocol"] = a[0];
+			a = a[1].splitt("/");
+			var t = a.shift().splitt(":");
+			r["host"] = t[0];
+			if(t[1].good())r["port"] = t[1]; 
+			s = "/" + a.join("/");
+		}
+		r["request"] = s;
+		a = r["request"].splitt("?");
+		r["path"] = a[0];
+		if(a[1].good())r["query"] = a[1];
+		
+		return r;
+	}// parseURI()
+	
 	public static function parseRequest(s:String)
 	{
-		var f = "";
-		var r = ["status" => "400"];
-		var lines = s.trim().split("\n");
+		var r = [
+			"status" => "400", "protocol" => "","version" => "",
+			"host" => "", "port" => "",	"request" => "", "path" => "",
+			"query" => "", "body" => "", "title" => "", "length" => "",
+			"etag" => "", "mime" => "html"			
+			];
+		var lines = s.trim().splitt("\n");
 
 		if(!lines[0].good()) return r;
-		r.set("request",lines[0].trim());
-		var t = r["request"].split(" ");
+		 
+		var t = lines[0].splitt(" ");
 		if(t.length != 3)return r;
-		if(t[0].good())r.set("method",t[0].trim());
+		r["method"] = t[0];
 		if(methods.indexOf(r["method"]) == -1){
 			r["status"] = "501";
 			return r;
 		}
-		if(t[1].good())r.set("query",t[1].trim());
-		if(t[2].good())r.set("version",t[2].trim());
+ 
+		var uri = parseURI(t[1]); 
+		for(k in uri.keys())r[k] = uri[k];
+ 
+		if(t[2].good())r["version"] = t[2].trim();
 		if(versions.indexOf(r["version"]) == -1){
 			r["status"] = "505";
 			return r;
 		}
 		
-		if(lines[1].good()){
-			t = lines[1].trim().split(":"); 
-			if(t[0] == "Host"){
-				if(t[1].good())r.set("host",t[1].trim());
-				if(t[2].good())r.set("port",t[2].trim());
-			}else if(r["version"] == "HTTP/1.1")return r;
-		} else return r;
-		
-		r["status"] = "200";
-		for(i in 2...lines.length){
-			t = lines[i].trim().split(":");
+		var f = "";
+		for(i in 1...lines.length){
+			t = lines[i].splitt(":");
 			f = t.shift();
-			if(f.good())r.set(f,t.join(":").trim());
+			if(f.good())r[f] = t.join(":");
 		}
-		r.set("body","");
-		r.set("title","");
-		r.set("length","");
-		r.set("type","html");
-
+		if(!r["host"].good() && (r["version"] == "HTTP/1.1")){
+			if(r.exists("Host")){
+				t = r["Host"].splitt(":");
+				r["host"] = t[0];
+				if(t[1].good())r["port"] = t[1];
+			}else return r;
+		}
+		r["status"] = "200";
 		return r;
 	}// parseRequest()
 	
 	public static inline function response(ctx:Map<String,String>)
 	{
 		var date = getDate();
+		var body = "";
 		if(!responseCode.exists(ctx["status"]))ctx["status"] = "500";
 		if(ctx["status"] != "200"){
 			ctx["body"] = ctx["title"] = "";
 		}
 		var code = ctx["status"] + " " + responseCode[ctx["status"]];
 		if(ctx["title"] == "")ctx["title"] = code;
-		if(ctx["body"] == "")ctx["body"] = '<h2>$code</h2>${ctx["query"]} <hr><address>${Srv.sign}</address>';
-		var r = "";
+		if((ctx["body"] == "")&&(ctx["method"] == "GET"))
+			ctx["body"] = '<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.sign}</center>';
 
-		if(ctx["status"] == "303"){
+		var r = "HTTP/1.1 " + code + "\r\n";
+		
+		if(ctx["status"] == "304"){
+			r += "\r\n\r\n";
+		}else if(ctx["status"] == "303"){
 			var port = ctx.exists("port")?":"+ctx["port"]:"";
-			r = 
-'HTTP/1.1 $code
-Location: http://${ctx["host"]}$port${ctx["query"]}' +  "\r\n\r\n";
+			r += "Location: http://" + ctx["host"] + port + ctx["path"] + "\r\n\r\n";
+		}else if(ctx["status"] == "401"){
+			r += 'WWW-Authenticate: Basic realm="${WebServer.sign}"' + "Content-Length: 0\r\n" + "\r\n\r\n";
 		}else{
-			var body = ctx["type"] == "html" ? 
+			body = ctx["mime"] == "html" ? 
 '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html>
 <head>
  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
- <title> ${ctx["title"]} </title>
+ <title>${ctx["title"]}</title>
 </head>
-<body>
+<body bgcolor="white">
  ${ctx["body"]}
 </body>
 </html>':ctx["body"];
 			ctx["length"] = body.length +"";
-			r = 
-'HTTP/1.1 $code
-Content-Type: ${mimeType[ctx["type"]]}
-Content-Length: ${ctx["length"]} 
-Date: $date
-Server: ${Srv.sign}
-Connection: Keep-Alive
-Keep-Alive: timeout=5' + "\r\n\r\n" + body;
+			if(ctx["method"] == "HEAD")body = "";
+			if(ctx["etag"].good())ctx["etag"] += "\r\n";
+			r += 
+"Content-Type: " + mimeType[ctx["mime"]] + "\r\n" +
+"Content-Length: " + ctx["length"] + "\r\n" ;
 		}
+
+			r += 
+"Date: " + date + "\r\n" + ctx["etag"] +
+"Server: " + WebServer.sign + "\r\n" +
+"Connection: Keep-Alive\r\n" + "\r\n" + body;
 
 		return r;
 	}// response()

@@ -1,5 +1,6 @@
 package abv.net.web;
 
+import haxe.crypto.Md5;
 import haxe.io.Bytes;
 import sys.net.Socket;
 import sys.io.File;
@@ -23,6 +24,8 @@ class WebServer extends ThreadServer<Client, Message>{
 	var port = 5000;
 	var root = ".";
 	var fs = "/fs/";
+	var auth = "";
+	var login = "/login/";
 	var index = ["index.html"];	
 	var name = "Hako";
 	var version = "0.1.0";
@@ -34,6 +37,8 @@ class WebServer extends ThreadServer<Client, Message>{
 		if(cfg.exists("port"))port = Std.parseInt(cfg["port"]);
 		if(cfg.exists("root"))root = cfg["root"];
 		if(cfg.exists("fs"))fs = cfg["fs"];
+		if(cfg.exists("auth"))auth = cfg["auth"];
+		if(cfg.exists("login"))login = cfg["login"];
 		if(cfg.exists("index"))index = cfg["index"].splitt();
 		if(cfg.exists("threads"))nthreads = Std.parseInt(cfg["threads"]);
 		if(cfg.exists("name"))name = cfg["name"];
@@ -79,8 +84,10 @@ class WebServer extends ThreadServer<Client, Message>{
 			var ctx = WT.parseRequest(c.request); 
  
 			if(ctx["status"] == "200"){
-				if(ctx["query"].startsWith(fs)){ 
-					p = ctx["query"].substr(fs.length); //trace(p +":"+Sys.getCwd());
+				if(ctx.exists("If-None-Match")){ 
+					if(ctx["If-None-Match"] == etag(ctx["request"])) ctx["status"] = "304";
+				}else if(ctx["request"].startsWith(fs)){ 
+					p = ctx["request"].substr(fs.length); //trace(p +":"+Sys.getCwd());
 					if(!p.good())p = ".";
 					if(FileSystem.exists(p)){
 						if(FileSystem.isDirectory(p)){
@@ -88,17 +95,23 @@ class WebServer extends ThreadServer<Client, Message>{
 							if(f.good())ctx["body"] = File.getContent('$p/$f');
 							else ctx["body"] = '<p><a href="/">Home</a></p>'+WT.dirIndex(p,fs);
 						}else{ 
-							ctx["type"] = p.extname();
+							ctx["mime"] = p.extname();
 							ctx["body"] = File.getContent(p);
+							ctx["etag"] = "ETag: "+etag(ctx["request"]);
 						}
 					}else ctx["status"] = "404";
-				}else if(ctx["query"].startsWith(Icons.p)){ 
-					p = ctx["query"].substr(Icons.p.length); 
-					ctx["type"] = WT.mimeType["png"];
+				}else if(ctx["request"].startsWith(Icons.p)){ 
+					p = ctx["request"].substr(Icons.p.length); 
+					ctx["mime"] = "png";
 					ctx["body"] = WT.getIcon(p.basename(false));
-				}else if(ctx["query"] == "/favicon.ico"){
-					ctx["type"] = WT.mimeType["ico"];
+					ctx["etag"] = "ETag: "+etag(ctx["request"]);
+				}else if(ctx["request"] == "/favicon.ico"){
+					ctx["mime"] = "ico";
 					ctx["body"] = WT.getIcon("favicon");
+					ctx["etag"] = "ETag: "+etag(ctx["request"]);
+				}else if(ctx["request"].startsWith(login)){
+					if(ctx.exists("Authorization")&&(ctx["Authorization"] == auth))app(ctx); 
+					else ctx["status"] = "401";
 				}else app(ctx);
 			}
 
@@ -109,7 +122,12 @@ class WebServer extends ThreadServer<Client, Message>{
 			c.request += s; 
 		}
 	}// clientMessage()
-
+	
+	function etag(s:String)
+	{
+		return '"${Md5.encode(s.substr(0,1000))}"';
+	}// etag()
+	
 	function getIndex(path:String)
 	{
 		var r = "";
@@ -127,7 +145,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	
 	public dynamic function app(ctx:Map<String,String>)
 	{
-		ctx["body"] = Date.now() + '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/fs">FS</a></p><p><a href="/exit">Exit</a></p>';
+		ctx["body"] = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/fs">FS</a></p><p><a href="/exit">Exit</a></p>';
 
 //		return WT.response(ctx);
 	}// app();
