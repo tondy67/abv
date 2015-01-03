@@ -19,55 +19,59 @@ class WT{
 	public static var methods = ["GET","POST","HEAD"];
 	public static var versions = ["HTTP/1.0","HTTP/1.1"];
 	public static var mimeType = [
-			"html" =>  "text/html",
-			"htm" =>   "text/html",
-			"shtm" =>  "text/html",
-			"shtml" => "text/html",
-			"css" =>   "text/css",
-			"js" =>    "application/x-javascript",
-			"ico" =>   "image/x-icon",
-			"gif" =>   "image/gif",
-			"jpg" =>   "image/jpeg",
-			"jpeg" =>  "image/jpeg",
-			"png" =>   "image/png",
-			"svg" =>   "image/svg+xml",
-			"txt" =>   "text/plain",
-			"torrent"=>"application/x-bittorrent",
-			"wav" =>   "audio/x-wav",
-			"mp3" =>   "audio/x-mp3",
-			"mid" =>   "audio/mid",
-			"m3u" =>   "audio/x-mpegurl",
-			"ogg" =>   "audio/ogg",
-			"ram" =>   "audio/x-pn-realaudio",
-			"xml" =>   "text/xml",
-			"json" =>  "text/json",
-			"xslt" =>  "application/xml",
-			"xsl" =>   "application/xml",
-			"ra" =>    "audio/x-pn-realaudio",
-			"doc" =>   "application/msword",
-			"exe" =>   "application/octet-stream",
-			"zip" =>   "application/x-zip-compressed",
-			"xls" =>   "application/excel",
-			"tgz" =>   "application/x-tar-gz",
-			"tar" =>   "application/x-tar",
-			"gz" =>    "application/x-gunzip",
-			"arj" =>   "application/x-arj-compressed",
-			"rar" =>   "application/x-arj-compressed",
-			"rtf" =>   "application/rtf",
-			"pdf" =>   "application/pdf",
-			"swf" =>   "application/x-shockwave-flash",
-			"mpg" =>   "video/mpeg",
-			"webm" =>  "video/webm",
-			"mpeg" =>  "video/mpeg",
-			"mov" =>   "video/quicktime",
-			"mp4" =>   "video/mp4",
-			"m4v" =>   "video/x-m4v",
-			"asf" =>   "video/x-ms-asf",
-			"avi" =>   "video/x-msvideo",
-			"bmp" =>   "image/bmp",
-			"hx" =>    "text/plain",
-			"n" =>     "application/octet-stream",
-			"ttf" =>   "application/x-font-ttf"];
+			"html" 		=> "text/html",
+			"htm" 		=> "text/html",
+			"shtm" 		=> "text/html",
+			"shtml" 	=> "text/html",
+			"css" 		=> "text/css",
+			"js" 		=> "application/x-javascript",
+			"ico" 		=> "image/x-icon",
+			"gif" 		=> "image/gif",
+			"jpg" 		=> "image/jpeg",
+			"jpeg" 		=> "image/jpeg",
+			"png" 		=> "image/png",
+			"svg" 		=> "image/svg+xml",
+			"txt" 		=> "text/plain",
+			"torrent"	=>"application/x-bittorrent",
+			"wav" 		=> "audio/x-wav",
+			"mp3" 		=> "audio/x-mp3",
+			"mid" 		=> "audio/mid",
+			"m3u" 		=> "audio/x-mpegurl",
+			"ogg" 		=> "audio/ogg",
+			"ram" 		=> "audio/x-pn-realaudio",
+			"xml" 		=> "text/xml",
+			"json" 		=> "text/json",
+			"xslt" 		=> "application/xml",
+			"xsl" 		=> "application/xml",
+			"ra" 		=> "audio/x-pn-realaudio",
+			"doc" 		=> "application/msword",
+			"exe" 		=> "application/octet-stream",
+			"zip" 		=> "application/x-zip-compressed",
+			"xls" 		=> "application/excel",
+			"tgz" 		=> "application/x-tar-gz",
+			"tar" 		=> "application/x-tar",
+			"gz" 		=> "application/x-gunzip",
+			"arj" 		=> "application/x-arj-compressed",
+			"rar" 		=> "application/x-arj-compressed",
+			"rtf" 		=> "application/rtf",
+			"pdf" 		=> "application/pdf",
+			"swf" 		=> "application/x-shockwave-flash",
+			"mpg" 		=> "video/mpeg",
+			"webm" 		=> "video/webm",
+			"mpeg" 		=> "video/mpeg",
+			"mov" 		=> "video/quicktime",
+			"mp4" 		=> "video/mp4",
+			"m4v" 		=> "video/x-m4v",
+			"asf" 		=> "video/x-ms-asf",
+			"avi" 		=> "video/x-msvideo",
+			"bmp" 		=> "image/bmp",
+			"hx" 		=> "text/plain",
+			"n" 		=> "application/octet-stream",
+			"ttf" 		=> "application/x-font-ttf",
+			"post-url" 	=> "application/x-www-form-urlencoded",
+			"post-dat" 	=> "multipart/form-data",
+			"post-mix" 	=> "multipart/mixed",
+			];
 
 	public static var responseCode = [
 			"100" => "Continue",
@@ -125,13 +129,8 @@ class WT{
 	{
 		s = s.trim();
 		var a:Array<String>;
-		var r = [
-			"protocol" => "",
-			"host" => "",
-			"port" => "80",
-			"request" => "",
-			"path" => "",
-			"query" => ""];
+		var r = ["protocol" => "","host" => "","port" => "",
+			"request" => "","path" => "","query" => ""];
 
 		if(s.indexOf("://") != -1){
 			a = s.splitt("://");
@@ -150,14 +149,75 @@ class WT{
 		return r;
 	}// parseURI()
 	
-	public static function parseRequest(s:String)
+	public static function parseQuery(s:String)
 	{
+		var r = new Map<String,Array<String>>();
+		var t:Array<String>;
+		
+		if(s.good()){
+			var lines = s.trim().splitt("&");
+			for(l in lines){
+				t = l.splitt("=");
+				if(t[0].good()){
+					r.set(t[0],[]);
+					if(t[1].good())r[t[0]][0] = t[1].urlDecode();
+				}
+			}
+		}
+		r.set("mimeType",[mimeType["post-url"]]);
+				
+		return r;
+	}// parseQuery()
+	
+	public static function parsePostData(ctx:Map<String,String>)
+	{
+		var r = new Map<String,Array<String>>();
+		var a = [""],t = [""],p = [""];
+		var n = "",f = "",c = "",m = "";
+		var b = "--" + ctx["boundary"];
+		var lines = ctx["body"].splitt(b); 
+		for(l in lines){ 
+			if(l.startsWith("Content-Disposition")){
+				n = f = c = m = "";
+				a = l.splitt("\r\n\r\n");
+				if(a[1].good())c = a[1];
+				t = a[0].splitt("\r\n");
+				if(t[1].good() && t[1].startsWith("Content-Type:")){
+					m = t[1].replace("Content-Type:"," ").trim();
+				}
+				
+				p = t[0].splitt(";");
+				if(p[2].good()){
+					f = p[2].replace("filename="," ").trim();
+					f = f.replace('"'," ").trim();
+				}
+
+				n = p[1].replace("name="," ").trim();
+				n = n.replace('"'," ").trim();
+				if(n.good()){
+					r.set(n,[]);
+					if(c.good()){
+						r[n][0] = c;
+						if(f.good())r[n][1] = f;
+						if(m.good())r[n][2] = m;
+					}
+				}
+				
+//			trace(m);
+			}
+		}
+		r.set("mimeType",[mimeType["post-dat"]]);
+		
+		return r;
+	}// parsePostData()
+	
+	public static function parseRequest(s:String)
+	{ // todo: websockets
 		var r = [
 			"status" => "400", "protocol" => "","version" => "",
 			"host" => "", "port" => "",	"request" => "", "path" => "",
-			"query" => "", "body" => "", "title" => "", "length" => "",
-			"etag" => "", "mime" => "html"			
-			];
+			"query" => "", "body" => "", "title" => "", "length" => "0",
+			"etag" => "", "mime" => "", "Content-Type" => "", "boundary" => ""];
 		var lines = s.trim().splitt("\n");
 
 		if(!lines[0].good()) return r;
@@ -185,6 +245,13 @@ class WT{
 			f = t.shift();
 			if(f.good())r[f] = t.join(":");
 		}
+
+		if(r["Content-Type"].good() && r["Content-Type"].startsWith("multipart")){
+			t = r["Content-Type"].splitt(";");
+			r["Content-Type"] = t[0];
+			if(t[1].good())r["boundary"] = t[1].replace("boundary="," ").trim();
+		}
+
 		if(!r["host"].good() && (r["version"] == "HTTP/1.1")){
 			if(r.exists("Host")){
 				t = r["Host"].splitt(":");
@@ -200,49 +267,46 @@ class WT{
 	{
 		var date = getDate();
 		var body = "";
+
 		if(!responseCode.exists(ctx["status"]))ctx["status"] = "500";
-		if(ctx["status"] != "200"){
-			ctx["body"] = ctx["title"] = "";
-		}
 		var code = ctx["status"] + " " + responseCode[ctx["status"]];
-		if(ctx["title"] == "")ctx["title"] = code;
-		if((ctx["body"] == "")&&(ctx["method"] == "GET"))
+		var r = "HTTP/1.1 " + code + "\r\n";
+
+		if(ctx["status"] != "200"){
+			ctx["body"] = "";
+			ctx["title"] = code;
+		}
+		if(!ctx["body"].good())
 			ctx["body"] = '<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.sign}</center>';
 
-		var r = "HTTP/1.1 " + code + "\r\n";
-		
 		if(ctx["status"] == "304"){
-			r += "\r\n\r\n";
 		}else if(ctx["status"] == "303"){
-			var port = ctx.exists("port")?":"+ctx["port"]:"";
-			r += "Location: http://" + ctx["host"] + port + ctx["path"] + "\r\n\r\n";
+			var port = ctx["port"].good()?":"+ctx["port"]:"";
+			var query = ctx["query"].good()?"?"+ctx["query"]:"";
+			r += "Location: http://" + ctx["host"] + port + ctx["path"] + query + "\r\n";
 		}else if(ctx["status"] == "401"){
-			r += 'WWW-Authenticate: Basic realm="${WebServer.sign}"' + "Content-Length: 0\r\n" + "\r\n\r\n";
+			r += 'WWW-Authenticate: Basic realm="${WebServer.sign}"' + "\r\nContent-Length: 0\r\n";
 		}else{
-			body = ctx["mime"] == "html" ? 
-'<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<html>
-<head>
- <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
- <title>${ctx["title"]}</title>
-</head>
-<body bgcolor="white">
- ${ctx["body"]}
-</body>
-</html>':ctx["body"];
+			if(ctx["mime"] != "") body = ctx["body"] ; 
+			else{
+				body =
+'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>\n<head>\n <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <title>${ctx["title"]}</title>\n</head>
+<body bgcolor="white">\n ${ctx["body"]}\n</body>\n</html>';
+				ctx["mime"] = "htm";
+			}
 			ctx["length"] = body.length +"";
 			if(ctx["method"] == "HEAD")body = "";
 			if(ctx["etag"].good())ctx["etag"] += "\r\n";
-			r += 
-"Content-Type: " + mimeType[ctx["mime"]] + "\r\n" +
-"Content-Length: " + ctx["length"] + "\r\n" ;
+			r += "Content-Type: " + mimeType[ctx["mime"]] + "\r\n" +
+			"Content-Length: " + ctx["length"] + "\r\n" ;
 		}
 
-			r += 
-"Date: " + date + "\r\n" + ctx["etag"] +
-"Server: " + WebServer.sign + "\r\n" +
-"Connection: Keep-Alive\r\n" + "\r\n" + body;
-
+		r += "Date: " + date + "\r\n" + ctx["etag"] +
+		"Server: " + WebServer.sign + "\r\n" +
+		"Connection: Keep-Alive\r\n" + "\r\n" + body;
+ 
 		return r;
 	}// response()
 	
@@ -308,7 +372,7 @@ class WT{
 		return haxe.crypto.Base64.decode(r)+"";
 	}// getIcon()
 	
-	public static function ext2type(ext:String)
+	public static inline function ext2type(ext:String)
 	{
  	         
 		var type = "non";

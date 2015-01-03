@@ -87,6 +87,21 @@ class CT{
 		return r;
 	}// fields()
 
+	public static inline function rtrimm(v:String,s="/")
+	{ 
+		var r = v;
+		if(good(v,"rtrimm")){
+			var len = v.length-1;
+			r = v.rtrim();
+			for(i in 0...len+1){
+				if(r.substr(len-i,1) == s)r = r.rtrim().substr(0,len-i); 
+				else break;
+			}
+		}
+		
+		return r;		
+	}// rtrimm()
+
 	public static inline function splitt(v:String,sep=",")
 	{ 
 		var a:Array<String> = [];
@@ -127,6 +142,11 @@ class CT{
 		return r;
 	}// has()
 
+	public static inline function range(f:Null<Float>,max:Float, min:Float=0)
+	{
+		return MT.range(f,max,min);
+	}// range()
+	
 	public static inline function eq(str:String,cmp:String)
 	{
 		return str.toLowerCase() == cmp.toLowerCase();

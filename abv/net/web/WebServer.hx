@@ -15,7 +15,7 @@ import cpp.net.ThreadServer;
 using StringTools;
 using abv.CT;
 
-typedef Client = {id:Int, sock:Socket, request:String}
+typedef Client = {id:Int, sock:Socket, request:String, length:Int, ctx:Map<String,String>, sid:String}
 typedef Message = {body: String}
 
 class WebServer extends ThreadServer<Client, Message>{
@@ -40,7 +40,10 @@ class WebServer extends ThreadServer<Client, Message>{
 		if(cfg.exists("auth"))auth = cfg["auth"];
 		if(cfg.exists("login"))login = cfg["login"];
 		if(cfg.exists("index"))index = cfg["index"].splitt();
-		if(cfg.exists("threads"))nthreads = Std.parseInt(cfg["threads"]);
+		if(cfg.exists("threads")){
+			nthreads = Std.parseInt(cfg["threads"]);
+			if((nthreads < 2)||(nthreads > 256))nthreads = 2;
+		}
 		if(cfg.exists("name"))name = cfg["name"];
 		if(cfg.exists("version"))version = cfg["version"];
 	}// config()
@@ -52,7 +55,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		var id = Std.random(100000);
 		print('client: $id: ' + sock.peer().host,5);
 		
-		return {id: id, sock: sock, request: ""};
+		return {id: id, sock: sock, request: "", length: 0, ctx: null, sid:""};
 	}
 
 	override function clientDisconnected(c: Client)
@@ -63,15 +66,17 @@ class WebServer extends ThreadServer<Client, Message>{
 	override function readClientMessage(c:Client, buf:Bytes, pos:Int, len:Int)
 	{
 		var ok = false;
-		var cpos = pos;
-		while (cpos < (pos+len) && !ok){
-			ok = (buf.get(cpos) == 13);
+		var cpos = pos; 
+		var max = pos + len;
+
+		while (cpos < max && !ok){
+			ok = (buf.get(cpos) == 13)&&(buf.get(cpos+1) == 10);
 			cpos++;
 		}
 
-		if(!ok) return null;
+		if(!ok && cpos < max) return null;
 		var size = cpos-pos;
-		
+
  		return {msg: {body: buf.getString(pos, size)}, bytes: size};
 	}// readClientMessage()
 
@@ -79,19 +84,39 @@ class WebServer extends ThreadServer<Client, Message>{
 	{
 		var s = msg.body;
 		var p = "", f = "";
+		c.request += s; 
 
-		if(s == "\n\r"){  
-			var ctx = WT.parseRequest(c.request); 
- 
+		if(c.request.length < c.length){
+				return;
+		}else if(c.request.length == c.length)s = "\n\r"; 
+
+	
+		if(s == "\n\r"){ //trace(c.request);
+			if(c.ctx == null) c.ctx = WT.parseRequest(c.request); 
+			var ctx = c.ctx;
+			if(ctx["method"] == "POST"){
+				if(c.length > 0){
+					ctx["body"] = c.request.substr(c.request.indexOf("\n\r") + 2).trim();
+					var form = ctx["Content-Type"] == WT.mimeType["post-url"] ? 
+						WT.parseQuery(ctx["body"]) : WT.parsePostData(ctx);
+					app(ctx, form); trace(form);
+					for(k in form.keys())form[k].clear();
+					form = null;
+				}else if(ctx.exists("Content-Length")){
+					c.length = c.request.length + 1 + Std.parseInt(ctx["Content-Length"]);
+					return;
+				}else ctx["status"] = "411";
+			} 
+			
 			if(ctx["status"] == "200"){
 				if(ctx.exists("If-None-Match")){ 
 					if(ctx["If-None-Match"] == etag(ctx["request"])) ctx["status"] = "304";
-				}else if(ctx["request"].startsWith(fs)){ 
-					p = ctx["request"].substr(fs.length); //trace(p +":"+Sys.getCwd());
+				}else if(ctx["path"].startsWith(fs)){ 
+					p = ctx["path"].substr(fs.length);  
 					if(!p.good())p = ".";
 					if(FileSystem.exists(p)){
 						if(FileSystem.isDirectory(p)){
-							f = getIndex(p);
+							f = getIndex(p); 
 							if(f.good())ctx["body"] = File.getContent('$p/$f');
 							else ctx["body"] = '<p><a href="/">Home</a></p>'+WT.dirIndex(p,fs);
 						}else{ 
@@ -100,29 +125,28 @@ class WebServer extends ThreadServer<Client, Message>{
 							ctx["etag"] = "ETag: "+etag(ctx["request"]);
 						}
 					}else ctx["status"] = "404";
-				}else if(ctx["request"].startsWith(Icons.p)){ 
-					p = ctx["request"].substr(Icons.p.length); 
+				}else if(ctx["path"].startsWith(Icons.p)){ 
+					p = ctx["path"].substr(Icons.p.length); 
 					ctx["mime"] = "png";
 					ctx["body"] = WT.getIcon(p.basename(false));
 					ctx["etag"] = "ETag: "+etag(ctx["request"]);
-				}else if(ctx["request"] == "/favicon.ico"){
+				}else if(ctx["path"] == "/favicon.ico"){
 					ctx["mime"] = "ico";
 					ctx["body"] = WT.getIcon("favicon");
 					ctx["etag"] = "ETag: "+etag(ctx["request"]);
-				}else if(ctx["request"].startsWith(login)){
+				}else if(ctx["request"].startsWith(login)){  
 					if(ctx.exists("Authorization")&&(ctx["Authorization"] == auth))app(ctx); 
 					else ctx["status"] = "401";
 				}else app(ctx);
 			}
 
 			sendData(c.sock, WT.response(ctx));
-			c.request = "";
+			c.request = ""; c.length = 0; c.ctx = null;
 			print('${c.sock.peer().host} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}');
-		}else{
-			c.request += s; 
 		}
+
 	}// clientMessage()
-	
+ 
 	function etag(s:String)
 	{
 		return '"${Md5.encode(s.substr(0,1000))}"';
@@ -143,11 +167,10 @@ class WebServer extends ThreadServer<Client, Message>{
 		return r;
 	}// getIndex()
 	
-	public dynamic function app(ctx:Map<String,String>)
+	public dynamic function app(ctx:Map<String,String>,form:Map<String,Array<String>>=null)
 	{
+		ctx["mime"] = "";
 		ctx["body"] = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/fs">FS</a></p><p><a href="/exit">Exit</a></p>';
-
-//		return WT.response(ctx);
 	}// app();
 
 	public function start()
