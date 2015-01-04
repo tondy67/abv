@@ -316,7 +316,7 @@ class WT{
 		ctx["mime"] = path.extname();
 		if(path == "/favicon.ico") f = WT.getIcon("favicon");
 		else if(path.startsWith(Icons.p))f =  WT.getIcon(path.basename(false));
-		else File.getContent(path);
+		else f = File.getContent(path);
 		ctx["body"] = f;
 		ctx["etag"] = "ETag: "+etag(ctx["request"]);
 	}// mkFile()

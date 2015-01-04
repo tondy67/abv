@@ -6,6 +6,7 @@ import sys.io.File;
 
 import abv.AM;
 import abv.lib.Timer;
+import abv.sys.ST;
 
 using abv.CT;
 using abv.lib.TP;
@@ -18,6 +19,7 @@ class SH{
 	public static var ds:Dynamic = null;
 	static var files = new List<String>();
 	static var platform = "";
+	public static var output = ""; 
 
 	public static function ln(path:Null<String>,link:String,opt="s")
 	{
@@ -103,16 +105,16 @@ class SH{
 
 	public static inline function echo(msg="",path="",append=false)
 	{// TODO: colors
-		if(path != ""){
+		if(!msg.good('echo $msg'))msg = "";
+		if(!output.good()){
 			if(!path.dir('echo $path'))File.saveContent(path, msg + " ");
-		}else if(msg.good('echo $msg')){
-			if(AM.verbose>0) Sys.print(msg);
-		}else if(AM.verbose>0) Sys.println("");
+			else ST.print(msg,1); 
+		}else output += msg;
 	}//echo()
 	
 	public static inline function print(msg="")
 	{ 
-		echo(msg + "\n");
+		echo(msg + "\r\n");
 	}// print()
 	
 	public static inline function compile(target:String,opt:Array<String>,compiler="haxe")
@@ -131,8 +133,11 @@ class SH{
 
 	public static inline function clear(lines=25)
 	{
-		if(lines < 0)lines = 25;
-		for(i in 0...lines)Sys.println("");
+		if(output.good())output = "echo";
+		else{
+			if(lines < 0)lines = 25;
+			for(i in 0...lines)print("");
+		}
 	}//clear()
 
 	public static inline function export(s:String,v:String)

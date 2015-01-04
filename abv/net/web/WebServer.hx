@@ -4,7 +4,7 @@ import haxe.crypto.Md5;
 import haxe.io.Bytes;
 import sys.net.Socket;
 import sys.io.File;
-import sys.FileSystem;
+//import sys.FileSystem;
 import abv.net.web.WT;
 #if neko
 import neko.net.ThreadServer;
@@ -14,6 +14,7 @@ import cpp.net.ThreadServer;
 
 using StringTools;
 using abv.CT;
+using abv.sys.ST;
 
 typedef Client = {id:Int, sock:Socket, request:String, length:Int, ctx:Map<String,String>, sid:String}
 typedef Message = {body: String}
@@ -114,13 +115,13 @@ class WebServer extends ThreadServer<Client, Message>{
 					if(ctx["If-None-Match"] == WT.etag(ctx["request"])) ctx["status"] = "304";
 				}else if(ctx["path"].startsWith(urls["fs"])){ 
 					p = ctx["path"].substr(urls["fs"].length);  
-					if(!p.good())p = ".";
-					if(FileSystem.exists(p)){
-						if(FileSystem.isDirectory(p)){
+					if(!p.good())p = "."; 
+					if(p.exists()){ 
+						if(p.dir()){ 
 							f = getIndex(p); 
-							if(f.good()) WT.mkFile(f,ctx);
+							if(f.good())mkFile('$p/$f',ctx);
 							else ctx["body"] = WT.mkPage('<p><a href="/">Home</a></p>'+WT.dirIndex(p,urls["fs"]));
-						}else WT.mkFile(p,ctx);
+						}else mkFile(p,ctx);
 					}else ctx["status"] = "404";
 				}else if(ctx["path"].startsWith(Icons.p))WT.mkFile(ctx["path"],ctx);
 				else if(ctx["path"] == "/favicon.ico")WT.mkFile(ctx["path"],ctx);
@@ -138,7 +139,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	}// clientMessage()
  
 	function getIndex(path:String)
-	{
+	{ 
 		var r = "";
 		var a = path.getDir();
 		if(a.length > 0){
@@ -151,7 +152,18 @@ class WebServer extends ThreadServer<Client, Message>{
 		}
 		return r;
 	}// getIndex()
+
+	function mkFile(path:String,ctx:Map<String,String>)
+	{ 
+		if(path.extname() != "hxs")WT.mkFile(path,ctx);else hxs(path,ctx);
+	}// mkFile()
 	
+	public dynamic function  hxs(path:String,ctx:Map<String,String>)
+	{ 
+		ctx["mime"] = "htm";
+		ctx["body"] = File.getContent(path);
+	}// hxs()
+		
 	public dynamic function app(ctx:Map<String,String>,form:Map<String,String>=null)
 	{
 		ctx["mime"] = "";
