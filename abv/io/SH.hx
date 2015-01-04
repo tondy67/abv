@@ -122,15 +122,6 @@ class SH{
 		log('compile: $compiler $target ${opt}');
 	}// compile()
 	
-	public static inline function exec(cmd:String,args:Array<String>=null)
-	{
-		var r = 1;
-
-		if(cmd.good("exec: cmd")) r = Sys.command(cmd,args);
-
-		return r; 
-	}//exec()
-
 	public static inline function clear(lines=25)
 	{
 		if(output.good())output = "echo";
@@ -153,15 +144,17 @@ class SH{
 		return r;
 	}//env()
 
-	public static inline function shell(cmd:String, args:Array<String>)
-	{
+	public static inline function exec(cmd:String, args:Array<String>=null)
+	{ 
+		var r = "";
 		var p:Process = null;
 		if(cmd.good()){
 			if((args == null)||(args.length == 0))args = ["-v"];
-			p = new Process(cmd,args);
+			try p = new Process(cmd,args) catch(m:Dynamic){ print(m);}
+			if(p != null) r = p.stdout.readAll() + "";
 		}
-		return p;
-	}//shell()
+		return r;
+	}//exec()
 
 	public static inline function cat(path:Null<String>)
 	{
@@ -218,7 +211,7 @@ class SH{
 	{
 		var cmd = ["ds","TP","Math","json","good","fields","ls","mkdir","rm","pwd","cd",
 		"mv","cp","echo","print","clear","compile","read","exec","export",
-		"cat","shell","date","time","uname","ln","zip"];
+		"cat","date","time","uname","ln","zip"];
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
@@ -250,7 +243,6 @@ class SH{
 				case "exec": ip.variables.set("exec",exec);
 				case "export": ip.variables.set("export",export);
 				case "cat": ip.variables.set("cat",cat);
-				case "shell": ip.variables.set("shell",shell);
 				case "date": ip.variables.set("date",date);
 				case "time": ip.variables.set("time",time);
 				case "uname": ip.variables.set("uname",uname);
