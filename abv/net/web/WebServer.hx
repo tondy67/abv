@@ -23,26 +23,29 @@ class WebServer extends ThreadServer<Client, Message>{
 	var host = "0.0.0.0";	
 	var port = 5000;
 	var root = ".";
-	var fs = "/fs/";
 	var auth = "";
-	var login = "/login/";
 	var index = ["index.html"];	
 	var name = "Hako";
 	var version = "0.1.0";
+	var maxThreads = 256;
 	public static var sign = "";
+	public var urls(default,null):Map<String,String>;
 
 	public function config(cfg:Map<String,String>)
 	{
 		if(cfg.exists("host"))host = cfg["host"];
 		if(cfg.exists("port"))port = Std.parseInt(cfg["port"]);
 		if(cfg.exists("root"))root = cfg["root"];
-		if(cfg.exists("fs"))fs = cfg["fs"];
+		if(cfg.exists("urls")){
+			urls = WT.parseQuery(cfg["urls"]);
+			if(!urls.exists("fs"))urls.set("fs","/fs/");
+			if(!urls.exists("login"))urls.set("login","/login/");
+		}
 		if(cfg.exists("auth"))auth = cfg["auth"];
-		if(cfg.exists("login"))login = cfg["login"];
 		if(cfg.exists("index"))index = cfg["index"].splitt();
 		if(cfg.exists("threads")){
 			nthreads = Std.parseInt(cfg["threads"]);
-			if((nthreads < 2)||(nthreads > 256))nthreads = 2;
+			if((nthreads < 2)||(nthreads > maxThreads))nthreads = 2;
 		}
 		if(cfg.exists("name"))name = cfg["name"];
 		if(cfg.exists("version"))version = cfg["version"];
@@ -92,16 +95,14 @@ class WebServer extends ThreadServer<Client, Message>{
 
 	
 		if(s == "\n\r"){ //trace(c.request);
+			var form:Map<String,String> = null;
 			if(c.ctx == null) c.ctx = WT.parseRequest(c.request); 
 			var ctx = c.ctx;
 			if(ctx["method"] == "POST"){
 				if(c.length > 0){
 					ctx["body"] = c.request.substr(c.request.indexOf("\n\r") + 2).trim();
-					var form = ctx["Content-Type"] == WT.mimeType["post-url"] ? 
+					form = ctx["Content-Type"] == WT.mimeType["post-url"] ? 
 						WT.parseQuery(ctx["body"]) : WT.parsePostData(ctx);
-					app(ctx, form); trace(form);
-					for(k in form.keys())form[k].clear();
-					form = null;
 				}else if(ctx.exists("Content-Length")){
 					c.length = c.request.length + 1 + Std.parseInt(ctx["Content-Length"]);
 					return;
@@ -110,34 +111,23 @@ class WebServer extends ThreadServer<Client, Message>{
 			
 			if(ctx["status"] == "200"){
 				if(ctx.exists("If-None-Match")){ 
-					if(ctx["If-None-Match"] == etag(ctx["request"])) ctx["status"] = "304";
-				}else if(ctx["path"].startsWith(fs)){ 
-					p = ctx["path"].substr(fs.length);  
+					if(ctx["If-None-Match"] == WT.etag(ctx["request"])) ctx["status"] = "304";
+				}else if(ctx["path"].startsWith(urls["fs"])){ 
+					p = ctx["path"].substr(urls["fs"].length);  
 					if(!p.good())p = ".";
 					if(FileSystem.exists(p)){
 						if(FileSystem.isDirectory(p)){
 							f = getIndex(p); 
-							if(f.good())ctx["body"] = File.getContent('$p/$f');
-							else ctx["body"] = '<p><a href="/">Home</a></p>'+WT.dirIndex(p,fs);
-						}else{ 
-							ctx["mime"] = p.extname();
-							ctx["body"] = File.getContent(p);
-							ctx["etag"] = "ETag: "+etag(ctx["request"]);
-						}
+							if(f.good()) WT.mkFile(f,ctx);
+							else ctx["body"] = WT.mkPage('<p><a href="/">Home</a></p>'+WT.dirIndex(p,urls["fs"]));
+						}else WT.mkFile(p,ctx);
 					}else ctx["status"] = "404";
-				}else if(ctx["path"].startsWith(Icons.p)){ 
-					p = ctx["path"].substr(Icons.p.length); 
-					ctx["mime"] = "png";
-					ctx["body"] = WT.getIcon(p.basename(false));
-					ctx["etag"] = "ETag: "+etag(ctx["request"]);
-				}else if(ctx["path"] == "/favicon.ico"){
-					ctx["mime"] = "ico";
-					ctx["body"] = WT.getIcon("favicon");
-					ctx["etag"] = "ETag: "+etag(ctx["request"]);
-				}else if(ctx["request"].startsWith(login)){  
+				}else if(ctx["path"].startsWith(Icons.p))WT.mkFile(ctx["path"],ctx);
+				else if(ctx["path"] == "/favicon.ico")WT.mkFile(ctx["path"],ctx);
+				else if(ctx["request"].startsWith(urls["login"])){  
 					if(ctx.exists("Authorization")&&(ctx["Authorization"] == auth))app(ctx); 
 					else ctx["status"] = "401";
-				}else app(ctx);
+				}else app(ctx, form);
 			}
 
 			sendData(c.sock, WT.response(ctx));
@@ -147,11 +137,6 @@ class WebServer extends ThreadServer<Client, Message>{
 
 	}// clientMessage()
  
-	function etag(s:String)
-	{
-		return '"${Md5.encode(s.substr(0,1000))}"';
-	}// etag()
-	
 	function getIndex(path:String)
 	{
 		var r = "";
@@ -167,10 +152,11 @@ class WebServer extends ThreadServer<Client, Message>{
 		return r;
 	}// getIndex()
 	
-	public dynamic function app(ctx:Map<String,String>,form:Map<String,Array<String>>=null)
+	public dynamic function app(ctx:Map<String,String>,form:Map<String,String>=null)
 	{
 		ctx["mime"] = "";
-		ctx["body"] = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/fs">FS</a></p><p><a href="/exit">Exit</a></p>';
+		var body = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/fs">FS</a></p><p><a href="/exit">Exit</a></p>';
+		ctx["body"] = WT.mkPage(body);
 	}// app();
 
 	public function start()

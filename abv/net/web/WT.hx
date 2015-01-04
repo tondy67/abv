@@ -2,7 +2,9 @@ package abv.net.web;
 /**
  * WebTools
  **/
+import haxe.crypto.Md5;
 import sys.FileSystem;
+import sys.io.File;
 import abv.net.web.Icons;
 import abv.net.web.WebServer;
 
@@ -151,27 +153,27 @@ class WT{
 	
 	public static function parseQuery(s:String)
 	{
-		var r = new Map<String,Array<String>>();
+		var r = new Map<String,String>();
 		var t:Array<String>;
 		
 		if(s.good()){
 			var lines = s.trim().splitt("&");
 			for(l in lines){
+				if(!l.good() || (l.indexOf("=") == -1))continue;
 				t = l.splitt("=");
 				if(t[0].good()){
-					r.set(t[0],[]);
-					if(t[1].good())r[t[0]][0] = t[1].urlDecode();
+					r.set(t[0],"");
+					if(t[1].good())r[t[0]] = t[1].urlDecode();
 				}
 			}
 		}
-		r.set("mimeType",[mimeType["post-url"]]);
 				
 		return r;
 	}// parseQuery()
 	
 	public static function parsePostData(ctx:Map<String,String>)
 	{
-		var r = new Map<String,Array<String>>();
+		var r = new Map<String,String>();
 		var a = [""],t = [""],p = [""];
 		var n = "",f = "",c = "",m = "";
 		var b = "--" + ctx["boundary"];
@@ -195,24 +197,22 @@ class WT{
 				n = p[1].replace("name="," ").trim();
 				n = n.replace('"'," ").trim();
 				if(n.good()){
-					r.set(n,[]);
+					r.set(n,"");
 					if(c.good()){
-						r[n][0] = c;
-						if(f.good())r[n][1] = f;
-						if(m.good())r[n][2] = m;
+						if(f.good())r[n] = 'file:$f|||$m|||$c';
+						else r[n] = c;
 					}
 				}
 				
 //			trace(m);
 			}
 		}
-		r.set("mimeType",[mimeType["post-dat"]]);
 		
 		return r;
 	}// parsePostData()
 	
 	public static function parseRequest(s:String)
-	{ // todo: websockets
+	{ // todo: websockets, chunked 
 		var r = [
 			"status" => "400", "protocol" => "","version" => "",
 			"host" => "", "port" => "",	"request" => "", "path" => "",
@@ -277,7 +277,7 @@ class WT{
 			ctx["title"] = code;
 		}
 		if(!ctx["body"].good())
-			ctx["body"] = '<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.sign}</center>';
+			ctx["body"] = mkPage('<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.sign}</center>',code);
 
 		if(ctx["status"] == "304"){
 		}else if(ctx["status"] == "303"){
@@ -287,19 +287,14 @@ class WT{
 		}else if(ctx["status"] == "401"){
 			r += 'WWW-Authenticate: Basic realm="${WebServer.sign}"' + "\r\nContent-Length: 0\r\n";
 		}else{
-			if(ctx["mime"] != "") body = ctx["body"] ; 
-			else{
-				body =
-'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>\n<head>\n <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
- <title>${ctx["title"]}</title>\n</head>
-<body bgcolor="white">\n ${ctx["body"]}\n</body>\n</html>';
-				ctx["mime"] = "htm";
-			}
+			body = ctx["body"] ; 
+			if(!ctx["mime"].good()) ctx["mime"] = "htm";
+			var type = mimeType[ctx["mime"]];
+			if(type.indexOf("text") != -1)type += ";charset=utf-8";
 			ctx["length"] = body.length +"";
 			if(ctx["method"] == "HEAD")body = "";
 			if(ctx["etag"].good())ctx["etag"] += "\r\n";
-			r += "Content-Type: " + mimeType[ctx["mime"]] + "\r\n" +
+			r += "Content-Type: " + type + "\r\n" +
 			"Content-Length: " + ctx["length"] + "\r\n" ;
 		}
 
@@ -309,6 +304,33 @@ class WT{
  
 		return r;
 	}// response()
+	
+	public static inline function etag(s:String)
+	{
+		return '"${Md5.encode(s.substr(0,1000))}"';
+	}// etag()
+	
+	public static inline function mkFile(path:String,ctx:Map<String,String>)
+	{
+		var f = "";
+		ctx["mime"] = path.extname();
+		if(path == "/favicon.ico") f = WT.getIcon("favicon");
+		else if(path.startsWith(Icons.p))f =  WT.getIcon(path.basename(false));
+		else File.getContent(path);
+		ctx["body"] = f;
+		ctx["etag"] = "ETag: "+etag(ctx["request"]);
+	}// mkFile()
+	
+	public static inline function mkPage(body="",title="",meta="")
+	{
+		var r =
+'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>\n<head>\n <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n$meta
+ <title>$title</title>\n</head>
+<body bgcolor="white">\n $body\n</body>\n</html>';
+
+		return r;
+	}// mkPage()
 	
 	public static inline function getDate(log=false)
 	{
@@ -320,12 +342,11 @@ class WT{
 		return r;
 	}// getDate()
 
-	public static function dirIndex(path=".",prefix="/fs/")
+	public static function dirIndex(path=".",prefix="/fs/",links=false)
 	{
-		var r = "",ext = "",type = "";
+		var r = "",ext = "",type = "", f = "";
 		if(!path.good())path=".";
 		if(!FileSystem.exists(path))return r;
-		var f = "";
 		var a = FileSystem.readDirectory(path);	
 		var dirs:Array<String> = [];
 		var files:Array<String> = [];
@@ -341,7 +362,8 @@ class WT{
 		}
 		for(p in files){
 			type = ext2type(p.extname());
-			r += '<img src="${Icons.p}$type.png" alt="$type.png" width="16" height="16" /> $p<br>';
+			f = links ? '<a href="$prefix$path$p">$p</a>': p;
+			r += '<img src="${Icons.p}$type.png" alt="$type.png" width="16" height="16" /> $f<br>';
 		}
 		
 		return r;	
