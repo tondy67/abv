@@ -1,8 +1,6 @@
 package abv.io;
 
-import sys.FileSystem;
 import sys.io.Process;
-import sys.io.File;
 
 import abv.AM;
 import abv.lib.Timer;
@@ -10,9 +8,9 @@ import abv.sys.ST;
 import abv.cpu.Boss;
 
 
-using StringTools;
 using abv.CT;
 using abv.lib.TP;
+using abv.sys.ST;
 
 /**
  * This class mimics Bash Shell 
@@ -39,7 +37,7 @@ class SH{
 				files.clear();
 				ls_R(path);
 				for(f in files)r.push(f);
-			}else r = FileSystem.readDirectory(path);
+			}else r = path.get();
 		}
 
 		return r;
@@ -48,7 +46,7 @@ class SH{
 	static function ls_R(path:Null<String>)
 	{
 		var c = ""; 
-		var f:Array<String> = path.dir('ls_R: $path')?FileSystem.readDirectory(path):[];
+		var f:Array<String> = path.dir('ls_R: $path')?path.get():[];
 		for(i in f){ 
 			c = '$path/$i';
 			files.push(c);
@@ -58,34 +56,27 @@ class SH{
 	
 	public static function cp(src:String,dst:String,opt="")
 	{
-		if(!src.good("cp: src")) return;
-		else if(!src.exists('cp: $src')) return;
-		
-		File.copy(src,dst);
+		src.copy(dst);
 	}// cp()
 	
 	public static function rm(path="")
 	{
 		if(!path.good("rm")) return;
 		else if(!path.exists('rm: $path')) return;
-		else if(!FileSystem.fullPath(path.dirname()).starts(pwd()))
+		else if(!path.dirname().abs().starts(pwd()))
 			throw "rm: Not permitted outside current directory!";
 
 		if(path.dir()){
 			files.clear();
 			ls_R(path);
-			for(f in files){
-				if(f.dir()) FileSystem.deleteDirectory(f);
-				else FileSystem.deleteFile(f);
-			}
-			FileSystem.deleteDirectory(path);	
-		}else if(path.exists('rm: $path'))FileSystem.deleteFile(path);
+			for(f in files)f.del();
+			path.del();	
+		}else if(path.exists('rm: $path'))path.del();
 	}// rm()
 	
 	public static inline function mkdir(path:Null<String>,opt="p")
 	{
-		if(path.good("mkdir") && !path.dir('mkdir: $path')) 
-			FileSystem.createDirectory(path);
+		ST.mkdir(path,opt);
 	}// mkdir()
 	
 	public static function mv(src:String,dst:String)
@@ -110,15 +101,15 @@ class SH{
 	public static inline function echo(msg="",path="",append=false)
 	{// TODO: colors
 		if(!msg.good('echo $msg'))msg = "";
-		if(CT.out){
-			if(!path.dir('echo $path'))File.saveContent(path, msg + " ");
+		if(!AM.silent){
+			if(!path.dir('echo $path'))path.save(msg + " ");
 			else CT.print(msg,CT.WARN); 
 		}else output += msg;
 	}//echo()
 	
 	public static inline function print(msg="")
 	{ 
-		var end = CT.out?"\r\n":"<br>\n"; 
+		var end = !AM.silent?"\r\n":"<br>\n"; 
 		echo(msg + end);
 	}// print()
 	
@@ -129,7 +120,7 @@ class SH{
 	
 	public static inline function clear(lines=25)
 	{
-		if(!CT.out)output = "";
+		if(AM.silent)output = "";
 		else{
 			if(lines < 0)lines = 25;
 			for(i in 0...lines)print("");
@@ -165,7 +156,7 @@ class SH{
 						}
 						r = p.stdout.readAll() + ""; 
 					}catch(m:Dynamic){ print(m);}
-			}else if(CT.out)r = Boss.exec(cmd,args,input) + "";
+			}else if(!AM.silent)r = Boss.exec(cmd,args,input) + "";
 		}
 		return r;
 	}//exec()
@@ -174,7 +165,7 @@ class SH{
 	{ 
 		var r:Array<String> = [];
 		var i = Std.parseInt(id);
-		if(CT.out) r = Boss.read(i);
+		if(!AM.silent) r = Boss.read(i);
 		return r;
 	}//bg()
 
@@ -183,7 +174,7 @@ class SH{
 		var r:Null<String> = "";
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.dir(s)){
-			try r = File.getContent(path)
+			try r = path.open()
 			catch(m:Dynamic){CT.print(s + " "+m);}
 		}
 		

@@ -6,9 +6,10 @@ using abv.CT;
 
 class AM {
 	
-	public static var verbose = CT.DEBUG;
-	public static var useArgs = true;
-	public static var exitTime:Float = 0;
+	public static var exitTime 	= .0;
+	public static var verbose 	= CT.DEBUG;
+	public static var silent 	= false;
+	public static var usage 	= true;
 	
 	static var _args:Array<String>;
 	static var _env:Map<String,String>;
@@ -22,7 +23,7 @@ class AM {
 	{
 		args();
 
-		if(!useArgs){}
+		if(!usage){}
 		else if(_args.length == 0){ 
 			print(help());
 			exit();

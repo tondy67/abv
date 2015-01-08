@@ -2,11 +2,7 @@ package abv.cpu;
 /**
  * Worker
  **/
-#if neko
-import neko.vm.Thread;
-#else
-import cpp.vm.Thread;
-#end
+import abv.cpu.Thread;
 
 using abv.CT;
 

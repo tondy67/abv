@@ -32,8 +32,8 @@ class CT{
 // log data
 	static var logData:Array<String>	= [];
 	static var logMax 					= 1 << 16;
+	public static var logFile			= "";
 //
-	public static var out 				= true;
 	static var start = Timer.stamp();
 
 	public static inline function dow(week:Array<String>=null)
@@ -231,10 +231,10 @@ class CT{
 		return ST.exists(path,msg);
 	}// exists()
 
-	public static inline function getDir(path:String,msg="")
+	public static inline function get(path:String,msg="")
 	{
-		return ST.getDir(path,msg);
-	}// getDir()
+		return ST.get(path,msg);
+	}// get()
 	
 	public static inline function dir(path:Null<String>,msg="")
 	{
@@ -244,12 +244,18 @@ class CT{
 	public static inline function print(msg="",level=CT.INFO)
 	{   
 		if(AM.verbose >= level){
-			if(!good(msg))msg = (Timer.stamp() - start) + "";
-			if(out)ST.print(msg);
-			logData.push(level + sep + msg.trim());
+			var d = (Timer.stamp() - start) + " ";
+			if(!good(msg))msg = d;
+			if(msg.starts("now:"))msg = msg.replace("now:",d);
+			if(!AM.silent)ST.print(msg);
+			log(level + sep + msg.trim());
 		}
 	}// print()
 
+	public static inline function log(msg="")
+	{   
+		if(good(msg))logData.push(msg);
+	}// log()
 
 
 }// abv.CT

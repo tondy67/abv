@@ -3,12 +3,11 @@ package abv.net.web;
  * WebTools
  **/
 import haxe.crypto.Md5;
-import sys.FileSystem;
-import sys.io.File;
 import abv.net.web.Icons;
 import abv.net.web.WebServer;
 
 using abv.lib.TP;
+using abv.sys.ST;
 using abv.CT;
  
 
@@ -330,7 +329,7 @@ class WT{
 		ctx["mime"] = path.extname();
 		if(path == "/favicon.ico") f = WT.getIcon("favicon");
 		else if(path.starts(Icons.p))f =  WT.getIcon(path.basename(false));
-		else f = File.getContent(path);
+		else f = path.open();
 		ctx["body"] = f;
 		ctx["etag"] = "ETag: "+etag(ctx["request"]);
 	}// mkFile()
@@ -360,12 +359,12 @@ class WT{
 	{
 		var r = "",ext = "",type = "", f = "";
 		if(!path.good())path=".";
-		if(!FileSystem.exists(path))return r;
-		var a = FileSystem.readDirectory(path);	
+		if(!path.exists())return r;
+		var a = path.get();	
 		var dirs:Array<String> = [];
 		var files:Array<String> = [];
 		for(p in a){
-			if(FileSystem.isDirectory(path+"/"+p))dirs.push(p);else files.push(p);
+			if(ST.dir(path+"/"+p))dirs.push(p);else files.push(p);
 		}
 		dirs.sortAZ();
 		dirs.unshift("..");

@@ -2,7 +2,6 @@ package abv.cpu;
 /**
  * WorkerSys
  **/
-import abv.cpu.Boss;
 import sys.io.Process;
 import abv.cpu.Worker;
 

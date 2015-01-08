@@ -5,12 +5,8 @@ package abv.cpu;
 import abv.cpu.WorkerSys;
 import abv.lib.Timer;
 import sys.io.Process;
-#if neko
-import neko.vm.Thread;
-#else
-import cpp.vm.Thread;
-#end
-
+import abv.sys.ST;
+import abv.cpu.Thread;
 using abv.CT;
 
 class Boss{

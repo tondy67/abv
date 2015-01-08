@@ -3,14 +3,9 @@ package abv.net.web;
 import haxe.crypto.Md5;
 import haxe.io.Bytes;
 import sys.net.Socket;
-import sys.io.File;
-//import sys.FileSystem;
 import abv.net.web.WT;
-#if neko
-import neko.net.ThreadServer;
-#else
-import cpp.net.ThreadServer;
-#end 
+import abv.cpu.Thread;
+import abv.net.ThreadServer;
 
 using abv.lib.TP;
 using abv.CT;
@@ -24,9 +19,14 @@ typedef Client = {
 	ctx:Map<String,String>, 
 	ip: String, 
 	sid:String}
+
 typedef Message = {body: String}
 
 class WebServer extends ThreadServer<Client, Message>{
+	
+	var boss:Thread;
+	var tid = "";
+	var arg = "";
 	
 	var host = "0.0.0.0";	
 	var port = 5000;
@@ -60,20 +60,18 @@ class WebServer extends ThreadServer<Client, Message>{
 		if(cfg.exists("version"))version = cfg["version"];
 	}// config()
 
-	function print(msg="",level=1){CT.print(msg,level);}
-	
 	override function clientConnected(sock: Socket)
 	{
 		var id = Std.random(100000);
 		var ip = sock.peer().host + "";
-		print('client: $id: $ip',CT.WARN);
+		tell('client: $id: $ip',CT.WARN);
 		
 		return {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip, sid:""};
 	}
 
 	override function clientDisconnected(c: Client)
 	{
-		print('client: ${c.id} disconnected',CT.WARN);
+		tell('client: ${c.id} disconnected',CT.WARN);
 	}// clientDisconnected()
 
 	override function readClientMessage(c:Client, buf:Bytes, pos:Int, len:Int)
@@ -143,7 +141,7 @@ class WebServer extends ThreadServer<Client, Message>{
 
 			sendData(c.sock, WT.response(ctx));
 			c.request = ""; c.length = 0; c.ctx = null;
-			print('${c.ip} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',CT.LOG);
+			tell('${c.ip} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',CT.LOG);
 		}
 
 	}// clientMessage()
@@ -151,7 +149,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	function getIndex(path:String)
 	{ 
 		var r = "";
-		var a = path.getDir();
+		var a = path.get();
 		if(a.length > 0){
 			for(f in index){
 				if(a.indexOf(f) != -1){
@@ -171,7 +169,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	public dynamic function  hxs(path:String,ctx:Map<String,String>)
 	{ 
 		ctx["mime"] = "htm";
-		ctx["body"] = File.getContent(path);
+		ctx["body"] = path.open();
 	}// hxs()
 		
 	public dynamic function app(ctx:Map<String,String>,form:Map<String,String>=null)
@@ -183,15 +181,27 @@ class WebServer extends ThreadServer<Client, Message>{
 
 	public function start()
 	{
+		tset(); 
 		Sys.setCwd(root);
 		sign = '$name/$version';
 
 		try run(host, port) 
 		catch(m:Dynamic){
-			print('Another server is running at $host Port $port');
+			throw 'Another server is running at $host Port $port';
 		}
 	}// start()
 	
+	function tset()
+	{
+		boss = Thread.readMessage(true);
+		tid = Thread.readMessage(true);
+		arg = Thread.readMessage(true);
+	}// tset()
+
+	function tell(msg="",level=CT.INFO)
+	{
+		boss.sendMessage(tid+":"+level + CT.sep + msg.trim());
+	}// tset()
 			
 }// abv.net.web.WebServer
 	

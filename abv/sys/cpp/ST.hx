@@ -1,6 +1,7 @@
 package abv.sys.cpp;
 
 import sys.FileSystem;
+import sys.io.File;
 
 using StringTools;
 using abv.CT;
@@ -43,14 +44,14 @@ class ST{
 		return r;
 	}// exists()
 
-	public static inline function getDir(path:String,msg="")
+	public static inline function get(path:String,msg="")
 	{
 		var a:Array<String> = [];
 		
 		if(dir(path,msg))a = FileSystem.readDirectory(path);
 		
 		return a;
-	}// getDir()
+	}// get()
 	
 	public static inline function dir(path:String,msg="")
 	{
@@ -59,13 +60,48 @@ class ST{
 	
 	public static inline function print(msg="")
 	{   
-		if(msg.good() && CT.out)Sys.println(msg);
+		if(msg.good() && !AM.silent)Sys.println(msg);
 	}// print()
 
 	public static inline function sleep(seconds:Float)
 	{
 		Sys.sleep(seconds);
 	}// sleep()
+
+	public static inline function abs(path:String)
+	{
+		return FileSystem.fullPath(path);
+	}// abs()
+
+	public static inline function open(path:String)
+	{
+		return dir(path)?"is dir":File.getContent(path);
+	}// open()
+
+	public static inline function save(path:String,s:String)
+	{
+		File.saveContent(path, s);
+	}// save()
+
+	public static inline function copy(src:String,dst:String)
+	{
+		if(src.good("copy: src")){
+			if(exists(src,'copy: $src'))File.copy(src, dst);
+		}
+	}// copy()
+
+	public static inline function del(path:String)
+	{
+		if(dir(path,"del"))FileSystem.deleteDirectory(path);
+		else FileSystem.deleteFile(path);
+	}// del()
+
+	public static inline function mkdir(path:Null<String>,opt="p")
+	{
+		if(path.good("mkdir") && !path.dir('mkdir: $path')) 
+			FileSystem.createDirectory(path);
+	}// mkdir()
+	
 
 }// abv.sys.cpp.ST
 
