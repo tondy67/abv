@@ -12,11 +12,18 @@ import neko.net.ThreadServer;
 import cpp.net.ThreadServer;
 #end 
 
-using StringTools;
+using abv.lib.TP;
 using abv.CT;
 using abv.sys.ST;
 
-typedef Client = {id:Int, sock:Socket, request:String, length:Int, ctx:Map<String,String>, sid:String}
+typedef Client = {
+	id:Int, 
+	sock:Socket, 
+	request:String, 
+	length:Int, 
+	ctx:Map<String,String>, 
+	ip: String, 
+	sid:String}
 typedef Message = {body: String}
 
 class WebServer extends ThreadServer<Client, Message>{
@@ -26,6 +33,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	var root = ".";
 	var auth = "";
 	var index = ["index.html"];	
+	var cached = ["","htm","html","png","gif","jpg"];	
 	var name = "Hako";
 	var version = "0.1.0";
 	var maxThreads = 256;
@@ -57,14 +65,15 @@ class WebServer extends ThreadServer<Client, Message>{
 	override function clientConnected(sock: Socket)
 	{
 		var id = Std.random(100000);
-		print('client: $id: ' + sock.peer().host,5);
+		var ip = sock.peer().host + "";
+		print('client: $id: $ip',CT.WARN);
 		
-		return {id: id, sock: sock, request: "", length: 0, ctx: null, sid:""};
+		return {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip, sid:""};
 	}
 
 	override function clientDisconnected(c: Client)
 	{
-		print('client: ${c.id} disconnected',5);
+		print('client: ${c.id} disconnected',CT.WARN);
 	}// clientDisconnected()
 
 	override function readClientMessage(c:Client, buf:Bytes, pos:Int, len:Int)
@@ -112,8 +121,9 @@ class WebServer extends ThreadServer<Client, Message>{
 			
 			if(ctx["status"] == "200"){
 				if(ctx.exists("If-None-Match")){ 
-					if(ctx["If-None-Match"] == WT.etag(ctx["request"])) ctx["status"] = "304";
-				}else if(ctx["path"].startsWith(urls["fs"])){ 
+					f = ctx["request"].extname();
+					if((cached.indexOf(f)!=-1) && (ctx["If-None-Match"] == WT.etag(ctx["request"]))) ctx["status"] = "304";
+				}else if(ctx["path"].starts(urls["fs"])){ 
 					p = ctx["path"].substr(urls["fs"].length);  
 					if(!p.good())p = "."; 
 					if(p.exists()){ 
@@ -123,9 +133,9 @@ class WebServer extends ThreadServer<Client, Message>{
 							else ctx["body"] = WT.mkPage('<p><a href="/">Home</a></p>'+WT.dirIndex(p,urls["fs"]));
 						}else mkFile(p,ctx);
 					}else ctx["status"] = "404";
-				}else if(ctx["path"].startsWith(Icons.p))WT.mkFile(ctx["path"],ctx);
+				}else if(ctx["path"].starts(Icons.p))WT.mkFile(ctx["path"],ctx);
 				else if(ctx["path"] == "/favicon.ico")WT.mkFile(ctx["path"],ctx);
-				else if(ctx["request"].startsWith(urls["login"])){  
+				else if(ctx["request"].starts(urls["login"])){  
 					if(ctx.exists("Authorization")&&(ctx["Authorization"] == auth))app(ctx); 
 					else ctx["status"] = "401";
 				}else app(ctx, form);
@@ -133,7 +143,7 @@ class WebServer extends ThreadServer<Client, Message>{
 
 			sendData(c.sock, WT.response(ctx));
 			c.request = ""; c.length = 0; c.ctx = null;
-			print('${c.sock.peer().host} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}');
+			print('${c.ip} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',CT.LOG);
 		}
 
 	}// clientMessage()

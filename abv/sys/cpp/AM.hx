@@ -6,14 +6,14 @@ using abv.CT;
 
 class AM {
 	
-	public static var verbose = 9;
+	public static var verbose = CT.DEBUG;
 	public static var useArgs = true;
+	public static var exitTime:Float = 0;
 	
 	static var _args:Array<String>;
 	static var _env:Map<String,String>;
 
     var updateTime:Float 	= 0;
-    var exitTime:Float 		= 0;
 	var last = Timer.stamp();
 	var err = 0;
 	var cfg:Map<String,String>;

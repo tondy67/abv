@@ -8,12 +8,13 @@ import sys.io.File;
 import abv.net.web.Icons;
 import abv.net.web.WebServer;
 
-using StringTools;
+using abv.lib.TP;
 using abv.CT;
  
 
 class WT{
 
+	public static var tmp = "www/tmp/";
 	public static var tz = CT.timezone();
 	public static var dow = CT.dow();
 	public static var month = CT.month();
@@ -163,7 +164,7 @@ class WT{
 				t = l.splitt("=");
 				if(t[0].good()){
 					r.set(t[0],"");
-					if(t[1].good())r[t[0]] = t[1].urlDecode();
+					if(t[1].good())r[t[0]] = t[1].urldecode();
 				}
 			}
 		}
@@ -179,12 +180,12 @@ class WT{
 		var b = "--" + ctx["boundary"];
 		var lines = ctx["body"].splitt(b); 
 		for(l in lines){ 
-			if(l.startsWith("Content-Disposition")){
+			if(l.starts("Content-Disposition")){
 				n = f = c = m = "";
 				a = l.splitt("\r\n\r\n");
 				if(a[1].good())c = a[1];
 				t = a[0].splitt("\r\n");
-				if(t[1].good() && t[1].startsWith("Content-Type:")){
+				if(t[1].good() && t[1].starts("Content-Type:")){
 					m = t[1].replace("Content-Type:"," ").trim();
 				}
 				
@@ -246,7 +247,7 @@ class WT{
 			if(f.good())r[f] = t.join(":");
 		}
 
-		if(r["Content-Type"].good() && r["Content-Type"].startsWith("multipart")){
+		if(r["Content-Type"].good() && r["Content-Type"].starts("multipart")){
 			t = r["Content-Type"].splitt(";");
 			r["Content-Type"] = t[0];
 			if(t[1].good())r["boundary"] = t[1].replace("boundary="," ").trim();
@@ -305,6 +306,19 @@ class WT{
 		return r;
 	}// response()
 	
+	public static inline function redirect(ctx:Map<String,String>,url="/")
+	{
+		if(url.starts("http")){
+			ctx["status"] = "303";
+			ctx["path"] = url;
+		}
+	}// redirect()
+
+	public static inline function referer(ctx:Map<String,String>,url="")
+	{
+		return ctx.exists("Referer") && (ctx["Referer"] == url);
+	}// referer()
+
 	public static inline function etag(s:String)
 	{
 		return '"${Md5.encode(s.substr(0,1000))}"';
@@ -315,7 +329,7 @@ class WT{
 		var f = "";
 		ctx["mime"] = path.extname();
 		if(path == "/favicon.ico") f = WT.getIcon("favicon");
-		else if(path.startsWith(Icons.p))f =  WT.getIcon(path.basename(false));
+		else if(path.starts(Icons.p))f =  WT.getIcon(path.basename(false));
 		else f = File.getContent(path);
 		ctx["body"] = f;
 		ctx["etag"] = "ETag: "+etag(ctx["request"]);
@@ -357,7 +371,7 @@ class WT{
 		dirs.unshift("..");
 		files.sortAZ();
 		for(p in dirs){
-			f = p == ".."?path.dirname():path+"/"+p;
+			f = p == ".."?path.dirname():path+"/"+p.urlencode();
 			r += '<img src="${Icons.p}dir.png" alt="dir.png" width="16" height="16" /> <a href="$prefix$f">$p/</a><br>';
 		}
 		for(p in files){

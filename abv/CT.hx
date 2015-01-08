@@ -5,7 +5,7 @@ import abv.lib.Timer;
 import abv.lib.math.MT;
 import abv.sys.ST;
 
-using StringTools;
+using abv.lib.TP;
 
 /**
  * Common Constants & Tools
@@ -13,14 +13,27 @@ using StringTools;
  **/
 @:dce
 class CT{
-//--- constants
-	public static inline var AUTO:Int 		= -1;
-	public static inline var PI:Float 		= 3.141592653589793;
+// constants
+	public static inline var AUTO:Int 	= -1;
+	public static inline var PI:Float 	= 3.141592653589793;
 // degree, radian
-	public static inline var DEG:Float 		= 0.01745329251;
-	public static inline var RAD:Float 		= 57.295779513;
-
-	static var logData:Array<String> = [];
+	public static inline var DEG:Float 	= 0.01745329251;
+	public static inline var RAD:Float 	= 57.295779513;
+// separator
+	public static inline var sep 		= "|||";
+// log levels
+	public static inline var OFF 		= 0;
+	public static inline var FATAL 		= 1;
+	public static inline var LOG 		= 2;
+	public static inline var ERROR 		= 3;
+	public static inline var WARN 		= 4;
+	public static inline var INFO 		= 5;
+	public static inline var DEBUG 		= 6;
+// log data
+	static var logData:Array<String>	= [];
+	static var logMax 					= 1 << 16;
+//
+	public static var out 				= true;
 	static var start = Timer.stamp();
 
 	public static inline function dow(week:Array<String>=null)
@@ -53,7 +66,7 @@ class CT{
 	{
 		var r:Dynamic = null;
 		if(good(s))
-			try r = haxe.Json.parse(s) catch (m:Dynamic){log('CT.json: $m');} 
+			try r = haxe.Json.parse(s) catch (m:Dynamic){print('CT.json: $m');} 
 		return r;
 	}// json()
 	
@@ -62,7 +75,7 @@ class CT{
 		var r = false;
 		if(good(s,"CT.utf8")){
 			r = haxe.Utf8.validate(s);
-			if(!r)log(msg + " Not utf8"); 
+			if(!r)print(msg + " Not utf8"); 
 		}
 		return r;
 	}// utf8()
@@ -79,7 +92,7 @@ class CT{
 					a = Reflect.fields(o);
 					if(a != null){ 
 						haxe.ds.ArraySort.sort(a, cmp);
-						for(s in a)if(!s.startsWith("#"))r.push(s);
+						for(s in a)if(!s.starts("#"))r.push(s);
 					};
 				default: trace("Only Anonymous structures!");
 			}
@@ -87,35 +100,10 @@ class CT{
 		return r;
 	}// fields()
 
-	public static inline function rtrimm(v:String,s="/")
-	{ 
-		var r = v;
-		if(good(v,"rtrimm")){
-			var len = v.length-1;
-			r = v.rtrim();
-			for(i in 0...len+1){
-				if(r.substr(len-i,1) == s)r = r.rtrim().substr(0,len-i); 
-				else break;
-			}
-		}
-		
-		return r;		
-	}// rtrimm()
-
-	public static inline function splitt(v:String,sep=",")
-	{ 
-		var a:Array<String> = [];
-		if(good(v,"splitt")){
-			a = v.split(sep);
-			for(i in 0...a.length)a[i] = a[i].trim();
-		}
-		return a;
-	}// splitt()
-	
 	public static inline function good(v:String,msg="")
 	{ 
 		var r = true;
-		function m(s){if(msg != ""){msg += ": ";log(msg+s);}}
+		function m(s){if(msg != ""){msg += ": ";print(msg+s);}}
 		
 		if(v == null){
 			m("Null String"); 
@@ -156,7 +144,7 @@ class CT{
 	{
 		var sep = "/";
 		var r = ".";
-		var a = path.trim().split(sep); 
+		var a = path.trim().splitt(sep); 
 		if(a.length > 1){
 			var last = a.pop();
 			if(!good(last))last = a.pop();
@@ -169,11 +157,11 @@ class CT{
 	{
 		var r = "";
 		var sep = "/";
-		var a = path.trim().split(sep); 
+		var a = path.trim().splitt(sep); 
 		r = a.pop();
 		if(!good(r))r = a.pop();
 		if(!ext){
-			var t = r.split(".");
+			var t = r.splitt(".");
 			r = t[0];
 		}
 		
@@ -184,7 +172,7 @@ class CT{
 	{
 		var r = "", sep = ".", name = basename(path); 
 		if(good(name,"ext")){
-			var a = name.split(sep); 
+			var a = name.splitt(sep); 
 			if(a.length > 1){
 				r = a.pop();
 				if(!good(r))r = a.pop();
@@ -204,16 +192,6 @@ class CT{
 		if((a != null)&&(a.length > 0))haxe.ds.ArraySort.sort(a, cmp);
 	}// sortAZ()
 	
-	public static inline function log(msg="")
-	{
-		var d = Timer.stamp() - start;
-		var now = "now:", pnow = '$now $d', err="err:",perr='$err $d';
-		if((msg == null)||(msg == ""))msg = pnow;
-		else if(msg.startsWith(now))msg = pnow + msg.replace(now,":");
-		else if(msg.startsWith(err))msg = perr + msg.replace(err,":");
-		logData.push(msg.trim());
-	}// log()
-
 	public static inline function getLog(line=0,filter="")
 	{
 		var r:Array<String> = [];
@@ -263,10 +241,15 @@ class CT{
 		return ST.dir(path,msg);
 	}// dir()
 	
-	public static inline function print(msg="",level=1)
+	public static inline function print(msg="",level=CT.INFO)
 	{   
-		ST.print(msg,level);
+		if(AM.verbose >= level){
+			if(!good(msg))msg = (Timer.stamp() - start) + "";
+			if(out)ST.print(msg);
+			logData.push(level + sep + msg.trim());
+		}
 	}// print()
+
 
 
 }// abv.CT

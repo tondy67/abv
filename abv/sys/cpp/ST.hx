@@ -1,9 +1,9 @@
 package abv.sys.cpp;
 
-import abv.CT;
 import sys.FileSystem;
 
 using StringTools;
+using abv.CT;
 /**
  * SystemTools
  **/
@@ -11,15 +11,18 @@ class ST{
 
 	public static inline function printLog()
 	{   
+		var t:Array<String>;
 		var rst = "\x1b[0m";
 		var line = "\x1b[33;1m>" + rst;
 		var bold = "\x1b[1m";
 		var red = "\x1b[31;1m"; 
 
 		for(m in CT.getLog()){
-			m = m.replace("now:",bold+"now:"+rst);
-			m = m.replace("err:",red+"err:"+rst);
-			Sys.println('$line $m $rst');
+			t = m.split(CT.sep); 
+			if(t[0] == "4")m = bold + t[1].trim();
+			else if(t[0] == "3")m = red + t[1].trim();
+			else m = t[1].trim();
+			Sys.println('$m $rst');
 		}
 	}// printLog()
 
@@ -32,8 +35,8 @@ class ST{
 	{ 
 		var r = true;
 		
-		if(CT.good(path,msg) && !FileSystem.exists(path)){
-			if(msg != "")log(msg + ": No such file or directory"); 
+		if(path.good(msg) && !FileSystem.exists(path)){
+			if(msg.good())CT.print(msg + ": No such file or directory",CT.ERROR); 
 			r = false;
 		}
 
@@ -54,15 +57,15 @@ class ST{
 		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// dir()
 	
-	public static inline function print(msg="",level=1)
+	public static inline function print(msg="")
 	{   
-		if(AM.verbose >= level){
-			if(CT.good(msg))Sys.println(msg);
-			log(msg);
-		}
+		if(msg.good() && CT.out)Sys.println(msg);
 	}// print()
 
-	static inline function log(msg=""){CT.log(msg);}
-	
+	public static inline function sleep(seconds:Float)
+	{
+		Sys.sleep(seconds);
+	}// sleep()
+
 }// abv.sys.cpp.ST
 

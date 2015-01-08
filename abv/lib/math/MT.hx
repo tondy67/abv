@@ -37,7 +37,7 @@ class MT{
 	static inline function log(s="",msg="")
 	{
 		if(msg != "") msg += ": ";
-		if(s != "") CT.log('$msg $s');
+		if(s != "") CT.print('$msg $s');
 	}// log()
 
 

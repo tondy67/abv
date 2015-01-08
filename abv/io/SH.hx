@@ -7,7 +7,10 @@ import sys.io.File;
 import abv.AM;
 import abv.lib.Timer;
 import abv.sys.ST;
+import abv.cpu.Boss;
 
+
+using StringTools;
 using abv.CT;
 using abv.lib.TP;
 
@@ -17,13 +20,14 @@ using abv.lib.TP;
 class SH{
 
 	public static var ds:Dynamic = null;
+	public static var ctx:Array<String> = null;
 	static var files = new List<String>();
 	static var platform = "";
 	public static var output = ""; 
 
 	public static function ln(path:Null<String>,link:String,opt="s")
 	{
-		log('ln: $path $link $opt');
+		print('ln: $path $link $opt');
 	}// ln()
 	
 	public static inline function ls(path=".",opt="")
@@ -41,7 +45,7 @@ class SH{
 		return r;
 	}// ls()
 	
-	public static function ls_R(path:Null<String>)
+	static function ls_R(path:Null<String>)
 	{
 		var c = ""; 
 		var f:Array<String> = path.dir('ls_R: $path')?FileSystem.readDirectory(path):[];
@@ -64,7 +68,7 @@ class SH{
 	{
 		if(!path.good("rm")) return;
 		else if(!path.exists('rm: $path')) return;
-		else if(!FileSystem.fullPath(path.dirname()).startsWith(pwd()))
+		else if(!FileSystem.fullPath(path.dirname()).starts(pwd()))
 			throw "rm: Not permitted outside current directory!";
 
 		if(path.dir()){
@@ -106,25 +110,26 @@ class SH{
 	public static inline function echo(msg="",path="",append=false)
 	{// TODO: colors
 		if(!msg.good('echo $msg'))msg = "";
-		if(!output.good()){
+		if(CT.out){
 			if(!path.dir('echo $path'))File.saveContent(path, msg + " ");
-			else ST.print(msg,1); 
+			else CT.print(msg,CT.WARN); 
 		}else output += msg;
 	}//echo()
 	
 	public static inline function print(msg="")
 	{ 
-		echo(msg + "\r\n");
+		var end = CT.out?"\r\n":"<br>\n"; 
+		echo(msg + end);
 	}// print()
 	
 	public static inline function compile(target:String,opt:Array<String>,compiler="haxe")
 	{
-		log('compile: $compiler $target ${opt}');
+		print('compile: $compiler $target ${opt}');
 	}// compile()
 	
 	public static inline function clear(lines=25)
 	{
-		if(output.good())output = "echo";
+		if(!CT.out)output = "";
 		else{
 			if(lines < 0)lines = 25;
 			for(i in 0...lines)print("");
@@ -144,17 +149,34 @@ class SH{
 		return r;
 	}//env()
 
-	public static inline function exec(cmd:String, args:Array<String>=null)
+	public static inline function exec(cmd:String, args:Array<String>=null,background=false,input="")
 	{ 
-		var r = "";
-		var p:Process = null;
+		var r = "-1";
+
 		if(cmd.good()){
-			if((args == null)||(args.length == 0))args = ["-v"];
-			try p = new Process(cmd,args) catch(m:Dynamic){ print(m);}
-			if(p != null) r = p.stdout.readAll() + "";
+			if(!background){
+					var p:Process = null;
+					if((args == null)||(args.length == 0))args = [""];
+					try{
+						p = new Process(cmd,args);
+						if(input.good()){
+							p.stdin.writeString(input+"\n");
+							p.stdin.flush();
+						}
+						r = p.stdout.readAll() + ""; 
+					}catch(m:Dynamic){ print(m);}
+			}else if(CT.out)r = Boss.exec(cmd,args,input) + "";
 		}
 		return r;
 	}//exec()
+
+	public static inline function bg(id:String)
+	{ 
+		var r:Array<String> = [];
+		var i = Std.parseInt(id);
+		if(CT.out) r = Boss.read(i);
+		return r;
+	}//bg()
 
 	public static inline function cat(path:Null<String>)
 	{
@@ -162,7 +184,7 @@ class SH{
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.dir(s)){
 			try r = File.getContent(path)
-			catch(m:Dynamic){CT.log(s + " "+m);}
+			catch(m:Dynamic){CT.print(s + " "+m);}
 		}
 		
 		return r;
@@ -202,16 +224,11 @@ class SH{
 		if(path.good('zip: $path'))echo('zip: $path $opt');
 	}// zip()
 	
-	public static inline function log(msg="")
-	{
-		CT.log(msg);
-	}// log()
-	
 	public static function execute(script:String)
 	{
-		var cmd = ["ds","TP","Math","json","good","fields","ls","mkdir","rm","pwd","cd",
+		var cmd = ["ds","ctx","TP","Math","json","good","fields","ls","mkdir","rm","pwd","cd",
 		"mv","cp","echo","print","clear","compile","read","exec","export",
-		"cat","date","time","uname","ln","zip"];
+		"cat","date","time","uname","ln","zip","sleep","bg"];
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
@@ -221,6 +238,7 @@ class SH{
 			if(ip.variables.get(c) != null)continue; 
 			switch(c){
 				case "ds": ip.variables.set("ds",ds);
+				case "ctx": ip.variables.set("ctx",ctx);
 //
 				case "TP": ip.variables.set("TP",TP);
 				case "Math": ip.variables.set("Math",Math);
@@ -248,6 +266,8 @@ class SH{
 				case "uname": ip.variables.set("uname",uname);
 				case "ln": ip.variables.set("ln",ln);
 				case "zip": ip.variables.set("zip",zip);
+				case "sleep": ip.variables.set("sleep",sleep);
+				case "bg": ip.variables.set("bg",bg);
 			}
 		}
 		
@@ -261,6 +281,11 @@ class SH{
 		return Reflect.isObject(v);
 	}// good()
 	
+	public static inline function sleep(seconds:Float)
+	{
+		ST.sleep(seconds);
+	}// sleep()
+
 
 }// abv.io.SH
 

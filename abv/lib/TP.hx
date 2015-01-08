@@ -1,8 +1,8 @@
 package abv.lib;
 
 import haxe.Utf8;
-import StringTools;
 
+using StringTools;
 using abv.CT;
 using abv.lib.math.MT;
 
@@ -40,11 +40,21 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic){CT.log('ord: $char');}
+		catch(m:Dynamic){CT.print('ord: $char');}
 
 		return r;
 	}// chr()
 
+	public static inline function splitt(v:String,sep=",")
+	{ 
+		var a:Array<String> = [];
+		if(v.good("splitt")){
+			a = v.split(sep);
+			for(i in 0...a.length)a[i] = a[i].trim();
+		}
+		return a;
+	}// splitt()
+	
 	public static inline function substr(s:String, pos:Int, len:Int)
 	{
 		var r = "", f = "encode";
@@ -87,9 +97,19 @@ class TP{
 		return StringTools.trim(s);
 	}// trim()
 
-	public static inline function rtrim(s:String)
-	{
-		return StringTools.rtrim(s);
+	public static inline function rtrim(v:String,s="/")
+	{ 
+		var r = v;
+		if(v.good("rtrim")){
+			var len = v.length-1;
+			r = StringTools.rtrim(v);
+			for(i in 0...len+1){
+				if(r.substr(len-i,1) == s)r = StringTools.rtrim(r).substr(0,len-i); 
+				else break;
+			}
+		}
+		
+		return r;		
 	}// rtrim()
 
 	public static inline function ltrim(s:String)
@@ -97,18 +117,18 @@ class TP{
 		return StringTools.ltrim(s);
 	}// ltrim()
 
-	public static inline function startsWith(s:String, start:String)
+	public static inline function starts(s:String, start:String)
 	{
 		var r = false;
-		if(s.good("startsWith") && start.good("startsWith"))
+		if(s.good("starts") && start.good("starts"))
 			r = StringTools.startsWith(s, start);
 		return r;
 	}// startsWith()
 
-	public static inline function endsWith(s:String, end:String)
+	public static inline function ends(s:String, end:String)
 	{
 		var r = false;
-		if(s.good("endsWith") && end.good("endsWith"))
+		if(s.good("ends") && end.good("ends"))
 			r = StringTools.endsWith(s, end);
 		return r;
 	}// endsWith()
@@ -117,7 +137,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic){CT.log("hex: "+m);}
+		catch(m:Dynamic){CT.print("hex: "+m);}
 		return r;
 	}// ltrim()
 
@@ -206,6 +226,9 @@ class TP{
 		
 		return r;
 	}// extract()
+
+	public static inline function urlencode(s:String){return s.urlEncode();}
+	public static inline function urldecode(s:String){return s.urlDecode();}
 
 }// abv.lib.TP
 
