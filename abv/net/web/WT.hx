@@ -335,7 +335,7 @@ class WT{
 		else if(f.indexOf("\x00\x00\x00") == -1)ctx["mime"] = "txt";
 		else ctx["mime"] = "bin";
 		ctx["body"] = f;
-		ctx["etag"] = "ETag: "+etag(ctx["request"]);
+		ctx["etag"] = "ETag: " + etag(ctx["request"]);
 	}// mkFile()
 	public static inline function mkPage(body="",title="",meta="")
 	{

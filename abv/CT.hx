@@ -211,11 +211,12 @@ class CT{
 	}// getLog()
 
 ///
-	public static inline function printLog()
+	public static inline function printLog(last=1024)
 	{   
 		var t:Array<String>;
-
-		for(m in getLog()){ 
+		var a = getLog();
+		a = a.slice(a.length - last);
+		for(m in a){ 
 			t = m.splitt(sep); 
 			ST.print(t[1],getLogLevel(t[0]));
 		}

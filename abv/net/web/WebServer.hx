@@ -37,7 +37,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	var root = ".";
 	var auth = "";
 	var index = ["index.html"];	
-	var cached = ["","htm","html","png","gif","jpg"];	
+	var cached = ["","htm","html","png","gif","jpg","css","js","txt"];	
 	var name = "Hako";
 	var version = "0.1.0";
 	var maxThreads = 256;
@@ -90,7 +90,7 @@ class WebServer extends ThreadServer<Client, Message>{
 			
 			if(ctx["status"] == "200"){
 				if(ctx.exists("If-None-Match")){ 
-					f = ctx["request"].extname();
+					f = ctx["request"].extname(); 
 					if((cached.indexOf(f)!=-1) && (ctx["If-None-Match"] == WT.etag(ctx["request"]))) ctx["status"] = "304";
 				}else if(ctx["path"].starts(urls["fs"])){ 
 					p = ctx["path"].substr(urls["fs"].length);  
@@ -173,7 +173,10 @@ class WebServer extends ThreadServer<Client, Message>{
 	function mkCss(ctx:Map<String,String>)
 	{ 
 		ctx["mime"] = "css";
-		ctx["body"] = ST.open("www/hako.css");
+		ctx["etag"] = "ETag: " + WT.etag(ctx["request"]);
+//		ctx["body"] = ST.open("bin/hako.css");
+		var td = "text-decoration", ls = "list-style-type", va = "vertical-align";
+		ctx["body"] = 'a:link{$td:none;}a:visited{$td:none;}a:hover{$td:underline;}ul.circle{$ls:circle;}ul.no{margin:0;padding-top:0;padding-left:20px;$ls:none;}table td, table td *{$va:top;}';
 	}// mkCss()
 
 ///
