@@ -1,23 +1,24 @@
 package abv.lib.math;
 
-import abv.CT;
+using abv.CT;
 /**
  * MathTools
  **/
 class MT{
 
-	public static inline function good(v:Null<Float>,msg="")
+	public static inline function good(v:Null<Float>,msg="",?pif:haxe.PosInfos)
 	{ 
+#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = true;
 
 		if(v == null){
-			log("Null number",msg); 
+			CT.print(msg+": Null number",WARN); 
 			r = false;
 		}else if(Math.isNaN(v)){
-			log("NaN number",msg); 
+			CT.print(msg+": NaN number",WARN); 
 			r = false;
 		}else if(!Math.isFinite(v)){
-			log("Not number",msg); 
+			CT.print(msg+": Not number",WARN); 
 			r = false;
 		}
 
@@ -26,20 +27,13 @@ class MT{
 
 	public static inline function range(f:Null<Float>,max:Float, min:Float=0)
 	{
-		if(good(f,"range")){
+		if(good(f)){
 			if(f >= max)f = max;
 			else if(f <= min)f = min; 
 		}else f = 0;
 		
 		return f;
 	}// range()
-
-	static inline function log(s="",msg="")
-	{
-		if(msg != "") msg += ": ";
-		if(s != "") CT.print('$msg $s');
-	}// log()
-
 
 }// abv.lib.math.MT
 

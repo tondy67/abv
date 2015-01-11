@@ -7,16 +7,17 @@ using abv.CT;
 class AM {
 	
 	public static var exitTime 	= .0;
-	public static var verbose 	= CT.DEBUG;
+	public static var verbose:LogLevel 	= DEBUG;
 	public static var silent 	= false;
 	public static var usage 	= true;
+	public static var colors 	= true;
 	
 	static var _args:Array<String>;
 	static var _env:Map<String,String>;
 
     var updateTime:Float 	= 0;
 	var last = Timer.stamp();
-	var err = 0;
+	public static var err = 0;
 	var cfg:Map<String,String>;
 	
 	public function new(_config="")
@@ -25,10 +26,10 @@ class AM {
 
 		if(!usage){}
 		else if(_args.length == 0){ 
-			print(help());
+			print(help(),INFO);
 			exit();
 		}else if(_args[0].eq("help")){
-			print(help("help"));
+			print(help("help"),INFO);
 			exit();
 		}else{
 			cfg = config(_config);
@@ -72,17 +73,18 @@ class AM {
 		return r;
 	}// help()
 
-	function sleep(seconds:Float)
+	public static inline function sleep(seconds:Float)
 	{
 		Sys.sleep(seconds);
 	}// sleep()
 
-	function exit()
+	public static inline function exit()
 	{
+		sleep(.5);
 		Sys.exit(err);
 	}// exit()
 
-	function print(msg="",level=1)
+	function print(msg="",level:LogLevel)
 	{
 		CT.print(msg,level);
 	}// print()

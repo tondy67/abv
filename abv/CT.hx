@@ -1,5 +1,8 @@
 package abv;
-
+/**
+ * Common Constants & Tools
+ * 
+ **/
 import abv.AM;
 import abv.lib.Timer;
 import abv.lib.math.MT;
@@ -7,30 +10,29 @@ import abv.sys.ST;
 
 using abv.lib.TP;
 
-/**
- * Common Constants & Tools
- * 
- **/
+enum LogLevel{
+	OFF;
+	FATAL;
+	LOG;
+	ERROR;
+	INFO;
+	WARN;
+	DEBUG;
+}
+
 @:dce
 class CT{
 // constants
-	public static inline var AUTO:Int 	= -1;
-	public static inline var PI:Float 	= 3.141592653589793;
+	public static inline var AUTO 		= -1;
+	public static inline var PI 		= 3.141592653589793;
+	public static inline var CR 		= "\n\r";
 // degree, radian
-	public static inline var DEG:Float 	= 0.01745329251;
-	public static inline var RAD:Float 	= 57.295779513;
+	public static inline var DEG 		= 0.01745329251;
+	public static inline var RAD 		= 57.295779513;
 // separator
 	public static inline var sep 		= "|||";
-// log levels
-	public static inline var OFF 		= 0;
-	public static inline var FATAL 		= 1;
-	public static inline var LOG 		= 2;
-	public static inline var ERROR 		= 3;
-	public static inline var WARN 		= 4;
-	public static inline var INFO 		= 5;
-	public static inline var DEBUG 		= 6;
-// log data
-	static var logData:Array<String>	= [];
+// log 
+	static var logData:Array<String> 	= [];
 	static var logMax 					= 1 << 16;
 	public static var logFile			= "";
 //
@@ -66,16 +68,16 @@ class CT{
 	{
 		var r:Dynamic = null;
 		if(good(s))
-			try r = haxe.Json.parse(s) catch (m:Dynamic){print('CT.json: $m');} 
+			try r = haxe.Json.parse(s) catch (m:Dynamic){print(m,ERROR);} 
 		return r;
 	}// json()
 	
 	public static inline function utf8(s:Null<String>,msg="")
 	{
 		var r = false;
-		if(good(s,"CT.utf8")){
+		if(good(s,msg)){
 			r = haxe.Utf8.validate(s);
-			if(!r)print(msg + " Not utf8"); 
+			if(!r)print(msg + " Not utf8",ERROR); 
 		}
 		return r;
 	}// utf8()
@@ -100,10 +102,11 @@ class CT{
 		return r;
 	}// fields()
 
-	public static inline function good(v:String,msg="")
+	public static inline function good(v:String,msg="",?pif:haxe.PosInfos)
 	{ 
+#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = true;
-		function m(s){if(msg != ""){msg += ": ";print(msg+s);}}
+		function m(s){if(msg != ""){msg += " ";print(msg+s,WARN);}}
 		
 		if(v == null){
 			m("Null String"); 
@@ -120,7 +123,7 @@ class CT{
 	{
 		var r = false; 
 
-		if(good(src,"has: src") && good(what,"has: what")){
+		if(good(src) && good(what,"what")){
 			var len = src.length;
 			start = Std.int(MT.range(start,len-1,0)); 
 			var t = src.indexOf(what,start);
@@ -130,11 +133,6 @@ class CT{
 		return r;
 	}// has()
 
-	public static inline function range(f:Null<Float>,max:Float, min:Float=0)
-	{
-		return MT.range(f,max,min);
-	}// range()
-	
 	public static inline function eq(str:String,cmp:String)
 	{
 		return str.toLowerCase() == cmp.toLowerCase();
@@ -170,13 +168,11 @@ class CT{
 	
 	public static function extname(path:Null<String>)
 	{
-		var r = "", sep = ".", name = basename(path); 
-		if(good(name,"ext")){
+		var r = "", sep = ".";
+		var name = basename(path);
+		if(!name.starts(".")){  
 			var a = name.splitt(sep); 
-			if(a.length > 1){
-				r = a.pop();
-				if(!good(r))r = a.pop();
-			}
+			if(a.length > 1)r = a.pop(); 
 		}
 		return r;
 	}// extname()
@@ -191,6 +187,11 @@ class CT{
 		var cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
 		if((a != null)&&(a.length > 0))haxe.ds.ArraySort.sort(a, cmp);
 	}// sortAZ()
+	
+	public static inline function clear<T>(a:Array<T>)
+	{
+		a.splice(0,a.length); 
+    }// clear()
 	
 	public static inline function getLog(line=0,filter="")
 	{
@@ -212,7 +213,12 @@ class CT{
 ///
 	public static inline function printLog()
 	{   
-		ST.printLog();
+		var t:Array<String>;
+
+		for(m in getLog()){ 
+			t = m.splitt(sep); 
+			ST.print(t[1],getLogLevel(t[0]));
+		}
 	}// printLog()
 
 	public static inline function unique<T>(a:Array<T>)
@@ -221,42 +227,49 @@ class CT{
 		return r;
     }// unique()
 	
-	public static inline function clear<T>(a:Array<T>)
-	{
-		ST.clear(a);
-    }// clear()
-	
-	public static inline function exists(path:Null<String>,msg="")
-	{ 
-		return ST.exists(path,msg);
-	}// exists()
-
-	public static inline function get(path:String,msg="")
-	{
-		return ST.get(path,msg);
-	}// get()
-	
-	public static inline function dir(path:Null<String>,msg="")
-	{
-		return ST.dir(path,msg);
-	}// dir()
-	
-	public static inline function print(msg="",level=CT.INFO)
+	public static inline function print(msg="",level:LogLevel)
 	{   
-		if(AM.verbose >= level){
+		var s = "OFF FATAL LOG ERROR INFO WARN DEBUG";
+		var a = s.indexOf(AM.verbose+"");
+		var b = s.indexOf(level+""); //trace(a+":"+b);
+		if(a >= b){ // AM.verbose >= level
 			var d = (Timer.stamp() - start) + " ";
 			if(!good(msg))msg = d;
 			if(msg.starts("now:"))msg = msg.replace("now:",d);
-			if(!AM.silent)ST.print(msg);
+			if(!AM.silent)ST.print(msg,level);
 			log(level + sep + msg.trim());
 		}
 	}// print()
+
+	public static inline function getLogLevel(s="")
+	{   
+		var r:LogLevel;
+		switch(s){
+			case "OFF": 	r = OFF;
+			case "FATAL": 	r = FATAL;
+			case "LOG": 	r = LOG;
+			case "ERROR": 	r = ERROR;
+			case "INFO": 	r = INFO;
+			case "WARN": 	r = WARN;
+			case "DEBUG": 	r = DEBUG;
+			default: r = INFO;
+		}
+		return r;
+	}// getLogLevel()
+
 
 	public static inline function log(msg="")
 	{   
 		if(good(msg))logData.push(msg);
 	}// log()
 
+	public static inline function key(m:Map<String,String>,k:String,v="")
+	{   
+		var r = false;
+		if(good(k) && m.exists(k) && (m[k] == v)) r = true;
+
+		return r;
+	}// key()
 
 }// abv.CT
 

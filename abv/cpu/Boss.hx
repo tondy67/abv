@@ -11,7 +11,13 @@ using abv.CT;
 
 class Boss{
 
-	static var main = Thread.current();
+	public static var main(get, never):Thread;
+	static var _main:Thread = null;
+	static function get_main():Thread 
+	{
+		if (_main == null)_main = Thread.current();
+		return _main;
+	}
 	static inline var maxThreads = 1 << 8;
 	static var workers:Array<Thread> = [];
 	static var stdout:Array<Array<String>> = [];
@@ -24,12 +30,12 @@ class Boss{
 		var w:Thread = null;
 		if(queue.isEmpty()){
 			if(workers.length < maxThreads){
-				try w = Thread.create(func)catch(m:Dynamic){CT.print(m+"");}
+				try w = Thread.create(func)catch(m:Dynamic){CT.print(m+"",ERROR);}
 				if(w != null){
 					id = workers.push(w) - 1; 
 					stdout.push([]);
 				}
-			}else CT.print("Threads > " + maxThreads,CT.WARN);
+			}else CT.print("Threads > " + maxThreads,WARN);
 		}else id = queue.pop();
 	
 		return id;
@@ -81,7 +87,7 @@ class Boss{
 					}
 				}
 				max++;
-				if(max > 1000)CT.print("Messages > 1000",CT.WARN);
+				if(max > 1000)CT.print("Messages > 1000",WARN);
 			}
 		}
 

@@ -40,7 +40,7 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic){CT.print('ord: $char');}
+		catch(m:Dynamic){CT.print(char,ERROR);}
 
 		return r;
 	}// chr()
@@ -48,7 +48,7 @@ class TP{
 	public static inline function splitt(v:String,sep=",")
 	{ 
 		var a:Array<String> = [];
-		if(v.good("splitt")){
+		if(v.good()){
 			a = v.split(sep);
 			for(i in 0...a.length)a[i] = a[i].trim();
 		}
@@ -57,9 +57,9 @@ class TP{
 	
 	public static inline function substr(s:String, pos:Int, len:Int)
 	{
-		var r = "", f = "encode";
+		var r = "";
 
-		if(s.good(f)&&pos.good(f)&&len.good(f))r = Utf8.sub(s, pos, len);
+		if(s.good()&&pos.good()&&len.good())r = Utf8.sub(s, pos, len);
 		
 		return r;
 	}// substr()
@@ -68,7 +68,7 @@ class TP{
 	{
 		var r = "";
 
-		if(s.good("encode"))r = Utf8.encode(s);
+		if(s.good())r = Utf8.encode(s);
 
 		return r;
 	}// encode()
@@ -77,7 +77,7 @@ class TP{
 	{
 		var r = "";
 
-		if(s.good("encode"))r = Utf8.decode(s);
+		if(s.good())r = Utf8.decode(s);
 
 		return r;
 	}// decode()
@@ -100,7 +100,7 @@ class TP{
 	public static inline function rtrim(v:String,s="/")
 	{ 
 		var r = v;
-		if(v.good("rtrim")){
+		if(v.good()){
 			var len = v.length-1;
 			r = StringTools.rtrim(v);
 			for(i in 0...len+1){
@@ -117,19 +117,19 @@ class TP{
 		return StringTools.ltrim(s);
 	}// ltrim()
 
-	public static inline function starts(s:String, start:String)
+	public static inline function starts(s:String, start:String,msg="")
 	{
-		var r = false;
-		if(s.good("starts") && start.good("starts"))
-			r = StringTools.startsWith(s, start);
+		var r = false; 
+		if(s.good(msg) && start.good(msg) &&
+			StringTools.startsWith(s, start)) r = true; 
 		return r;
 	}// startsWith()
 
-	public static inline function ends(s:String, end:String)
+	public static inline function ends(s:String, end:String,msg="")
 	{
 		var r = false;
-		if(s.good("ends") && end.good("ends"))
-			r = StringTools.endsWith(s, end);
+		if(s.good(msg) && end.good(msg) &&
+			 StringTools.endsWith(s, end)) r = true;
 		return r;
 	}// endsWith()
 
@@ -137,7 +137,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic){CT.print("hex: "+m);}
+		catch(m:Dynamic){CT.print(m,ERROR);}
 		return r;
 	}// ltrim()
 
@@ -162,11 +162,11 @@ class TP{
 		return StringTools.rpad(s,c,l);
 	}//rpad()
 	
-	public static inline function replace(s:String, sub:String, by:String)
+	public static inline function replace(s:String, sub:String, by:String,msg="")
 	{// todo: regex
 		var r = "";
 
-		if(s.good("replace")) r = StringTools.replace(s,sub,by);
+		if(s.good(msg)) r = StringTools.replace(s,sub,by);
 		
 		return r;
 	}// replace()
@@ -179,7 +179,7 @@ class TP{
 	{// todo: regex
 		var r = -1;
 
-		if(src.good("search: src") && what.good("search: what")){
+		if(src.good("src") && what.good(what)){
 			var len = src.length;
 			start = Std.int(start.range(len-1,0));
 			var i = src.indexOf(what,start);
@@ -193,7 +193,7 @@ class TP{
 	{// todo: regex
 		var r:Array<Int> = [];
 
-		if(src.good("find: src") && what.good("find: what")){
+		if(src.good("src") && what.good(what)){
 			var srclen = length(src);
 			if(len == 0)len = srclen;
 			start = Std.int(start.range(srclen,0));
@@ -215,16 +215,40 @@ class TP{
 		return r;
 	}// find()
 
-	public static inline function extract(src:String,open="[",close="]")
+	public static inline function extract(src:String,open="",close="")
 	{	
-		var r:Array<String> = [];
-
-		if(src.good("extract: src") && open.good("extract: open") 
-		&& close.good("extract: close")){
-			// todo	
+		var a:Array<String> = [];
+		if(src.good()){
+			var o = 0, c = 0, s = "";
+			var len = src.length;
+ 	
+			if(!open.good()){
+				if(close.good()){
+					c = src.indexOf(close);  
+					if(c != -1)a.push(src.substring(0,c));
+				}
+			}else if(!close.good()){
+				if(open.good()){
+					o = src.indexOf(open);  
+					if(o != -1)a.push(src.substr(o+open.length));
+				}
+			}else{
+				while(o < len-1){ 
+					o = src.indexOf(open,o);
+					if(o == -1)break;
+					else{
+						c = src.indexOf(close,o);
+						if(c > o){
+							s = src.substring(o + open.length, c);
+							if(s.indexOf(open) == -1)a.push(s);
+							o = c+1; 
+						}else if(c == -1)break;
+					}
+				}
+			}
 		}
 		
-		return r;
+		return a;
 	}// extract()
 
 	public static inline function urlencode(s:String){return s.urlEncode();}

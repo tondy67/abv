@@ -1,39 +1,61 @@
 package abv.ds;
 
 import haxe.ds.StringMap;
-import abv.CT;
+
+using abv.CT;
 /**
  * DataTools
  **/
 class DT{
 	
-	public static inline function good<T>(v:StringMap<T>,msg="")
-	{ trace("v: "+v);
+	public static inline function good<T>(v:StringMap<T>,msg="",?pif:haxe.PosInfos)
+	{ 
+#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = true;
 		
 		
 		if(v == null){
-			log("Null StringMap",msg); 
+			CT.print(msg+": Null StringMap",ERROR); 
 			r = false;
-		}else{
-			var i = 0;
-			for(k in v.keys())i++;
-			if(i == 0){
-				log("Empty StringMap",msg);
-				r = false;
-			}
+		}else if(length(v) == 0){
+			CT.print(msg+": Empty StringMap",WARN);
+			r = false;
 		}
 		
 		return r;
 	}// good<T>()
 	
-	public static inline function copy<T>(v:StringMap<T>,msg="")
+	public static inline function sortK<T>(v:StringMap<T>)
 	{ 
+		var a:Array<String> = [];
+		if(good(v)){
+			for(k in v.keys())a.push(k); 
+			a.sortAZ();
+		}
+		return a;
+	}// sortK<T>()
+	
+	public static inline function length<T>(v:StringMap<T>)
+	{ 
+		var r = 0;
+		
+		if(v != null){
+			var i = 0;
+			for(k in v.keys())i++;
+			r = i;
+		}
+		
+		return r;
+	}// length<T>()
+	
+	public static inline function copy<T>(v:StringMap<T>,msg="",?pif:haxe.PosInfos)
+	{ 
+#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r:StringMap<T> = null;
 		
 		
 		if(v == null){
-			log("Null StringMap",msg); 
+			CT.print(msg+": Null StringMap",ERROR); 
 		}else{ 
 			r = new StringMap<T>();
 			for(k in v.keys())r.set(k,v.get(k));
@@ -42,42 +64,37 @@ class DT{
 		return r;
 	}// copy<T>()
 
-	public static inline function empty<T>(v:Array<T>,msg="")
+	public static inline function empty<T>(v:Array<T>,msg="",?pif:haxe.PosInfos)
 	{ 
+#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = false;
 		
 		if(v == null){
-			log("Null Array",msg); 
+			CT.print(msg+": Null Array",ERROR); 
 			r = true;
 		}else if(v.length == 0){
-			log("Empty Array",msg);
+			CT.print(msg+": Empty Array",WARN);
 			r = true;
 		}
 		
 		return r;
 	}// empty<T>()
 	
-	public static inline function blank<T>(v:List<T>,msg="")
+	public static inline function blank<T>(v:List<T>,msg="",?pif:haxe.PosInfos)
 	{ 
+#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = false;
 		
 		if(v == null){
-			log("Null List",msg); 
+			CT.print(msg+": Null List",ERROR); 
 			r = true;
 		}else if(v.length == 0){
-			log("Empty List",msg);
+			CT.print(msg+": Empty List",WARN);
 			r = true;
 		}
 		
 		return r;
 	}// blank<T>()
 	
-	static inline function log(s="",msg="")
-	{
-		if(msg != "") msg += ": ";
-		if(s != "") CT.log('$msg $s');
-	}// log()
-
-
 }// abv.ds.DT
 

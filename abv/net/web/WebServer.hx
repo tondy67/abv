@@ -5,11 +5,14 @@ import haxe.io.Bytes;
 import sys.net.Socket;
 import abv.net.web.WT;
 import abv.cpu.Thread;
+import abv.cpu.Boss;
 import abv.net.ThreadServer;
+import abv.lib.math.MT;
 
-using abv.lib.TP;
 using abv.CT;
+using abv.lib.TP;
 using abv.sys.ST;
+using abv.ds.DT;
 
 typedef Client = {
 	id:Int, 
@@ -24,7 +27,8 @@ typedef Message = {body: String}
 
 class WebServer extends ThreadServer<Client, Message>{
 	
-	var boss:Thread;
+	var single = false;
+	var boss:Thread = null;
 	var tid = "";
 	var arg = "";
 	
@@ -43,53 +47,21 @@ class WebServer extends ThreadServer<Client, Message>{
 	public function config(cfg:Map<String,String>)
 	{
 		if(cfg.exists("host"))host = cfg["host"];
-		if(cfg.exists("port"))port = Std.parseInt(cfg["port"]);
+		if(cfg.exists("port"))
+			port = Std.int(MT.range(Std.parseInt(cfg["port"]),10000,80));
 		if(cfg.exists("root"))root = cfg["root"];
 		if(cfg.exists("urls")){
 			urls = WT.parseQuery(cfg["urls"]);
 			if(!urls.exists("fs"))urls.set("fs","/fs/");
-			if(!urls.exists("login"))urls.set("login","/login/");
+			if(!urls.exists("pa"))urls.set("pa","/pa/");
 		}
 		if(cfg.exists("auth"))auth = cfg["auth"];
 		if(cfg.exists("index"))index = cfg["index"].splitt();
-		if(cfg.exists("threads")){
-			nthreads = Std.parseInt(cfg["threads"]);
-			if((nthreads < 2)||(nthreads > maxThreads))nthreads = 2;
-		}
+		if(cfg.exists("threads"))
+			nthreads = Std.int(MT.range(Std.parseInt(cfg["threads"]),maxThreads,2));
 		if(cfg.exists("name"))name = cfg["name"];
 		if(cfg.exists("version"))version = cfg["version"];
 	}// config()
-
-	override function clientConnected(sock: Socket)
-	{
-		var id = Std.random(100000);
-		var ip = sock.peer().host + "";
-		tell('client: $id: $ip',CT.WARN);
-		
-		return {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip, sid:""};
-	}
-
-	override function clientDisconnected(c: Client)
-	{
-		tell('client: ${c.id} disconnected',CT.WARN);
-	}// clientDisconnected()
-
-	override function readClientMessage(c:Client, buf:Bytes, pos:Int, len:Int)
-	{
-		var ok = false;
-		var cpos = pos; 
-		var max = pos + len;
-
-		while (cpos < max && !ok){
-			ok = (buf.get(cpos) == 13)&&(buf.get(cpos+1) == 10);
-			cpos++;
-		}
-
-		if(!ok && cpos < max) return null;
-		var size = cpos-pos;
-
- 		return {msg: {body: buf.getString(pos, size)}, bytes: size};
-	}// readClientMessage()
 
 	override function clientMessage(c: Client, msg: Message)
 	{
@@ -97,18 +69,17 @@ class WebServer extends ThreadServer<Client, Message>{
 		var p = "", f = "";
 		c.request += s; 
 
-		if(c.request.length < c.length){
-				return;
-		}else if(c.request.length == c.length)s = "\n\r"; 
+		if(c.request.length < c.length)	return;
+		else if(c.request.length == c.length)s = CT.CR; 
 
 	
-		if(s == "\n\r"){ //trace(c.request);
+		if(s == CT.CR){ //trace(c.request);
 			var form:Map<String,String> = null;
 			if(c.ctx == null) c.ctx = WT.parseRequest(c.request); 
-			var ctx = c.ctx;
+			var ctx = c.ctx; // for(k in ctx.keys())trace(k+":"+ctx[k]);
 			if(ctx["method"] == "POST"){
 				if(c.length > 0){
-					ctx["body"] = c.request.substr(c.request.indexOf("\n\r") + 2).trim();
+					ctx["body"] = c.request.substr(c.request.indexOf(CT.CR) + 2).trim();
 					form = ctx["Content-Type"] == WT.mimeType["post-url"] ? 
 						WT.parseQuery(ctx["body"]) : WT.parsePostData(ctx);
 				}else if(ctx.exists("Content-Length")){
@@ -133,24 +104,57 @@ class WebServer extends ThreadServer<Client, Message>{
 					}else ctx["status"] = "404";
 				}else if(ctx["path"].starts(Icons.p))WT.mkFile(ctx["path"],ctx);
 				else if(ctx["path"] == "/favicon.ico")WT.mkFile(ctx["path"],ctx);
-				else if(ctx["request"].starts(urls["login"])){  
-					if(ctx.exists("Authorization")&&(ctx["Authorization"] == auth))app(ctx); 
+				else if(ctx["path"] == "/hako.css")mkCss(ctx);
+				else if(ctx["request"].starts(urls["pa"])){  
+					if(ctx.key("Authorization","Basic "+auth))app(ctx); 
 					else ctx["status"] = "401";
 				}else app(ctx, form);
 			}
 
 			sendData(c.sock, WT.response(ctx));
 			c.request = ""; c.length = 0; c.ctx = null;
-			tell('${c.ip} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',CT.LOG);
+			log('${c.ip} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',LOG);
 		}
 
 	}// clientMessage()
  
+	override function clientConnected(sock: Socket)
+	{
+		var id = Std.random(100000);
+		var ip = sock.peer().host + "";
+		log('client: $id: $ip',DEBUG);
+		
+		return {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip, sid:""};
+	}
+
+	override function clientDisconnected(c: Client)
+	{
+		log('client: ${c.id} disconnected',DEBUG);
+	}// clientDisconnected()
+
+	override function readClientMessage(c:Client, buf:Bytes, pos:Int, len:Int)
+	{
+		var ok = false;
+		var start = pos; 
+		var max = pos + len;
+
+		while (start < max && !ok){
+			ok = (buf.get(start) == 13)&&(buf.get(start+1) == 10);
+			start++;
+		}
+
+		if(!ok && start < max) return null;
+		var size = start-pos;
+
+ 		return {msg: {body: buf.getString(pos, size)}, bytes: size};
+	}// readClientMessage()
+
+///
 	function getIndex(path:String)
 	{ 
 		var r = "";
 		var a = path.get();
-		if(a.length > 0){
+		if(!a.empty()){
 			for(f in index){
 				if(a.indexOf(f) != -1){
 					r = f;
@@ -166,6 +170,13 @@ class WebServer extends ThreadServer<Client, Message>{
 		if(path.extname() != "hxs")WT.mkFile(path,ctx);else hxs(path,ctx);
 	}// mkFile()
 	
+	function mkCss(ctx:Map<String,String>)
+	{ 
+		ctx["mime"] = "css";
+		ctx["body"] = ST.open("www/hako.css");
+	}// mkCss()
+
+///
 	public dynamic function  hxs(path:String,ctx:Map<String,String>)
 	{ 
 		ctx["mime"] = "htm";
@@ -179,8 +190,13 @@ class WebServer extends ThreadServer<Client, Message>{
 		ctx["body"] = WT.mkPage(body);
 	}// app();
 
-	public function start()
+	public dynamic function log(msg="",level:LogLevel)
 	{
+	}// log()
+
+///	
+	public function start()
+	{ 
 		tset(); 
 		Sys.setCwd(root);
 		sign = '$name/$version';
@@ -190,18 +206,21 @@ class WebServer extends ThreadServer<Client, Message>{
 			throw 'Another server is running at $host Port $port';
 		}
 	}// start()
-	
+///	
 	function tset()
 	{
-		boss = Thread.readMessage(true);
-		tid = Thread.readMessage(true);
-		arg = Thread.readMessage(true);
+		if(!single){ 
+			boss = Thread.readMessage(true);
+			tid = Thread.readMessage(true);
+			arg = Thread.readMessage(true);
+		}
 	}// tset()
 
-	function tell(msg="",level=CT.INFO)
+	function tell(msg="",level:LogLevel)
 	{
-		boss.sendMessage(tid+":"+level + CT.sep + msg.trim());
-	}// tset()
+		if(!single && (boss != null))
+			boss.sendMessage(tid+":"+level + CT.sep + msg.trim());
+	}// tell()
 			
 }// abv.net.web.WebServer
 	

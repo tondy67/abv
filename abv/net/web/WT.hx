@@ -48,7 +48,9 @@ class WT{
 			"ra" 		=> "audio/x-pn-realaudio",
 			"doc" 		=> "application/msword",
 			"exe" 		=> "application/octet-stream",
+			"bin" 		=> "application/octet-stream",
 			"zip" 		=> "application/x-zip-compressed",
+			"7z" 		=> "application/x-7z-compressed",
 			"xls" 		=> "application/excel",
 			"tgz" 		=> "application/x-tar-gz",
 			"tar" 		=> "application/x-tar",
@@ -145,7 +147,7 @@ class WT{
 		}
 		r["request"] = s;
 		a = r["request"].splitt("?");
-		r["path"] = a[0];
+		r["path"] = a[0]; //trace(r["path"] );
 		if(a[1].good())r["query"] = a[1];
 		
 		return r;
@@ -280,17 +282,16 @@ class WT{
 			ctx["body"] = mkPage('<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.sign}</center>',code);
 
 		if(ctx["status"] == "304"){
-		}else if(ctx["status"] == "303"){
+		}else if(ctx["status"] == "303"){ 
 			var port = ctx["port"].good()?":"+ctx["port"]:"";
-			var query = ctx["query"].good()?"?"+ctx["query"]:"";
-			r += "Location: http://" + ctx["host"] + port + ctx["path"] + query + "\r\n";
+			r += "Location: http://" + ctx["host"] + port + ctx["request"] + "\r\n";
 		}else if(ctx["status"] == "401"){
-			r += 'WWW-Authenticate: Basic realm="${WebServer.sign}"' + "\r\nContent-Length: 0\r\n";
+			r += "WWW-Authenticate: Basic realm=\"Protected area\"\r\nContent-Length: 0\r\n";
 		}else{
 			body = ctx["body"] ; 
 			if(!ctx["mime"].good()) ctx["mime"] = "htm";
-			var type = mimeType[ctx["mime"]];
-			if(type.indexOf("text") != -1)type += ";charset=utf-8";
+			var type = mimeType.exists(ctx["mime"])?mimeType[ctx["mime"]]:mimeType["bin"];
+			if(type.starts("text"))type += ";charset=utf-8";
 			ctx["length"] = body.length +"";
 			if(ctx["method"] == "HEAD")body = "";
 			if(ctx["etag"].good())ctx["etag"] += "\r\n";
@@ -301,16 +302,16 @@ class WT{
 		r += "Date: " + date + "\r\n" + ctx["etag"] +
 		"Server: " + WebServer.sign + "\r\n" +
 		"Connection: Keep-Alive\r\n" + "\r\n" + body;
- 
 		return r;
 	}// response()
 	
 	public static inline function redirect(ctx:Map<String,String>,url="/")
-	{
-		if(url.starts("http")){
-			ctx["status"] = "303";
-			ctx["path"] = url;
-		}
+	{ 
+		ctx["status"] = "303";
+		var p = parseURI(url); 
+		if(p["host"].good())ctx["host"] = p["host"];
+		if(p["port"].good())ctx["port"] = p["port"];
+		if(p["request"].good())ctx["request"] = p["request"];
 	}// redirect()
 
 	public static inline function referer(ctx:Map<String,String>,url="")
@@ -326,19 +327,22 @@ class WT{
 	public static inline function mkFile(path:String,ctx:Map<String,String>)
 	{
 		var f = "";
-		ctx["mime"] = path.extname();
+		var ext = path.extname();
 		if(path == "/favicon.ico") f = WT.getIcon("favicon");
 		else if(path.starts(Icons.p))f =  WT.getIcon(path.basename(false));
 		else f = path.open();
+		if(ext.good())ctx["mime"] = ext;
+		else if(f.indexOf("\x00\x00\x00") == -1)ctx["mime"] = "txt";
+		else ctx["mime"] = "bin";
 		ctx["body"] = f;
 		ctx["etag"] = "ETag: "+etag(ctx["request"]);
 	}// mkFile()
-	
 	public static inline function mkPage(body="",title="",meta="")
 	{
 		var r =
 '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>\n<head>\n <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n$meta
+<html>\n<head>\n <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <link rel="stylesheet" type="text/css" href="/hako.css">$meta
  <title>$title</title>\n</head>
 <body bgcolor="white">\n $body\n</body>\n</html>';
 

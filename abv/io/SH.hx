@@ -100,10 +100,10 @@ class SH{
 
 	public static inline function echo(msg="",path="",append=false)
 	{// TODO: colors
-		if(!msg.good('echo $msg'))msg = "";
+		if(!msg.good(msg))msg = "";
 		if(!AM.silent){
-			if(!path.dir('echo $path'))path.save(msg + " ");
-			else CT.print(msg,CT.WARN); 
+			if(!path.dir(path))path.save(msg + " ");
+			else CT.print(msg,INFO); 
 		}else output += msg;
 	}//echo()
 	
@@ -175,7 +175,7 @@ class SH{
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.dir(s)){
 			try r = path.open()
-			catch(m:Dynamic){CT.print(s + " "+m);}
+			catch(m:Dynamic){CT.print(s + " "+m,WARN);}
 		}
 		
 		return r;
