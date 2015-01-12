@@ -1,6 +1,6 @@
 package abv.lib.math;
 
-using abv.CT;
+using abv.CR;
 /**
  * MathTools
  **/
@@ -12,13 +12,13 @@ class MT{
 		var r = true;
 
 		if(v == null){
-			CT.print(msg+": Null number",WARN); 
+			CR.print(msg+": Null number",WARN); 
 			r = false;
 		}else if(Math.isNaN(v)){
-			CT.print(msg+": NaN number",WARN); 
+			CR.print(msg+": NaN number",WARN); 
 			r = false;
 		}else if(!Math.isFinite(v)){
-			CT.print(msg+": Not number",WARN); 
+			CR.print(msg+": Not number",WARN); 
 			r = false;
 		}
 

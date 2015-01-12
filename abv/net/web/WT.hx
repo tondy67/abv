@@ -3,20 +3,21 @@ package abv.net.web;
  * WebTools
  **/
 import haxe.crypto.Md5;
+import haxe.io.Bytes;
 import abv.net.web.Icons;
 import abv.net.web.WebServer;
 
 using abv.lib.TP;
 using abv.sys.ST;
-using abv.CT;
+using abv.CR;
  
 
 class WT{
 
 	public static var tmp = "www/tmp/";
-	public static var tz = CT.timezone();
-	public static var dow = CT.dow();
-	public static var month = CT.month();
+	public static var tz = CR.timezone();
+	public static var dow = CR.dow();
+	public static var month = CR.month();
 
 	public static var methods = ["GET","POST","HEAD"];
 	public static var versions = ["HTTP/1.0","HTTP/1.1"];
@@ -183,9 +184,9 @@ class WT{
 		for(l in lines){ 
 			if(l.starts("Content-Disposition")){
 				n = f = c = m = "";
-				a = l.splitt("\r\n\r\n");
+				a = l.splitt(CR.LF2);
 				if(a[1].good())c = a[1];
-				t = a[0].splitt("\r\n");
+				t = a[0].splitt(CR.LF);
 				if(t[1].good() && t[1].starts("Content-Type:")){
 					m = t[1].replace("Content-Type:"," ").trim();
 				}
@@ -201,7 +202,7 @@ class WT{
 				if(n.good()){
 					r.set(n,"");
 					if(c.good()){
-						if(f.good())r[n] = 'file:$f|||$m|||$c';
+						if(f.good())r[n] = 'file:$f${CR.sep}$m${CR.sep}$c';
 						else r[n] = c;
 					}
 				}
@@ -272,7 +273,7 @@ class WT{
 
 		if(!responseCode.exists(ctx["status"]))ctx["status"] = "500";
 		var code = ctx["status"] + " " + responseCode[ctx["status"]];
-		var r = "HTTP/1.1 " + code + "\r\n";
+		var r = "HTTP/1.1 " + code + CR.LF;
 
 		if(ctx["status"] != "200"){
 			ctx["body"] = "";
@@ -284,7 +285,7 @@ class WT{
 		if(ctx["status"] == "304"){
 		}else if(ctx["status"] == "303"){ 
 			var port = ctx["port"].good()?":"+ctx["port"]:"";
-			r += "Location: http://" + ctx["host"] + port + ctx["request"] + "\r\n";
+			r += "Location: http://" + ctx["host"] + port + ctx["request"] + CR.LF;
 		}else if(ctx["status"] == "401"){
 			r += "WWW-Authenticate: Basic realm=\"Protected area\"\r\nContent-Length: 0\r\n";
 		}else{
@@ -294,15 +295,16 @@ class WT{
 			if(type.starts("text"))type += ";charset=utf-8";
 			ctx["length"] = body.length +"";
 			if(ctx["method"] == "HEAD")body = "";
-			if(ctx["etag"].good())ctx["etag"] += "\r\n";
-			r += "Content-Type: " + type + "\r\n" +
-			"Content-Length: " + ctx["length"] + "\r\n" ;
+			if(ctx["etag"].good())ctx["etag"] += CR.LF;
+			r += "Content-Type: " + type + CR.LF +
+			"Content-Length: " + ctx["length"] + CR.LF ;
 		}
 
-		r += "Date: " + date + "\r\n" + ctx["etag"] +
-		"Server: " + WebServer.sign + "\r\n" +
-		"Connection: Keep-Alive\r\n" + "\r\n" + body;
-		return r;
+		r += "Date: " + date + CR.LF + ctx["etag"] +
+		"Server: " + WebServer.sign + CR.LF +
+		"Connection: Keep-Alive" + CR.LF2 + body;
+		 
+		return Bytes.ofString(r);
 	}// response()
 	
 	public static inline function redirect(ctx:Map<String,String>,url="/")
@@ -334,9 +336,10 @@ class WT{
 		if(ext.good())ctx["mime"] = ext;
 		else if(f.indexOf("\x00\x00\x00") == -1)ctx["mime"] = "txt";
 		else ctx["mime"] = "bin";
-		ctx["body"] = f;
+		ctx["body"] = f; 
 		ctx["etag"] = "ETag: " + etag(ctx["request"]);
 	}// mkFile()
+	
 	public static inline function mkPage(body="",title="",meta="")
 	{
 		var r =

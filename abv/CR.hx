@@ -21,11 +21,12 @@ enum LogLevel{
 }
 
 @:dce
-class CT{
+class CR{
 // constants
 	public static inline var AUTO 		= -1;
 	public static inline var PI 		= 3.141592653589793;
-	public static inline var CR 		= "\n\r";
+	public static inline var LF 		= "\r\n";
+	public static inline var LF2 		= "\r\n\r\n";
 // degree, radian
 	public static inline var DEG 		= 0.01745329251;
 	public static inline var RAD 		= 57.295779513;
@@ -272,5 +273,5 @@ class CT{
 		return r;
 	}// key()
 
-}// abv.CT
+}// abv.CR
 

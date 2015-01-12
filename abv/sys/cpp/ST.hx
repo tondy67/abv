@@ -4,7 +4,7 @@ import sys.FileSystem;
 import sys.io.File;
 
 using abv.lib.TP;
-using abv.CT;
+using abv.CR;
 /**
  * SystemTools
  **/
@@ -47,7 +47,7 @@ class ST{
 		var r = true;
 		
 		if(path.good(msg) && !FileSystem.exists(path)){
-			if(msg.good())CT.print(msg + ": No such file or directory",ERROR); 
+			if(msg.good())CR.print(msg + ": No such file or directory",ERROR); 
 			r = false;
 		}
 
@@ -80,17 +80,19 @@ class ST{
 
 	public static inline function open(path:String)
 	{
-		return dir(path)?"is dir":File.getContent(path);
+		var r = "";
+		if(exists(path))r = dir(path)?"is dir":File.getContent(path);
+		return r;
 	}// open()
 
 	public static inline function openurl(url:String)
 	{
 		var r = "";
 		if(url.starts("http")){
-			try r = haxe.Http.requestUrl(url)catch(m:Dynamic){CT.print(m+"",ERROR);}
+			try r = haxe.Http.requestUrl(url)catch(m:Dynamic){CR.print(m+"",ERROR);}
 		}
 		return r;
-	}// open()
+	}// openurl()
 
 	public static inline function save(path:String,s:String)
 	{

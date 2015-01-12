@@ -2,7 +2,7 @@ package abv.ds;
 
 import haxe.ds.StringMap;
 
-using abv.CT;
+using abv.CR;
 /**
  * DataTools
  **/
@@ -15,10 +15,10 @@ class DT{
 		
 		
 		if(v == null){
-			CT.print(msg+": Null StringMap",ERROR); 
+			CR.print(msg+": Null StringMap",ERROR); 
 			r = false;
 		}else if(length(v) == 0){
-			CT.print(msg+": Empty StringMap",WARN);
+			CR.print(msg+": Empty StringMap",WARN);
 			r = false;
 		}
 		
@@ -55,7 +55,7 @@ class DT{
 		
 		
 		if(v == null){
-			CT.print(msg+": Null StringMap",ERROR); 
+			CR.print(msg+": Null StringMap",ERROR); 
 		}else{ 
 			r = new StringMap<T>();
 			for(k in v.keys())r.set(k,v.get(k));
@@ -70,10 +70,10 @@ class DT{
 		var r = false;
 		
 		if(v == null){
-			CT.print(msg+": Null Array",ERROR); 
+			CR.print(msg+": Null Array",ERROR); 
 			r = true;
 		}else if(v.length == 0){
-			CT.print(msg+": Empty Array",WARN);
+			CR.print(msg+": Empty Array",WARN);
 			r = true;
 		}
 		
@@ -86,10 +86,10 @@ class DT{
 		var r = false;
 		
 		if(v == null){
-			CT.print(msg+": Null List",ERROR); 
+			CR.print(msg+": Null List",ERROR); 
 			r = true;
 		}else if(v.length == 0){
-			CT.print(msg+": Empty List",WARN);
+			CR.print(msg+": Empty List",WARN);
 			r = true;
 		}
 		

@@ -3,7 +3,7 @@ package abv.lib;
 import haxe.Utf8;
 
 using StringTools;
-using abv.CT;
+using abv.CR;
 using abv.lib.math.MT;
 
 /**
@@ -22,7 +22,7 @@ class TP{
 		if(a != null){
 			if(cmp == null)
 				cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-			CT.sort(a, cmp);
+			CR.sort(a, cmp);
 		}
 	}// order()
 
@@ -40,7 +40,7 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic){CT.print(char,ERROR);}
+		catch(m:Dynamic){CR.print(char,ERROR);}
 
 		return r;
 	}// chr()
@@ -137,7 +137,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic){CT.print(m,ERROR);}
+		catch(m:Dynamic){CR.print(m,ERROR);}
 		return r;
 	}// ltrim()
 

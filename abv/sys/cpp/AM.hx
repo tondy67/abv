@@ -2,7 +2,7 @@ package abv.sys.cpp;
 
 import abv.lib.Timer;
 
-using abv.CT;
+using abv.CR;
 
 class AM {
 	
@@ -86,7 +86,7 @@ class AM {
 
 	function print(msg="",level:LogLevel)
 	{
-		CT.print(msg,level);
+		CR.print(msg,level);
 	}// print()
 
 

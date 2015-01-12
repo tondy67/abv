@@ -9,7 +9,7 @@ import abv.cpu.Boss;
 import abv.net.ThreadServer;
 import abv.lib.math.MT;
 
-using abv.CT;
+using abv.CR;
 using abv.lib.TP;
 using abv.sys.ST;
 using abv.ds.DT;
@@ -70,20 +70,19 @@ class WebServer extends ThreadServer<Client, Message>{
 		c.request += s; 
 
 		if(c.request.length < c.length)	return;
-		else if(c.request.length == c.length)s = CT.CR; 
-
-	
-		if(s == CT.CR){ //trace(c.request);
+		else if(c.request.length == c.length)s = CR.LF; 
+ 
+		if(s == CR.LF){ 
 			var form:Map<String,String> = null;
 			if(c.ctx == null) c.ctx = WT.parseRequest(c.request); 
 			var ctx = c.ctx; // for(k in ctx.keys())trace(k+":"+ctx[k]);
-			if(ctx["method"] == "POST"){
-				if(c.length > 0){
-					ctx["body"] = c.request.substr(c.request.indexOf(CT.CR) + 2).trim();
+			if(ctx["method"] == "POST"){ 
+				if(c.length > 0){ //ST.save("bin/log.txt",c.request);
+					ctx["body"] = c.request.substr(c.request.indexOf(CR.LF2));
 					form = ctx["Content-Type"] == WT.mimeType["post-url"] ? 
 						WT.parseQuery(ctx["body"]) : WT.parsePostData(ctx);
 				}else if(ctx.exists("Content-Length")){
-					c.length = c.request.length + 1 + Std.parseInt(ctx["Content-Length"]);
+					c.length = c.request.length + Std.parseInt(ctx["Content-Length"]);
 					return;
 				}else ctx["status"] = "411";
 			} 
@@ -102,22 +101,27 @@ class WebServer extends ThreadServer<Client, Message>{
 							else ctx["body"] = WT.mkPage('<p><a href="/">Home</a></p>'+WT.dirIndex(p,urls["fs"]));
 						}else mkFile(p,ctx);
 					}else ctx["status"] = "404";
-				}else if(ctx["path"].starts(Icons.p))WT.mkFile(ctx["path"],ctx);
-				else if(ctx["path"] == "/favicon.ico")WT.mkFile(ctx["path"],ctx);
-				else if(ctx["path"] == "/hako.css")mkCss(ctx);
+				}else if(ctx["path"].starts(Icons.p)||
+					ctx["path"].eq("/favicon.ico"))WT.mkFile(ctx["path"],ctx);
+				else if(ctx["path"].eq("/hako.css"))mkCss(ctx);
 				else if(ctx["request"].starts(urls["pa"])){  
 					if(ctx.key("Authorization","Basic "+auth))app(ctx); 
 					else ctx["status"] = "401";
 				}else app(ctx, form);
 			}
 
-			sendData(c.sock, WT.response(ctx));
+			response(c.sock, WT.response(ctx));
 			c.request = ""; c.length = 0; c.ctx = null;
 			log('${c.ip} [${WT.getDate(true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',LOG);
 		}
 
 	}// clientMessage()
- 
+	
+	function response(sock:Socket,data:Bytes)
+	{
+		sendData(sock, data + "");
+	}// response()
+	
 	override function clientConnected(sock: Socket)
 	{
 		var id = Std.random(100000);
@@ -137,10 +141,10 @@ class WebServer extends ThreadServer<Client, Message>{
 		var ok = false;
 		var start = pos; 
 		var max = pos + len;
-
+// todo: overflow & zero checks
 		while (start < max && !ok){
 			ok = (buf.get(start) == 13)&&(buf.get(start+1) == 10);
-			start++;
+			if(ok)start += 2;else start++;
 		}
 
 		if(!ok && start < max) return null;
@@ -167,7 +171,8 @@ class WebServer extends ThreadServer<Client, Message>{
 
 	function mkFile(path:String,ctx:Map<String,String>)
 	{ 
-		if(path.extname() != "hxs")WT.mkFile(path,ctx);else hxs(path,ctx);
+		if(path.extname() != "hxs")WT.mkFile(path,ctx);
+		else hxs(path,ctx);
 	}// mkFile()
 	
 	function mkCss(ctx:Map<String,String>)
@@ -222,7 +227,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	function tell(msg="",level:LogLevel)
 	{
 		if(!single && (boss != null))
-			boss.sendMessage(tid+":"+level + CT.sep + msg.trim());
+			boss.sendMessage(tid+":"+level + CR.sep + msg.trim());
 	}// tell()
 			
 }// abv.net.web.WebServer

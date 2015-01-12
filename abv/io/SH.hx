@@ -8,7 +8,7 @@ import abv.sys.ST;
 import abv.cpu.Boss;
 
 
-using abv.CT;
+using abv.CR;
 using abv.lib.TP;
 using abv.sys.ST;
 
@@ -103,13 +103,13 @@ class SH{
 		if(!msg.good(msg))msg = "";
 		if(!AM.silent){
 			if(!path.dir(path))path.save(msg + " ");
-			else CT.print(msg,INFO); 
+			else CR.print(msg,INFO); 
 		}else output += msg;
 	}//echo()
 	
 	public static inline function print(msg="")
 	{ 
-		var end = !AM.silent?"\r\n":"<br>\n"; 
+		var end = !AM.silent?CR.LF:"<br>\n"; 
 		echo(msg + end);
 	}// print()
 	
@@ -175,7 +175,7 @@ class SH{
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.dir(s)){
 			try r = path.open()
-			catch(m:Dynamic){CT.print(s + " "+m,WARN);}
+			catch(m:Dynamic){CR.print(s + " "+m,WARN);}
 		}
 		
 		return r;
@@ -233,9 +233,9 @@ class SH{
 //
 				case "TP": ip.variables.set("TP",TP);
 				case "Math": ip.variables.set("Math",Math);
-				case "json": ip.variables.set("json",CT.json);
+				case "json": ip.variables.set("json",CR.json);
 				case "good": ip.variables.set("good",good);
-				case "fields": ip.variables.set("fields",CT.fields);
+				case "fields": ip.variables.set("fields",CR.fields);
 //
 				case "ls": ip.variables.set("ls",ls);
 				case "mkdir": ip.variables.set("mkdir",mkdir);
