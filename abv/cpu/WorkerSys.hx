@@ -23,9 +23,9 @@ class WorkerSys extends Worker{
 	override function exec()
 	{ 
 		var s = "";
-		var t = arg.splitt(CR.sep);
+		var t = arg.splitt(CR.SEP3);
 		cmd = t[0];
-		args = t[1].splitt("|");
+		args = t[1].splitt(CR.SEP1);
 		input = t[2];
 		p = new Process(cmd,args); 
 		if(input.good()){

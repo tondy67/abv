@@ -1,6 +1,7 @@
 package abv.lib;
 
 import haxe.Utf8;
+import haxe.ds.StringMap;
 
 using StringTools;
 using abv.CR;
@@ -179,9 +180,9 @@ class TP{
 	{// todo: regex
 		var r = -1;
 
-		if(src.good("src") && what.good(what)){
+		if(src.good() && what.good(what)){
 			var len = src.length;
-			start = Std.int(start.range(len-1,0));
+			start = Std.int(start.range(len-1));
 			var i = src.indexOf(what,start);
 			if((i >= 0)&&(i < len))r = length(src.substr(0,i));
 		}
@@ -250,6 +251,33 @@ class TP{
 		
 		return a;
 	}// extract()
+	public static inline function map2str(m:Map<String,String>,sep1=CR.SEP1,sep3=CR.SEP3)
+	{   
+		var r = "";
+		for(k in m.keys()) r += k + sep1 + m.get(k) + sep3;
+
+		return r;
+	}// map2str()
+
+	public static inline function str2map(s:String,sep1=CR.SEP1,sep3=CR.SEP3)
+	{   
+		var r = new Map<String,String>();
+		var a:Array<String>;
+		var t:Array<String>;
+		var v = "";
+		if(s.good()){
+			a = splitt(s,sep3);
+			for(i in a){
+				t = splitt(i,sep1);
+				if(t[0].good()){
+					if(t[1].good())v = t[1];
+					r.set(t[0],v);
+				}
+			}
+		}
+
+		return r;
+	}// str2map()
 
 	public static inline function urlencode(s:String){return s.urlEncode();}
 	public static inline function urldecode(s:String){return s.urlDecode();}

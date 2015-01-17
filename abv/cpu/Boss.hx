@@ -46,11 +46,11 @@ class Boss{
 		var id = -1;
 		var arg = "";
 		if(cmd.good()){
-			if((args != null)&&(args.length > 0))arg = args.join("|");
+			if((args != null)&&(args.length > 0))arg = args.join(CR.SEP1);
 			var worker = new WorkerSys();
 			id = create(worker.run); 	
 			if(id != -1){
-				arg = cmd + CR.sep + arg + CR.sep + input;
+				arg = cmd + CR.SEP3 + arg + CR.SEP3 + input;
 				workers[id].sendMessage(main);
 				workers[id].sendMessage(id);
 				workers[id].sendMessage(arg);

@@ -3,6 +3,7 @@ package abv;
  * Common Constants & Tools
  * 
  **/
+import abv.cpu.Mutex;
 import abv.AM;
 import abv.lib.Timer;
 import abv.lib.math.MT;
@@ -30,14 +31,15 @@ class CR{
 // degree, radian
 	public static inline var DEG 		= 0.01745329251;
 	public static inline var RAD 		= 57.295779513;
-// separator
-	public static inline var sep 		= "|||";
+// SEP3arators
+	public static inline var SEP1 		= "|";
+	public static inline var SEP3 		= "|||";
 // log 
-	static var logData:Array<String> 	= [];
+	static var logData:Array<String>	= [];
 	static var logMax 					= 1 << 16;
-	public static var logFile			= "";
 //
 	static var start = Timer.stamp();
+	public static var lock(default,null)= new Mutex();
 
 	public static inline function dow(week:Array<String>=null)
 	{
@@ -141,13 +143,13 @@ class CR{
 
 	public static inline function dirname(path:Null<String>)
 	{
-		var sep = "/";
+		var SEP3 = "/";
 		var r = ".";
-		var a = path.trim().splitt(sep); 
+		var a = path.trim().splitt(SEP3); 
 		if(a.length > 1){
 			var last = a.pop();
 			if(!good(last))last = a.pop();
-			r = a.join(sep);
+			r = a.join(SEP3);
 		}
 		return r;
 	}// dirname()
@@ -155,8 +157,8 @@ class CR{
 	public static inline function basename(path:Null<String>,ext=true)
 	{
 		var r = "";
-		var sep = "/";
-		var a = path.trim().splitt(sep); 
+		var SEP3 = "/";
+		var a = path.trim().splitt(SEP3); 
 		r = a.pop();
 		if(!good(r))r = a.pop();
 		if(!ext){
@@ -169,10 +171,10 @@ class CR{
 	
 	public static function extname(path:Null<String>)
 	{
-		var r = "", sep = ".";
+		var r = "", SEP3 = ".";
 		var name = basename(path);
 		if(!name.starts(".")){  
-			var a = name.splitt(sep); 
+			var a = name.splitt(SEP3); 
 			if(a.length > 1)r = a.pop(); 
 		}
 		return r;
@@ -199,15 +201,11 @@ class CR{
 		var r:Array<String> = [];
 
 		if(line == MT.range(line,logData.length,1)){
-			if(good(logData[line],'getLog: $line'))r.push(logData[line]);
+			if(good(logData[line]))r.push(logData[line]);
+		}else if(good(filter)){
+			for(l in logData)if(l.indexOf(filter) != -1)r.push(l); 
 		}else r = logData;
-
-		if(filter != ""){
-			var t:Array<String> = [];
-			for(l in logData)if(l.indexOf(filter) != -1)t.push(l);
-			r = t;
-		}
-		
+ 
 		return r;
 	}// getLog()
 
@@ -218,7 +216,7 @@ class CR{
 		var a = getLog();
 		a = a.slice(a.length - last);
 		for(m in a){ 
-			t = m.splitt(sep); 
+			t = m.splitt(SEP3); 
 			ST.print(t[1],getLogLevel(t[0]));
 		}
 	}// printLog()
@@ -233,13 +231,13 @@ class CR{
 	{   
 		var s = "OFF FATAL LOG ERROR INFO WARN DEBUG";
 		var a = s.indexOf(AM.verbose+"");
-		var b = s.indexOf(level+""); //trace(a+":"+b);
-		if(a >= b){ // AM.verbose >= level
+		var b = s.indexOf(level+""); 
+		if(a >= b){ 
 			var d = (Timer.stamp() - start) + " ";
 			if(!good(msg))msg = d;
 			if(msg.starts("now:"))msg = msg.replace("now:",d);
 			if(!AM.silent)ST.print(msg,level);
-			log(level + sep + msg.trim());
+			log(level + SEP3 + msg.trim());
 		}
 	}// print()
 
@@ -264,14 +262,6 @@ class CR{
 	{   
 		if(good(msg))logData.push(msg);
 	}// log()
-
-	public static inline function key(m:Map<String,String>,k:String,v="")
-	{   
-		var r = false;
-		if(good(k) && m.exists(k) && (m[k] == v)) r = true;
-
-		return r;
-	}// key()
 
 }// abv.CR
 

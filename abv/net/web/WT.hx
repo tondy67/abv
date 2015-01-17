@@ -14,13 +14,33 @@ using abv.CR;
 
 class WT{
 
+	public static inline var CONTENT_DISPOSITION = "Content-Disposition";
+	public static inline var CONTENT_TYPE 		= "Content-Type";	
+	public static inline var CONTENT_LENGTH 	= "Content-Length";
+	public static inline var DATE 				= "Date";
+	public static inline var SERVER 			= "Server";
+	public static inline var CONNECTION 		= "Connection";
+	public static inline var KEEP_ALIVE 		= "keep-alive";
+	public static inline var REFERER 			= "Referer";
+	public static inline var IF_NONE_MATCH 		= "If-None-Match";
+	public static inline var AUTHORIZATION 		= "Authorization";
+	public static inline var ETAG 				= "ETag";
+	public static inline var HTTP10 			= "HTTP/1.0";
+	public static inline var HTTP11 			= "HTTP/1.1"; 
+	public static inline var LOCATION 			= "Location"; 
+	public static inline var GET 				= "GET"; 
+	public static inline var POST 				= "POST"; 
+	public static inline var HEAD 				= "HEAD"; 
+	public static inline var HOST 				= "Host"; 
+	public static inline var COOKIE 			= "Cookie"; 
+	
 	public static var tmp = "www/tmp/";
 	public static var tz = CR.timezone();
 	public static var dow = CR.dow();
 	public static var month = CR.month();
 
-	public static var methods = ["GET","POST","HEAD"];
-	public static var versions = ["HTTP/1.0","HTTP/1.1"];
+	public static inline var methods = '$GET $POST $HEAD';
+	public static inline var versions = '$HTTP10 $HTTP11';
 	public static var mimeType = [
 			"html" 		=> "text/html",
 			"htm" 		=> "text/html",
@@ -33,6 +53,7 @@ class WT{
 			"jpg" 		=> "image/jpeg",
 			"jpeg" 		=> "image/jpeg",
 			"png" 		=> "image/png",
+			"bmp" 		=> "image/bmp",
 			"svg" 		=> "image/svg+xml",
 			"txt" 		=> "text/plain",
 			"torrent"	=>"application/x-bittorrent",
@@ -69,7 +90,6 @@ class WT{
 			"m4v" 		=> "video/x-m4v",
 			"asf" 		=> "video/x-ms-asf",
 			"avi" 		=> "video/x-msvideo",
-			"bmp" 		=> "image/bmp",
 			"hx" 		=> "text/plain",
 			"n" 		=> "application/octet-stream",
 			"ttf" 		=> "application/x-font-ttf",
@@ -120,15 +140,15 @@ class WT{
 			"504" => "Gateway Time-out",
 			"505" => "HTTP Version not supported"];
 		
-	public static var extHtm = ["hxml","htm","html","xml","xhtml","shtml"];
-	public static var extImg = ["png","gif","jpg","jpeg","bmp","ico","svg","xcf","tiff"];
-	public static var extBin = ["n","o","exe","cgi"];
-	public static var extTxt = ["txt","css","json"];
-	public static var extScr = ["js","php","sh","pl","py","hxs"];
-	public static var extZip = ["zip","7z","gz","lz","bz2"];
-	public static var extMp3 = ["mp3","m3u","mid","wav","rm"];
-	public static var extMp4 = ["mp4","avi","flv","mov","webm"];
-	public static var extVar = ["cpp","h","hx","pdf"];  
+	public static inline var extHtm = " hxml htm html xml xhtml shtml ";
+	public static inline var extImg = " png gif jpg jpeg bmp ico svg xcf tiff ";
+	public static inline var extBin = " n o exe bin cgi ";
+	public static inline var extTxt = " txt css md json ";
+	public static inline var extSrc = " js php sh pl py hxs ";
+	public static inline var extZip = " zip 7z gz lz bz2 ";
+	public static inline var extMp3 = " mp3 m3u mid wav rm ";
+	public static inline var extMp4 = " mp4 avi flv mov webm ";
+	public static inline var extVar = " cpp h hx pdf ";  
 
 	public static inline function parseURI(s:String)
 	{
@@ -154,27 +174,17 @@ class WT{
 		return r;
 	}// parseURI()
 	
-	public static function parseQuery(s:String)
+	public static inline function parseQuery(s:String)
 	{
-		var r = new Map<String,String>();
-		var t:Array<String>;
-		
-		if(s.good()){
-			var lines = s.trim().splitt("&");
-			for(l in lines){
-				if(!l.good() || (l.indexOf("=") == -1))continue;
-				t = l.splitt("=");
-				if(t[0].good()){
-					r.set(t[0],"");
-					if(t[1].good())r[t[0]] = t[1].urldecode();
-				}
-			}
-		}
-				
-		return r;
+		return TP.str2map(s.urldecode(),"=","&");	
 	}// parseQuery()
-	
-	public static function parsePostData(ctx:Map<String,String>)
+
+	public static inline function parseCookie(s:String,sep=";")
+	{
+		return TP.str2map(s.urldecode(),"=",sep);	
+	}// parseCookie()
+
+	public static inline function parsePostData(ctx:Map<String,String>)
 	{
 		var r = new Map<String,String>();
 		var a = [""],t = [""],p = [""];
@@ -182,13 +192,13 @@ class WT{
 		var b = "--" + ctx["boundary"];
 		var lines = ctx["body"].splitt(b); 
 		for(l in lines){ 
-			if(l.starts("Content-Disposition")){
+			if(l.starts(CONTENT_DISPOSITION)){
 				n = f = c = m = "";
 				a = l.splitt(CR.LF2);
 				if(a[1].good())c = a[1];
 				t = a[0].splitt(CR.LF);
-				if(t[1].good() && t[1].starts("Content-Type:")){
-					m = t[1].replace("Content-Type:"," ").trim();
+				if(t[1].good() && t[1].starts(CONTENT_TYPE)){
+					m = t[1].replace(CONTENT_TYPE+":"," ").trim();
 				}
 				
 				p = t[0].splitt(";");
@@ -202,92 +212,90 @@ class WT{
 				if(n.good()){
 					r.set(n,"");
 					if(c.good()){
-						if(f.good())r[n] = 'file:$f${CR.sep}$m${CR.sep}$c';
+						if(f.good())r[n] = 'file:$f${CR.SEP3}$m${CR.SEP3}$c';
 						else r[n] = c;
 					}
 				}
-				
-//			trace(m);
 			}
 		}
 		
 		return r;
 	}// parsePostData()
 	
-	public static function parseRequest(s:String)
+	public static inline function parseRequest(s:String)
 	{ // todo: websockets, chunked 
 		var r = [
-			"status" => "400", "protocol" => "","version" => "",
-			"host" => "", "port" => "",	"request" => "", "path" => "",
+			"sid" => "","status" => "400", "protocol" => "","version" => "",
+			"host" => "", "port" => "",	"request" => "", "path" => "","cookies" => "",
 			"query" => "", "body" => "", "title" => "", "length" => "0",
-			"etag" => "", "mime" => "", "Content-Type" => "", "boundary" => ""];
+			"etag" => "", "mime" => "", CONTENT_TYPE => "", "boundary" => ""];
 		var lines = s.trim().splitt("\n");
 
-		if(!lines[0].good()) return r;
-		 
-		var t = lines[0].splitt(" ");
-		if(t.length != 3)return r;
-		r["method"] = t[0];
-		if(methods.indexOf(r["method"]) == -1){
-			r["status"] = "501";
-			return r;
-		}
- 
-		var uri = parseURI(t[1]); 
-		for(k in uri.keys())r[k] = uri[k];
- 
-		if(t[2].good())r["version"] = t[2].trim();
-		if(versions.indexOf(r["version"]) == -1){
-			r["status"] = "505";
-			return r;
-		}
-		
-		var f = "";
-		for(i in 1...lines.length){
-			t = lines[i].splitt(":");
-			f = t.shift();
-			if(f.good())r[f] = t.join(":");
-		}
+		if(lines[0].good()){
+			var t = lines[0].splitt(" ");
+			if(t.length == 3){
+				r["method"] = t[0];
+				if(methods.indexOf(r["method"]) == -1){
+					r["status"] = "501";
+				}else{
+					var uri = parseURI(t[1]); 
+					for(k in uri.keys())r[k] = uri[k];
+			 
+					if(t[2].good())r["version"] = t[2].trim();
+					if(versions.indexOf(r["version"]) == -1){
+						r["status"] = "505";
+					}else{
+						var f = "";
+						for(i in 1...lines.length){
+							t = lines[i].splitt(":");
+							f = t.shift();
+							if(f.good())r[f] = t.join(":");
+						}
 
-		if(r["Content-Type"].good() && r["Content-Type"].starts("multipart")){
-			t = r["Content-Type"].splitt(";");
-			r["Content-Type"] = t[0];
-			if(t[1].good())r["boundary"] = t[1].replace("boundary="," ").trim();
-		}
+						if(r[CONTENT_TYPE].good() && r[CONTENT_TYPE].starts("multipart")){
+							t = r[CONTENT_TYPE].splitt(";");
+							r[CONTENT_TYPE] = t[0];
+							if(t[1].good())r["boundary"] = t[1].replace("boundary=","");
+						}
 
-		if(!r["host"].good() && (r["version"] == "HTTP/1.1")){
-			if(r.exists("Host")){
-				t = r["Host"].splitt(":");
-				r["host"] = t[0];
-				if(t[1].good())r["port"] = t[1];
-			}else return r;
+						r["status"] = "200";
+						if(!r["host"].good() && (r["version"] == HTTP11)){
+							if(r.exists(HOST)){
+								t = r[HOST].splitt(":");
+								r[HOST] = t[0];
+								if(t[1].good())r["port"] = t[1];
+							}else r["status"] = "400";
+						}
+					}
+				}
+			}
 		}
-		r["status"] = "200";
 		return r;
 	}// parseRequest()
 	
 	public static inline function response(ctx:Map<String,String>)
 	{
-		var date = getDate();
+		var now = Date.now().getTime();
+		var date = getDate(now);
 		var body = "";
 
 		if(!responseCode.exists(ctx["status"]))ctx["status"] = "500";
 		var code = ctx["status"] + " " + responseCode[ctx["status"]];
-		var r = "HTTP/1.1 " + code + CR.LF;
+		var r = HTTP11 + " " + code + CR.LF;
 
 		if(ctx["status"] != "200"){
 			ctx["body"] = "";
 			ctx["title"] = code;
 		}
 		if(!ctx["body"].good())
-			ctx["body"] = mkPage('<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.sign}</center>',code);
+			ctx["body"] = mkPage('<center>${ctx["request"]}<h1>$code</h1><hr>${WebServer.SIGN}</center>',code);
 
 		if(ctx["status"] == "304"){
 		}else if(ctx["status"] == "303"){ 
 			var port = ctx["port"].good()?":"+ctx["port"]:"";
-			r += "Location: http://" + ctx["host"] + port + ctx["request"] + CR.LF;
+			r += LOCATION + ": http://" + ctx["host"] + port + ctx["request"] + CR.LF;
 		}else if(ctx["status"] == "401"){
-			r += "WWW-Authenticate: Basic realm=\"Protected area\"\r\nContent-Length: 0\r\n";
+			r += 'WWW-Authenticate: Basic realm="Protected area"' + CR.LF + CONTENT_LENGTH + ": 0" + CR.LF;
 		}else{
 			body = ctx["body"] ; 
 			if(!ctx["mime"].good()) ctx["mime"] = "htm";
@@ -295,14 +303,18 @@ class WT{
 			if(type.starts("text"))type += ";charset=utf-8";
 			ctx["length"] = body.length +"";
 			if(ctx["method"] == "HEAD")body = "";
-			if(ctx["etag"].good())ctx["etag"] += CR.LF;
-			r += "Content-Type: " + type + CR.LF +
-			"Content-Length: " + ctx["length"] + CR.LF ;
+			r += CONTENT_TYPE + ": " + type + CR.LF +
+			CONTENT_LENGTH + ": " + ctx["length"] + CR.LF ;
 		}
 
-		r += "Date: " + date + CR.LF + ctx["etag"] +
-		"Server: " + WebServer.sign + CR.LF +
-		"Connection: Keep-Alive" + CR.LF2 + body;
+		r += DATE + ": " + date + CR.LF; 
+		if(etag(ctx).good()) r += ETAG + ": " + etag(ctx) + CR.LF;
+		if(ctx["cookies"].good()){
+			var cc = parseCookie(ctx["cookies"],"\n");
+			for(k in cc.keys()) r += 'Set-Cookie: $k=${cc.get(k)}' + CR.LF;
+		 }
+		r += SERVER + ": " + WebServer.SIGN + CR.LF +
+		CONNECTION + ": " + KEEP_ALIVE + CR.LF2 + body;
 		 
 		return Bytes.ofString(r);
 	}// response()
@@ -318,17 +330,22 @@ class WT{
 
 	public static inline function referer(ctx:Map<String,String>,url="")
 	{
-		return ctx.exists("Referer") && (ctx["Referer"] == url);
+		return ctx.exists(REFERER) && (ctx[REFERER] == url);
 	}// referer()
 
-	public static inline function etag(s:String)
+	public static inline function etag(ctx:Map<String,String>,ok=true)
 	{
-		return '"${Md5.encode(s.substr(0,1000))}"';
+		var r = "";
+		var ext = ctx["path"].extname(); 
+		if(ext.good() && (ext != "hxs"))
+			r = '"${Md5.encode(ctx["request"]+ctx["sid"])}"';
+		return r;
 	}// etag()
 	
-	public static inline function mkFile(path:String,ctx:Map<String,String>)
+	public static inline function mkFile(ctx:Map<String,String>)
 	{
 		var f = "";
+		var path = ctx["path"];
 		var ext = path.extname();
 		if(path == "/favicon.ico") f = WT.getIcon("favicon");
 		else if(path.starts(Icons.p))f =  WT.getIcon(path.basename(false));
@@ -337,14 +354,13 @@ class WT{
 		else if(f.indexOf("\x00\x00\x00") == -1)ctx["mime"] = "txt";
 		else ctx["mime"] = "bin";
 		ctx["body"] = f; 
-		ctx["etag"] = "ETag: " + etag(ctx["request"]);
 	}// mkFile()
 	
 	public static inline function mkPage(body="",title="",meta="")
 	{
 		var r =
 '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>\n<head>\n <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>\n<head>\n <meta http-equiv=$CONTENT_TYPE content="text/html; charset=UTF-8">
  <link rel="stylesheet" type="text/css" href="/hako.css">$meta
  <title>$title</title>\n</head>
 <body bgcolor="white">\n $body\n</body>\n</html>';
@@ -352,9 +368,9 @@ class WT{
 		return r;
 	}// mkPage()
 	
-	public static inline function getDate(log=false)
+	public static inline function getDate(time:Float,log=false)
 	{
-		var utc = Date.fromTime(Date.now().getTime() - tz * 3600000); 
+		var utc = Date.fromTime(time - tz * 3600000); 
 		var d = utc.getDate();
 		var r = "";
 		if(!log)r = '$dow, $d $month ${DateTools.format(utc,"%Y %H:%M:%S GMT")}';
@@ -405,7 +421,7 @@ class WT{
 			case "mp4": r = Icons.mp4;
 			case "non": r = Icons.non;
 			case "pdf": r = Icons.pdf;
-			case "scr": r = Icons.scr;
+			case "src": r = Icons.src;
 			case "txt": r = Icons.txt;
 			case "zip": r = Icons.zip;
 			default: r = Icons.non;
@@ -418,20 +434,22 @@ class WT{
 	{
  	         
 		var type = "non";
-
-		if(extHtm.indexOf(ext) != -1)type = "htm";
-		else if(extImg.indexOf(ext) != -1)type = "img";
-		else if(extBin.indexOf(ext) != -1)type = "bin";
-		else if(extTxt.indexOf(ext) != -1)type = "txt";
-		else if(extScr.indexOf(ext) != -1)type = "scr";
-		else if(extZip.indexOf(ext) != -1)type = "zip";
-		else if(extMp3.indexOf(ext) != -1)type = "mp3";
-		else if(extMp4.indexOf(ext) != -1)type = "mp4";
-		else{
-			var i = extVar.indexOf(ext);
-			if(i != -1)type = extVar[i];
+		if(ext.good()){
+			ext = ' $ext ';
+			if(extHtm.indexOf(ext) != -1)type = "htm";
+			else if(extImg.indexOf(ext) != -1)type = "img";
+			else if(extBin.indexOf(ext) != -1)type = "bin";
+			else if(extTxt.indexOf(ext) != -1)type = "txt";
+			else if(extSrc.indexOf(ext) != -1)type = "src";
+			else if(extZip.indexOf(ext) != -1)type = "zip";
+			else if(extMp3.indexOf(ext) != -1)type = "mp3";
+			else if(extMp4.indexOf(ext) != -1)type = "mp4";
+			else{
+				var i = extVar.indexOf(ext);
+				if(i != -1)type = extVar.substr(i+1,ext.length-2);
+			}
 		}
-		
+ 
 		return type;
 	}// ext2type()	
 

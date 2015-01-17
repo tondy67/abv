@@ -6,11 +6,12 @@ using abv.CR;
 
 class AM {
 	
-	public static var exitTime 	= .0;
 	public static var verbose:LogLevel 	= DEBUG;
-	public static var silent 	= false;
-	public static var usage 	= true;
-	public static var colors 	= true;
+	public static var exitTime 			= .0;
+	public static var silent 			= false;
+	public static var usage 			= true;
+	public static var colors 			= true;
+	public static var logFile			= "";
 	
 	static var _args:Array<String>;
 	static var _env:Map<String,String>;
