@@ -258,12 +258,12 @@ class WT{
 							if(t[1].good())r["boundary"] = t[1].replace("boundary=","");
 						}
 
-						r["status"] = "200";
+						r["status"] = "200"; 
 						if(!r["host"].good() && (r["version"] == HTTP11)){
 							if(r.exists(HOST)){
 								t = r[HOST].splitt(":");
-								r[HOST] = t[0];
-								if(t[1].good())r["port"] = t[1];
+								r["host"] = t[0];
+								if(t[1].good())r["port"] = t[1]; 
 							}else r["status"] = "400";
 						}
 					}
@@ -292,7 +292,7 @@ class WT{
 
 		if(ctx["status"] == "304"){
 		}else if(ctx["status"] == "303"){ 
-			var port = ctx["port"].good()?":"+ctx["port"]:"";
+			var port = ctx["port"].good()?":"+ctx["port"]:""; 
 			r += LOCATION + ": http://" + ctx["host"] + port + ctx["request"] + CR.LF;
 		}else if(ctx["status"] == "401"){
 			r += 'WWW-Authenticate: Basic realm="Protected area"' + CR.LF + CONTENT_LENGTH + ": 0" + CR.LF;
@@ -333,12 +333,12 @@ class WT{
 		return ctx.exists(REFERER) && (ctx[REFERER] == url);
 	}// referer()
 
-	public static inline function etag(ctx:Map<String,String>,ok=true)
+	public static inline function etag(ctx:Map<String,String>)
 	{
 		var r = "";
 		var ext = ctx["path"].extname(); 
 		if(ext.good() && (ext != "hxs"))
-			r = '"${Md5.encode(ctx["request"]+ctx["sid"])}"';
+			r = '"${Md5.encode(ctx["path"]+ctx["sid"])}"';
 		return r;
 	}// etag()
 	
@@ -407,25 +407,25 @@ class WT{
 
 	public static inline function getIcon(n:String)
 	{
-		var r = "";
-		switch(n){
-			case "bin": r = Icons.bin;
-			case "cpp": r = Icons.cpp;
-			case "dir": r = Icons.dir;
-			case "favicon": r = Icons.favicon;
-			case "h": r = Icons.h;
-			case "htm": r = Icons.htm;
-			case "hx": r = Icons.hx;
-			case "img": r = Icons.img;
-			case "mp3": r = Icons.mp3;
-			case "mp4": r = Icons.mp4;
-			case "non": r = Icons.non;
-			case "pdf": r = Icons.pdf;
-			case "src": r = Icons.src;
-			case "txt": r = Icons.txt;
-			case "zip": r = Icons.zip;
-			default: r = Icons.non;
-		}
+		var r = 
+			switch(n){
+				case "bin": 	 Icons.bin;
+				case "cpp": 	 Icons.cpp;
+				case "dir": 	 Icons.dir;
+				case "favicon":  Icons.favicon;
+				case "h": 		 Icons.h;
+				case "htm": 	 Icons.htm;
+				case "hx": 		 Icons.hx;
+				case "img": 	 Icons.img;
+				case "mp3": 	 Icons.mp3;
+				case "mp4": 	 Icons.mp4;
+				case "non": 	 Icons.non;
+				case "pdf": 	 Icons.pdf;
+				case "src": 	 Icons.src;
+				case "txt": 	 Icons.txt;
+				case "zip": 	 Icons.zip;
+				default: 		 Icons.non;
+			}
 		
 		return haxe.crypto.Base64.decode(r)+"";
 	}// getIcon()
@@ -452,6 +452,30 @@ class WT{
  
 		return type;
 	}// ext2type()	
+
+	public static inline function mkList(a:Array<String>,url="",css="",sep="")
+	{
+		var r = "", h = "", t = "", p = 0;
+		var cs = css.good()?' class="$css" ':"";
+		if(a.length < 1){}
+		else{ 
+			r = '<ul $cs>';
+			for(w in a){
+				if(sep.good()){
+					p = w.indexOf(sep);
+					if(p != -1){
+						h = w.substr(0,p);
+						t = w.substr(p);
+					}
+				}else h = w;
+				if(url.good())r += '<li><a $cs href="$url/${h.urlencode()}">$h $t</a></li>\n';
+				else r += '<li>$h $t</li>\n';
+			}
+			r += "</ul>";
+		}
+		return r;
+	}// mkList()
+	
 
 }// abv.net.web.WT
 

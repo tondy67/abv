@@ -9,7 +9,6 @@ class AM {
 	public static var verbose:LogLevel 	= DEBUG;
 	public static var exitTime 			= .0;
 	public static var silent 			= false;
-	public static var usage 			= true;
 	public static var colors 			= true;
 	public static var logFile			= "";
 	
@@ -24,12 +23,9 @@ class AM {
 	public function new(_config="")
 	{
 		args();
-
-		if(!usage){}
-		else if(_args.length == 0){ 
-			print(help(),INFO);
-			exit();
-		}else if(_args[0].eq("help")){
+		var hlp = ["help","--help","-help","-h","/h"];
+		
+		if(hlp.indexOf(_args[0]) != -1){
 			print(help("help"),INFO);
 			exit();
 		}else{

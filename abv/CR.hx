@@ -122,20 +122,6 @@ class CR{
 		return r;
 	}// good()
 	
-	public static inline function has(src:String,what:String,start=0)
-	{
-		var r = false; 
-
-		if(good(src) && good(what,"what")){
-			var len = src.length;
-			start = Std.int(MT.range(start,len-1,0)); 
-			var t = src.indexOf(what,start);
-			if((t >= 0)&&(t < len))r = true;
-		}
-		
-		return r;
-	}// has()
-
 	public static inline function eq(str:String,cmp:String)
 	{
 		return str.toLowerCase() == cmp.toLowerCase();
@@ -229,10 +215,7 @@ class CR{
 	
 	public static inline function print(msg="",level:LogLevel)
 	{   
-		var s = "OFF FATAL LOG ERROR INFO WARN DEBUG";
-		var a = s.indexOf(AM.verbose+"");
-		var b = s.indexOf(level+""); 
-		if(a >= b){ 
+		if(lvl2int(AM.verbose) >= lvl2int(level)){ 
 			var d = (Timer.stamp() - start) + " ";
 			if(!good(msg))msg = d;
 			if(msg.starts("now:"))msg = msg.replace("now:",d);
@@ -241,6 +224,21 @@ class CR{
 		}
 	}// print()
 
+	public static inline function lvl2int(level:LogLevel)
+	{
+		return
+			switch(level){
+				case OFF: 	 0;
+				case FATAL:  1;
+				case LOG: 	 2;
+				case ERROR:  3;
+				case INFO: 	 4;
+				case WARN: 	 5;
+				case DEBUG:  6;
+				default: 	 0;
+			}
+	}// lvl2int()
+	
 	public static inline function getLogLevel(s="")
 	{   
 		var r:LogLevel;

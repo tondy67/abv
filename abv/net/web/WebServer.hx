@@ -44,33 +44,11 @@ class WebServer extends ThreadServer<Client, Message>{
 	public static var SIGN(default,null) = "";
 	public var urls(default,null):Map<String,String>;
 
-	public var sessions(default,null):Map<String,Map<String,String>> ;
-
-	public function getSession(sid:String)
-	{
-		var r:Map<String,String> = null;
-		if(sessions.exists(sid))r = sessions[sid];
-		return r;
-	}// getSession()
-	
-	public function delSession(sid:String)
-	{
-		return sessions.remove(sid);
-	}// delSession()
-	
-	public function setSession()
-	{
-		var sid = Std.random(100000) + "";
-		sid = sid.lpad("00000",5);
-		sessions.set(sid,["start" => Date.now().getTime()+""]);
- 
-		return sid;
-	}// setSession()
+	public var sessions(default,null) = new Wallet();
 
 	public function new()
 	{
 		super();
-		sessions = new Map();
 	}// new()
 	
 	public function config(cfg:Map<String,String>)
@@ -128,11 +106,11 @@ class WebServer extends ThreadServer<Client, Message>{
 				if(useCookies){
 					if(ctx.exists(WT.COOKIE)){
 						var cookies = WT.parseCookie(ctx[WT.COOKIE]);
-						if(cookies.exists("sid"))session = getSession(cookies["sid"]);
+						if(cookies.exists("sid"))session = sessions.get(cookies["sid"]);
 					}
 					if(session == null){
-						sid = setSession();
-						session = getSession(sid);
+						sid = sessions.add();
+						session = sessions.get(sid);
 						ctx["cookies"] = 'sid=$sid;\n';
 					}
 				}

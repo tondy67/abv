@@ -174,8 +174,18 @@ class TP{
 
 	public static inline function has(src:String,what:String,start=0)
 	{
-		return src.has(what,start);
-	}
+		var r = false; 
+
+		if(src.good() && what.good()){
+			var len = src.length;
+			start = Std.int(start.range(len-1,0)); 
+			var t = src.indexOf(what,start);
+			if((t >= 0)&&(t < len))r = true;
+		}
+		
+		return r;
+	}// has()
+
 	public static inline function search(src:String,what:String,start=0)
 	{// todo: regex
 		var r = -1;

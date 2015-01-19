@@ -1,12 +1,8 @@
 package abv.io;
 
-import sys.io.Process;
-
 import abv.AM;
 import abv.lib.Timer;
 import abv.sys.ST;
-import abv.cpu.Boss;
-
 
 using abv.CR;
 using abv.lib.TP;
@@ -140,35 +136,6 @@ class SH{
 		return r;
 	}//env()
 
-	public static inline function exec(cmd:String, args:Array<String>=null,background=false,input="")
-	{ 
-		var r = "-1";
-
-		if(cmd.good()){
-			if(!background){
-					var p:Process = null;
-					if((args == null)||(args.length == 0))args = [""];
-					try{
-						p = new Process(cmd,args);
-						if(input.good()){
-							p.stdin.writeString(input+"\n");
-							p.stdin.flush();
-						}
-						r = p.stdout.readAll() + ""; 
-					}catch(m:Dynamic){ print(m);}
-			}else if(!AM.silent)r = Boss.exec(cmd,args,input) + "";
-		}
-		return r;
-	}//exec()
-
-	public static inline function bg(id:String)
-	{ 
-		var r:Array<String> = [];
-		var i = Std.parseInt(id);
-		if(!AM.silent) r = Boss.read(i);
-		return r;
-	}//bg()
-
 	public static inline function cat(path:Null<String>)
 	{
 		var r:Null<String> = "";
@@ -249,7 +216,6 @@ class SH{
 				case "clear": ip.variables.set("clear",clear);
 				case "compile": ip.variables.set("compile",compile);
 				case "read": ip.variables.set("read",read);
-				case "exec": ip.variables.set("exec",exec);
 				case "export": ip.variables.set("export",export);
 				case "cat": ip.variables.set("cat",cat);
 				case "date": ip.variables.set("date",date);
@@ -258,7 +224,8 @@ class SH{
 				case "ln": ip.variables.set("ln",ln);
 				case "zip": ip.variables.set("zip",zip);
 				case "sleep": ip.variables.set("sleep",sleep);
-				case "bg": ip.variables.set("bg",bg);
+				case "exec": ip.variables.set("exec",ST.exec);
+				case "bg": ip.variables.set("bg",ST.bg);
 			}
 		}
 		

@@ -1,7 +1,9 @@
 package abv.sys.cpp;
 
+import sys.io.Process;
 import sys.FileSystem;
 import sys.io.File;
+import abv.cpu.Boss;
 
 using abv.lib.TP;
 using abv.CR;
@@ -118,6 +120,35 @@ class ST{
 			FileSystem.createDirectory(path);
 	}// mkdir()
 	
+	public static inline function exec(cmd:String, args:Array<String>=null,background=false,input="")
+	{ 
+		var r = "-1";
+
+		if(cmd.good()){
+			if(!background){
+					var p:Process = null;
+					if((args == null)||(args.length == 0))args = [""];
+					try{
+						p = new Process(cmd,args);
+						if(input.good()){
+							p.stdin.writeString(input+"\n");
+							p.stdin.flush();
+						}
+						r = p.stdout.readAll() + ""; 
+					}catch(m:Dynamic){ print(m,ERROR);}
+			}else if(!AM.silent)r = Boss.exec(cmd,args,input) + "";
+		}
+		return r;
+	}//exec()
+
+	public static inline function bg(id:String)
+	{ 
+		var r:Array<String> = [];
+		var i = Std.parseInt(id);
+		if(!AM.silent) r = Boss.read(i);
+		return r;
+	}//bg()
+
 
 }// abv.sys.cpp.ST
 
