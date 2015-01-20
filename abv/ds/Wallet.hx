@@ -2,39 +2,67 @@ package abv.ds;
 /**
  * Wallet
  **/
+import haxe.crypto.Md5;
 
-using StringTools;
+typedef SessionData = {start:Float, expire:Float, data:Map<String,String>}
 
 class Wallet{
 
-	var sessions:Map<String,Map<String,String>> = new Map();
+	var sessions:Map<String,SessionData> = new Map();
 	
 	public inline function new(){}
 
-	public function get(sid:String)
+	public inline function get(sid:String)
 	{
-		var r:Map<String,String> = null;
-		if(sessions.exists(sid))r = sessions[sid];
-		return r;
+		var r = new Map<String,String>();
+		if(sessions.exists(sid)){
+			var exp = sessions[sid].expire;
+			var last = sessions[sid].start + exp*1000; 
+			if((exp == 0)||(Date.now().getTime() < last))r = sessions[sid].data;
+			else del(sid);
+		}
+ 		return r;
 	}// get()
 	
-	public function del(sid:String)
+	public inline function set(sid:String,data:Map<String,String>)
 	{
-		return sessions.remove(sid);
+		var r = false;
+		if(sessions.exists(sid)){
+			sessions[sid].data = data;
+			r = true;
+		}
+		return r;
+	}// set()
+	
+	public inline function del(sid:String)
+	{
+		var r = false;
+		if(sessions.exists(sid)){
+			sessions[sid] = null;
+			r = sessions.remove(sid);
+		}
+		return r;
 	}// del()
 	
-	public function add()
+	public inline function add(expire=.0)
 	{
-		var sid = Std.random(100000) + "";
-		sid = sid.lpad("00000",5);
-		sessions.set(sid,["start" => Date.now().getTime()+""]);
- 
-		return sid;
+		var now = Date.now().getTime();
+		var sid = Md5.encode(Std.random(1000000) + now + "");
+		if(sessions.exists(sid))sid = "";
+		else sessions.set(sid,{start:now,expire:expire,data:["sid"=>sid]});
+ 		return sid;
 	}// add()
 
+	public inline function length()
+	{
+		var r = 0;
+		for(k in sessions)r++;
+		return r;
+	}// length()
+	
 	public function toString()
 	{
-		return "Wallet()";
+		return "Wallet(length: " + length +")";
 	}// toString()
 
 }// abv.ds.Wallet

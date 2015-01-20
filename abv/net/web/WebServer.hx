@@ -73,7 +73,6 @@ class WebServer extends ThreadServer<Client, Message>{
 	override function clientMessage(c: Client, msg: Message)
 	{
 		var s = msg.body;
-		var p = "", f = "", sid = "";
 		
 		c.request += s; 
 
@@ -100,39 +99,41 @@ class WebServer extends ThreadServer<Client, Message>{
 			
 			if(ctx["status"] == "200"){
 				CR.lock.acquire();
+				var p = "", f = "", sid = "";
 				var now = Date.now().getTime();
 				var session:Map<String,String> = null;
 // session
 				if(useCookies){
 					if(ctx.exists(WT.COOKIE)){
-						var cookies = WT.parseCookie(ctx[WT.COOKIE]);
+						var cookies = WT.parseCookie(ctx[WT.COOKIE]); 
 						if(cookies.exists("sid"))session = sessions.get(cookies["sid"]);
 					}
-					if(session == null){
-						sid = sessions.add();
-						session = sessions.get(sid);
+					if(session.empty()){
+						sid = sessions.add(3600); 
+						session = sessions.get(sid); 
 						ctx["cookies"] = 'sid=$sid;\n';
 					}
 				}
+			
 				if(ctx.pair(WT.IF_NONE_MATCH,WT.etag(ctx))){ 
 					ctx["status"] = "304";
 				}else if(ctx["path"].starts(urls["fs"])){ 
 					p = ctx["path"].substr(urls["fs"].length);  
 					if(!p.good())p = "."; 
 					if(p.exists()){ 
-						if(p.dir())mkDir(p,ctx); else mkFile(ctx);
+						if(p.dir())mkDir(p,ctx); else mkFile(ctx,session);
 					}else ctx["status"] = "404";
 				}else if(ctx["path"].starts(Icons.p)||ctx["path"].eq("/favicon.ico")){
-					mkFile(ctx);
+					mkFile(ctx,session);
 				}else if(ctx["path"].eq("/hako.css")){
 					mkCss(ctx);
 				}else if(ctx["path"].starts(urls["pa"])){  
 					if(ctx.pair(WT.AUTHORIZATION,"Basic "+auth))app(ctx); 
 					else ctx["status"] = "401";
 				}else{
-					app(ctx, form);
+					app(ctx,session,form);
 				}
-				
+				ctx["length"] = ctx["body"].length +"";
 				log('${c.ip} [${WT.getDate(now,true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',LOG);
 				CR.lock.release();
 			}
@@ -160,10 +161,10 @@ class WebServer extends ThreadServer<Client, Message>{
 		}else ctx["body"] = WT.mkPage('<p><a href="/">Home</a></p>'+WT.dirIndex(path,urls["fs"]));
 	}// mkDir()
 	
-	function mkFile(ctx:Map<String,String>)
+	function mkFile(ctx:Map<String,String>,session:Map<String,String>=null)
 	{
 		ctx["path"] = ctx["path"].replace(urls["fs"],"");
-		if(ctx["path"].ends(".hxs"))app(ctx);else WT.mkFile(ctx);
+		if(ctx["path"].ends(".hxs"))app(ctx,session);else WT.mkFile(ctx);
 	}// mkFile()
 	
 	function response(sock:Socket,data:Bytes)
@@ -222,7 +223,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	}// mkCss()
 
 ///
-	public dynamic function app(ctx:Map<String,String>,form:Map<String,String>=null)
+	public dynamic function app(ctx:Map<String,String>,session:Map<String,String>=null,form:Map<String,String>=null)
 	{
 		ctx["mime"] = "";
 		var body = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/fs">FS</a></p><p><a href="/exit">Exit</a></p>';

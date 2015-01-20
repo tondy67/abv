@@ -301,7 +301,6 @@ class WT{
 			if(!ctx["mime"].good()) ctx["mime"] = "htm";
 			var type = mimeType.exists(ctx["mime"])?mimeType[ctx["mime"]]:mimeType["bin"];
 			if(type.starts("text"))type += ";charset=utf-8";
-			ctx["length"] = body.length +"";
 			if(ctx["method"] == "HEAD")body = "";
 			r += CONTENT_TYPE + ": " + type + CR.LF +
 			CONTENT_LENGTH + ": " + ctx["length"] + CR.LF ;
@@ -338,7 +337,7 @@ class WT{
 		var r = "";
 		var ext = ctx["path"].extname(); 
 		if(ext.good() && (ext != "hxs"))
-			r = '"${Md5.encode(ctx["path"]+ctx["sid"])}"';
+			r = '"${Md5.encode(ctx["path"])}"';
 		return r;
 	}// etag()
 	
