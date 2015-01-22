@@ -34,7 +34,6 @@ class WT{
 	public static inline var HOST 				= "Host"; 
 	public static inline var COOKIE 			= "Cookie"; 
 	
-	public static var tmp = "www/tmp/";
 	public static var tz = CR.timezone();
 	public static var dow = CR.dow();
 	public static var month = CR.month();
@@ -225,7 +224,7 @@ class WT{
 	public static inline function parseRequest(s:String)
 	{ // todo: websockets, chunked 
 		var r = [
-			"sid" => "","status" => "400", "protocol" => "","version" => "",
+			"root"=>"","ip"=>"","status" => "400", "protocol" => "","version" => "",
 			"host" => "", "port" => "",	"request" => "", "path" => "","cookies" => "",
 			"query" => "", "body" => "", "title" => "", "length" => "0",
 			"etag" => "", "mime" => "", CONTENT_TYPE => "", "boundary" => ""];
@@ -301,7 +300,7 @@ class WT{
 			if(!ctx["mime"].good()) ctx["mime"] = "htm";
 			var type = mimeType.exists(ctx["mime"])?mimeType[ctx["mime"]]:mimeType["bin"];
 			if(type.starts("text"))type += ";charset=utf-8";
-			if(ctx["method"] == "HEAD")body = "";
+			if(ctx["method"] == HEAD)body = "";
 			r += CONTENT_TYPE + ": " + type + CR.LF +
 			CONTENT_LENGTH + ": " + ctx["length"] + CR.LF ;
 		}
@@ -327,6 +326,11 @@ class WT{
 		if(p["request"].good())ctx["request"] = p["request"];
 	}// redirect()
 
+	public static inline function setCookie(ctx:Map<String,String>,key:String,val="")
+	{ 
+		if(key.good())ctx["cookies"] += '$key=$val\n';
+	}// setCookie()
+
 	public static inline function referer(ctx:Map<String,String>,url="")
 	{
 		return ctx.exists(REFERER) && (ctx[REFERER] == url);
@@ -344,10 +348,10 @@ class WT{
 	public static inline function mkFile(ctx:Map<String,String>)
 	{
 		var f = "";
-		var path = ctx["path"];
+		var path = ctx["path"].substr(1); 
 		var ext = path.extname();
-		if(path == "/favicon.ico") f = WT.getIcon("favicon");
-		else if(path.starts(Icons.p))f =  WT.getIcon(path.basename(false));
+		if(ctx["path"] == "/favicon.ico") f = WT.getIcon("favicon");
+		else if(ctx["path"].starts(Icons.p))f =  WT.getIcon(path.basename(false));
 		else f = path.open();
 		if(ext.good())ctx["mime"] = ext;
 		else if(f.indexOf("\x00\x00\x00") == -1)ctx["mime"] = "txt";
@@ -377,30 +381,45 @@ class WT{
 		return r;
 	}// getDate()
 
-	public static function dirIndex(path=".",prefix="/fs/",links=false)
+	public static inline function slash(s:String)
 	{
-		var r = "",ext = "",type = "", f = "";
-		if(!path.good())path=".";
-		if(!path.exists())return r;
-		var a = path.get();	
-		var dirs:Array<String> = [];
-		var files:Array<String> = [];
-		for(p in a){
-			if(ST.dir(path+"/"+p))dirs.push(p);else files.push(p);
+		if(s.charAt(s.length-1) != "/")s += "/";
+		return s;
+	}// slash()
+	
+	public static inline function fsPath(url:String)
+	{ 
+		var path = url.substr(1).urldecode(); 
+		if(!path.good())path = ".";
+		return path; 
+	}// fsPath()
+	
+	public static inline function dirIndex(path=".",prefix="/",links=false)
+	{ 
+		var r = "";
+		path = slash(path);
+		if(path.exists()){
+			var ext = "",type = "", f = "";
+			var a = path.get();	
+			var dirs:Array<String> = [];
+			var files:Array<String> = [];
+			for(p in a){
+				if(ST.dir(path+"/"+p))dirs.push(p);else files.push(p);
+			}
+			dirs.sortAZ();
+			dirs.unshift("..");
+			files.sortAZ();
+			if(path == ".")path="";
+			for(p in dirs){
+				f = p == ".."?path.dirname():path + p.urlencode();
+				r += '<img src="${Icons.p}dir.png" alt="dir.png" width="16" height="16" /> <a href="$prefix$f">$p/</a><br>';
+			}
+			for(p in files){
+				type = ext2type(p.extname());
+				f = links ? '<a href="$prefix$path$p">$p</a>': p;
+				r += '<img src="${Icons.p}$type.png" alt="$type.png" width="16" height="16" /> $f<br>';
+			}
 		}
-		dirs.sortAZ();
-		dirs.unshift("..");
-		files.sortAZ();
-		for(p in dirs){
-			f = p == ".."?path.dirname():path+"/"+p.urlencode();
-			r += '<img src="${Icons.p}dir.png" alt="dir.png" width="16" height="16" /> <a href="$prefix$f">$p/</a><br>';
-		}
-		for(p in files){
-			type = ext2type(p.extname());
-			f = links ? '<a href="$prefix$path$p">$p</a>': p;
-			r += '<img src="${Icons.p}$type.png" alt="$type.png" width="16" height="16" /> $f<br>';
-		}
-		
 		return r;	
 	}// dirIndex()
 
