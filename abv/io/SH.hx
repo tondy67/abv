@@ -97,9 +97,10 @@ class SH{
 	public static inline function echo(msg="",path="",append=false)
 	{// TODO: colors
 		if(!msg.good(msg))msg = "";
-		if(!AM.silent){
-			if(!path.dir(path))path.save(msg + " ");
-			else CR.print(msg,INFO); 
+		if(!AM.silent){ 
+			if(path.good()){
+				if(!path.dir(path))path.save(msg + " ");
+			}else CR.print(msg,INFO); 
 		}else output += msg;
 	}//echo()
 	
@@ -190,8 +191,8 @@ class SH{
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
-		var program = parser.parseString(script);
-		var ip = new hscript.Interp();
+		var program = parser.parseString(script); 
+		var ip = new hscript.Interp(); 
 		for(c in cmd){ //trace(c);
 			if(ip.variables.get(c) != null)continue; 
 			switch(c){
@@ -229,7 +230,7 @@ class SH{
 			}
 		}
 		
-		var t = ip.execute(program) ;
+		var t = ip.execute(program); 
 //		var f = ip.variables.get("update"); 
 //		if(f != null)f();
 	}// execute() 

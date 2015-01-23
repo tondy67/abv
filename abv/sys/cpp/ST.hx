@@ -47,7 +47,7 @@ class ST{
 	public static inline function exists(path:Null<String>,msg="")
 	{ 
 		var r = true;
-		
+
 		if(path.good(msg) && !FileSystem.exists(path)){
 			if(msg.good())CR.print(msg + ": No such file or directory",ERROR); 
 			r = false;
@@ -66,7 +66,7 @@ class ST{
 	}// get()
 	
 	public static inline function dir(path:String,msg="")
-	{
+	{ 		
 		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// dir()
 	
