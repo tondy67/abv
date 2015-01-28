@@ -10,8 +10,18 @@ class AM {
 	public static var verbose:LogLevel 	= DEBUG;
 	public static var exitTime 			= .0;
 	public static var silent 			= false;
-	public static var colors 			= true;
 	public static var logFile			= "";
+
+	public static var colors(get,set):Null<Bool>; 
+	static var _colors:Null<Bool> = null;
+	static inline function get_colors()	return _colors;
+	static inline function set_colors(b:Bool)
+	{
+		var ok = Sys.getEnv("TERM") == "xterm" || Sys.getEnv("ANSICON") != null;
+		_colors = b && ok?true:false;
+		return _colors;
+	}// set_colors()
+	
 	
 	static var _args:Array<String>;
 	static var _env:Map<String,String>;
