@@ -4,6 +4,7 @@ using abv.CR;
 /**
  * MathTools
  **/
+@:dce
 class MT{
 
 	public static inline function good(v:Null<Float>,msg="",?pif:haxe.PosInfos)

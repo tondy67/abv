@@ -10,6 +10,7 @@ using abv.lib.math.MT;
 /**
  * TextProcessing encapsulate haxe String,StringTools,Utf8
  **/
+@:dce
 class TP{
 
 	public static inline function length(s:String)

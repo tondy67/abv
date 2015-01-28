@@ -6,6 +6,7 @@ using abv.CR;
 /**
  * DataTools
  **/
+@:dce
 class DT{
 	
 	public static inline function good<T>(v:Array<T>,msg="",?pif:haxe.PosInfos)

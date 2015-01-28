@@ -11,6 +11,7 @@ using abv.sys.ST;
 /**
  * This class mimics Bash Shell 
  **/
+@:dce
 class SH{
 
 	public static var ds:Dynamic = null;

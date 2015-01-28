@@ -32,10 +32,12 @@ class WorkerSys extends Worker{
 			p.stdin.writeString(input+"\n");
 			p.stdin.flush();
 		}
-		s = p.stderr.readAll() + ""; 
-		if(s.good())send("err:" + s); 
-		s = p.stdout.readAll() + "";
+		s = p.stdout.readAll() + ""; 
 		if(s.good())send(s); 
+		else{
+			s = p.stderr.readAll() + ""; 
+			if(s.good())send("err:" + s); 
+		}
 	}// exec()
 
 	

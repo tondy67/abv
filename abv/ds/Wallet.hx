@@ -6,6 +6,7 @@ import haxe.crypto.Md5;
 
 typedef SessionData = {start:Float, expire:Float, data:Map<String,String>}
 
+@:dce
 class Wallet{
 
 	var sessions:Map<String,SessionData> = new Map();

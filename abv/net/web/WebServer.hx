@@ -24,6 +24,7 @@ typedef Client = {
 
 typedef Message = {body: String}
 
+@:dce
 class WebServer extends ThreadServer<Client, Message>{
 	
 	var single = false;
@@ -216,7 +217,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		ctx["mime"] = "css";
 //		ctx["body"] = ST.open("bin/hako.css");
 		var td = "text-decoration", ls = "list-style-type", va = "vertical-align";
-		ctx["body"] = 'a:link{$td:none;}a:visited{$td:none;}a:hover{$td:underline;}ul.circle{$ls:circle;}ul.no{margin:0;padding-top:0;padding-left:20px;$ls:none;}table td, table td *{$va:top;}';
+		ctx["body"] = 'a:link{$td:none;}a:visited{$td:none;}a:hover{$td:underline;}ul.circle{$ls:circle;}ul.no{margin:0;padding-top:0;padding-left:20px;$ls:none;}table td, table td *{$va:top;}.red{color:#f00;}';
 	}// mkCss()
 
 ///

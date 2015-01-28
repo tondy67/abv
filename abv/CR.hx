@@ -143,10 +143,10 @@ class CR{
 	public static inline function basename(path:Null<String>,ext=true)
 	{
 		var r = "";
-		var SEP3 = "/";
-		var a = path.trim().splitt(SEP3); 
-		r = a.pop();
-		if(!good(r))r = a.pop();
+		var sep = "/";
+		var a = path.trim().splitt(sep); 
+		r = a.pop(); 
+//		if(!good(r))r = a.pop();
 		if(!ext){
 			var t = r.splitt(".");
 			r = t[0];
@@ -157,10 +157,10 @@ class CR{
 	
 	public static function extname(path:Null<String>)
 	{
-		var r = "", SEP3 = ".";
-		var name = basename(path);
-		if(!name.starts(".")){  
-			var a = name.splitt(SEP3); 
+		var r = "", sep = ".";
+		var name = basename(path); 
+		if(good(name) && !name.starts(".")){  
+			var a = name.splitt(sep); 
 			if(a.length > 1)r = a.pop(); 
 		}
 		return r;

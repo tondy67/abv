@@ -74,13 +74,13 @@ class Boss{
 	public static inline function read(id:Int)
 	{ 
 		var r:Array<String> = [];
-		var ix:Int, t:Int, max = 0, s = "";
+		var ix = -1, t=0, max = 0, s = "";
 		var delta = Timer.stamp() - last; 
 		last += delta;
-		
+
 		if(delta > .01){
 			while((s = Thread.readMessage(false)) != null){ 
-				if(s.good()){ 
+				if(Type.enumEq(Type.typeof(s),TClass(String))){ 
 					if((ix = s.indexOf(":")) != -1){
 						t = Std.parseInt(s.substr(0,ix)); 
 						if(check(t))stdout[t].push(s.substr(ix+1));
@@ -93,7 +93,7 @@ class Boss{
 
 		if(check(id)){ 
 			r = stdout[id].copy(); 
-			for(m in r)if(m == "exit")queue.add(id);
+			if(r[r.length-1] == "exit")queue.add(id);
 			stdout[id].clear(); 
 		}
 

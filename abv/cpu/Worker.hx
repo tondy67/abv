@@ -20,7 +20,7 @@ class Worker{
 	{ 
 		while(true){   
 			boss = Thread.readMessage(true);
-			id = Thread.readMessage(true);
+			id = Thread.readMessage(true); 
 			arg = Thread.readMessage(true);
 			try exec()catch(m:Dynamic){send("err:" + m);}
 			send("exit");

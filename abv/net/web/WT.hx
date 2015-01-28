@@ -12,6 +12,7 @@ using abv.sys.ST;
 using abv.CR;
  
 
+@:dce
 class WT{
 
 	public static inline var CONTENT_DISPOSITION = "Content-Disposition";
@@ -336,6 +337,12 @@ class WT{
 		return ctx.exists(REFERER) && (ctx[REFERER] == url);
 	}// referer()
 
+	public static inline function refresh(time=0,url="")
+	{
+		var u = url.good()?"; url="+url:"";
+		return '<meta http-equiv="refresh" content="$time$u">';
+	}// refresh()
+
 	public static inline function etag(ctx:Map<String,String>)
 	{
 		var r = "";
@@ -494,6 +501,12 @@ class WT{
 		return r;
 	}// mkList()
 	
+	public static inline function span(s="",cl=""){return '<span class="$cl">$s</span>';}
+	public static inline function strong(s=""){return "<strong>" + s + "</strong>";}
+	public static inline function p(s=""){return "<p>" + s + "</p>";}
+	public static inline function h2(s=""){return "<h2>" + s + "</h2>";}
+	public static inline function h3(s=""){return "<h3>" + s + "</h3>";}
+	public static inline function a(s="",url=""){return '<a href="$url">$s</a>';}
 
 }// abv.net.web.WT
 

@@ -10,6 +10,7 @@ using abv.CR;
 /**
  * SystemTools
  **/
+@:dce
 class ST{
 
 	public static inline function print(msg="",level:LogLevel)
@@ -69,6 +70,11 @@ class ST{
 	{ 		
 		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// dir()
+	
+	public static inline function stat(path:String,msg="")
+	{ 		
+		return FileSystem.stat(path);
+	}// stat()
 	
 	public static inline function sleep(seconds:Float)
 	{
@@ -136,7 +142,7 @@ class ST{
 						}
 						r = p.stdout.readAll() + ""; 
 					}catch(m:Dynamic){ print(m,ERROR);}
-			}else if(!AM.silent)r = Boss.exec(cmd,args,input) + "";
+			}else r = Boss.exec(cmd,args,input) + "";
 		}
 		return r;
 	}//exec()
@@ -144,8 +150,9 @@ class ST{
 	public static inline function bg(id:String)
 	{ 
 		var r:Array<String> = [];
-		var i = Std.parseInt(id);
-		if(!AM.silent) r = Boss.read(i);
+		var i = Std.parseInt(id); 
+		if(i != -1)r = Boss.read(i); 
+
 		return r;
 	}//bg()
 

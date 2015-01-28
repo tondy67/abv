@@ -4,6 +4,7 @@ import abv.lib.Timer;
 
 using abv.CR;
 
+@:dce
 class AM {
 	
 	public static var verbose:LogLevel 	= DEBUG;
