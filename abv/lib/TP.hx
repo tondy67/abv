@@ -282,7 +282,8 @@ class TP{
 				t = splitt(i,sep1);
 				if(t[0].good()){
 					if(t[1].good())v = t[1];
-					r.set(t[0],v);
+					if(r.exists(t[0]))r[t[0]] += CR.SEP1 + v;
+					else r.set(t[0],v);
 				}
 			}
 		}

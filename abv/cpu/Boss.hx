@@ -80,7 +80,7 @@ class Boss{
 
 		if(delta > .01){
 			while((s = Thread.readMessage(false)) != null){ 
-				if(Type.enumEq(Type.typeof(s),TClass(String))){ 
+				if(Type.enumEq(Type.typeof(s),TClass(String)) && (s != "")){ 
 					if((ix = s.indexOf(":")) != -1){
 						t = Std.parseInt(s.substr(0,ix)); 
 						if(check(t))stdout[t].push(s.substr(ix+1));

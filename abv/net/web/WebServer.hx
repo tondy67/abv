@@ -77,7 +77,7 @@ class WebServer extends ThreadServer<Client, Message>{
 
 		if(c.request.length < c.length)	return;
 		else if(c.request.length == c.length)s = CR.LF; 
- 
+
 		if(s == CR.LF){ 
 			var form:Map<String,String> = null;
 			if(c.ctx == null){
@@ -104,7 +104,10 @@ class WebServer extends ThreadServer<Client, Message>{
 				if(useCookies){
 					if(ctx.exists(WT.COOKIE)){
 						var cookies = WT.parseCookie(ctx[WT.COOKIE]); 
-						if(cookies.exists("sid"))session = sessions.get(cookies["sid"]);
+						if(cookies.exists("sid")){
+							var a = cookies["sid"].splitt(CR.SEP1);
+							session = sessions.get(a.pop());
+						}
 					}
 					if(session.empty()){
 						var sid = sessions.add(sessionExpire); 

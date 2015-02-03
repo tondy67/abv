@@ -175,8 +175,8 @@ class WT{
 	}// parseURI()
 	
 	public static inline function parseQuery(s:String)
-	{
-		return TP.str2map(s.urldecode(),"=","&");	
+	{ 
+		return TP.str2map(s.trim().urldecode(),"=","&");	
 	}// parseQuery()
 
 	public static inline function parseCookie(s:String,sep=";")
@@ -501,12 +501,25 @@ class WT{
 		return r;
 	}// mkList()
 	
+	public static inline function path2url(p:String,url="",sep="/")
+	{
+		var r = "", s = url;
+		if(p.good()){
+			var a = p.splitt("/");
+			for(l in a){
+				s += "/" + l;
+				r += '$sep<a href="$s">$l</a>';
+			}
+		}
+		return r;
+	}// path2url()
+
 	public static inline function span(s="",cl=""){return '<span class="$cl">$s</span>';}
 	public static inline function strong(s=""){return "<strong>" + s + "</strong>";}
 	public static inline function p(s=""){return "<p>" + s + "</p>";}
 	public static inline function h2(s=""){return "<h2>" + s + "</h2>";}
 	public static inline function h3(s=""){return "<h3>" + s + "</h3>";}
-	public static inline function a(s="",url=""){return '<a href="$url">$s</a>';}
+	public static inline function a(s="",url="",js=""){return '<a href="$url" $js>$s</a>';}
 
 }// abv.net.web.WT
 
