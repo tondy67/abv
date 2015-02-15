@@ -98,7 +98,7 @@ class WebServer extends ThreadServer<Client, Message>{
 			} 
 			
 			if(ctx["status"] == "200"){
-				CR.lock.acquire();
+				ST.lock.acquire();
 				var session:Map<String,String> = null;
 // session
 				if(useCookies){
@@ -136,7 +136,7 @@ class WebServer extends ThreadServer<Client, Message>{
 				ctx["length"] = ctx["body"].length +"";
 				var now = Date.now().getTime();
 				log('${c.ip} [${WT.getDate(now,true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',LOG);
-				CR.lock.release();
+				ST.lock.release();
 			}
 
 			response(c.sock, WT.response(ctx));
@@ -171,32 +171,32 @@ class WebServer extends ThreadServer<Client, Message>{
 	
 	function response(sock:Socket,data:Bytes)
 	{
-		CR.lock.acquire();
+		ST.lock.acquire();
 		sendData(sock, data + "");
-		CR.lock.release();
+		ST.lock.release();
 	}// response()
 	
 	override function clientConnected(sock: Socket)
 	{
-		CR.lock.acquire();
+		ST.lock.acquire();
 		var id = Std.random(100000);
 		var ip = sock.peer().host + "";
 		log('client: $id: $ip',DEBUG); 
 		var r = {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip};
-		CR.lock.release();
+		ST.lock.release();
 		return r;
 	}
 
 	override function clientDisconnected(c: Client)
 	{
-		CR.lock.acquire();
+		ST.lock.acquire();
 		log('client: ${c.id} disconnected',DEBUG);
-		CR.lock.release();
+		ST.lock.release();
 	}// clientDisconnected()
 
 	override function readClientMessage(c:Client, buf:Bytes, pos:Int, len:Int)
 	{
-		CR.lock.acquire();
+		ST.lock.acquire();
 		var ok = false;
 		var start = pos; 
 		var max = pos + len;
@@ -209,7 +209,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		if(!ok && start < max) return null;
 		var size = start-pos;
 		var r = {msg: {body: buf.getString(pos, size)}, bytes: size};
-		CR.lock.release();
+		ST.lock.release();
 
  		return r;
 	}// readClientMessage()

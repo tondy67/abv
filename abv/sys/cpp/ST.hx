@@ -4,6 +4,7 @@ import sys.io.Process;
 import sys.FileSystem;
 import sys.io.File;
 import abv.cpu.Boss;
+import abv.cpu.Mutex;
 
 using abv.lib.TP;
 using abv.CR;
@@ -12,6 +13,8 @@ using abv.CR;
  **/
 @:dce
 class ST{
+
+	public static var lock(default,null) = new Mutex();
 
 	public static inline function print(msg="",level:LogLevel)
 	{   
@@ -70,11 +73,6 @@ class ST{
 	{ 		
 		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// dir()
-	
-	public static inline function stat(path:String,msg="")
-	{ 		
-		return FileSystem.stat(path);
-	}// stat()
 	
 	public static inline function sleep(seconds:Float)
 	{
@@ -145,7 +143,7 @@ class ST{
 			}else r = Boss.exec(cmd,args,input) + "";
 		}
 		return r;
-	}//exec()
+	}// exec()
 
 	public static inline function bg(id:String)
 	{ 
@@ -154,7 +152,14 @@ class ST{
 		if(i != -1)r = Boss.read(i); 
 
 		return r;
-	}//bg()
+	}// bg()
+
+	public static inline function stat(path:String)
+	{ 
+		if(!path.good())path= "";
+
+		return FileSystem.stat(path);
+	}// stat()
 
 
 }// abv.sys.cpp.ST

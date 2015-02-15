@@ -31,12 +31,12 @@ class ST{
 		return false;
 	}// dir()
 	
-	public static inline function print(msg="",level=1)
+	public static inline function print(msg="",level:LogLevel)
 	{   
-		throw err;
+//		throw err;
 	}// print()
 
-	static inline function log(msg=""){CT.log(err);}
+	static inline function log(msg=""){CR.log(err);}
 	
 }// abv.sys.others.ST
 

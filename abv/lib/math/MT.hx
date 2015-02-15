@@ -36,5 +36,14 @@ class MT{
 		return f;
 	}// range()
 
+	public static inline function val(f:Float,max:Float)
+	{
+		var r:Float;
+		if(f < 0)r = 0;
+		else if((f >= 0)&&(f < 1))r = f * max;
+		else r = f;
+		return r;
+	}// val()
+
 }// abv.lib.math.MT
 

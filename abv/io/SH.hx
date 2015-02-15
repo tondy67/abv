@@ -1,5 +1,7 @@
 package abv.io;
-
+/**
+ * This class mimics Bash Shell 
+ **/
 import abv.AM;
 import abv.lib.Timer;
 import abv.sys.ST;
@@ -8,9 +10,6 @@ using abv.CR;
 using abv.lib.TP;
 using abv.sys.ST;
 
-/**
- * This class mimics Bash Shell 
- **/
 @:dce
 class SH{
 
@@ -188,7 +187,7 @@ class SH{
 	{
 		var cmd = ["ds","ctx","TP","Math","json","good","fields","ls","mkdir","rm","pwd","cd",
 		"mv","cp","echo","print","clear","compile","read","exec","export",
-		"cat","date","time","uname","ln","zip","sleep","bg"];
+		"cat","date","time","uname","ln","zip","sleep","bg","stat"];
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
@@ -228,6 +227,7 @@ class SH{
 				case "sleep": ip.variables.set("sleep",sleep);
 				case "exec": ip.variables.set("exec",ST.exec);
 				case "bg": ip.variables.set("bg",ST.bg);
+				case "stat": ip.variables.set("stat",ST.stat);
 			}
 		}
 		

@@ -3,7 +3,6 @@ package abv;
  * Common Constants & Tools
  * 
  **/
-import abv.cpu.Mutex;
 import abv.AM;
 import abv.lib.Timer;
 import abv.lib.math.MT;
@@ -39,7 +38,6 @@ class CR{
 	static var logMax 					= 1 << 16;
 //
 	static var start = Timer.stamp();
-	public static var lock(default,null)= new Mutex();
 
 	public static inline function dow(week:Array<String>=null)
 	{
