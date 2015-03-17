@@ -1,4 +1,4 @@
-package abv.sys.js;
+package abv.sys.gui;
 
 import abv.LG;
 import abv.bus.*;
@@ -13,21 +13,14 @@ import abv.*;
 import abv.lib.*;
 import abv.io.Terminal2D;
 import abv.io.*;
-import haxe.Timer;
- 
-import js.Lib;
-import js.html.Event;
-import js.html.Screen in JsScreen;
-import js.Browser;
-import js.html.Element;
-import js.html.CanvasElement;
+import abv.lib.Timer;
 
 using abv.CR;
 using StringTools;
 
 class AM implements IComm {
 
-	public static var verbose:LogLevel 	= DEBUG;
+	public static var verbose:LogLevel 	= LOG;
 	public static var exitTime 			= .0;
 	public static var silent 			= false;
 	public static var logFile			= "";
@@ -66,9 +59,18 @@ class AM implements IComm {
 		LG.screen = screen;
 
 		init();
-//		update();
+/*		update();
 		var tm = new Timer( fps );
 		tm.run = update;
+		while(true){
+			tm.update();
+			Sys.sleep(.01);
+		}
+*/
+		while( true ){
+			update();
+			Sys.sleep(1/fps);
+		}		
 	}// new()
 
 	function update()
@@ -130,7 +132,7 @@ class AM implements IComm {
 
 	function exit()
 	{
-		Browser.window.close();
+		Sys.exit(0);
 	}// exit()
 
 /**
@@ -138,19 +140,19 @@ class AM implements IComm {
  **/
 	public static function info()
 	{
-		var width = Browser.window.innerWidth;
-		var height = Browser.window.innerHeight;
-		var dpi = Browser.window.devicePixelRatio;
-		var lang = "en";//Browser.window.clientInformation.language.substr(0, 2);
-		var os = "Linux";//Browser.window.clientInformation.platform;
+		var width = 0;
+		var height = 0;
+		var dpi = 0;
+		var lang = 0;
+		var os = "Linux";
 		if(os.startsWith("Linux"))os = "Linux";
 		else if(os.startsWith("Windows"))os = "Windows";
 		else if(os.startsWith("OSX"))os = "OSX";
 		var home = "";
-		var run = "js";
+		var run = "cpp";
 
  		var r = {width:width,height:height,dpi:dpi,lang:lang,os:os,home:home,run:run};
 		return r;
 	}// info()
 
-}// abv.sys.js.AM
+}// abv.sys.gui.AM

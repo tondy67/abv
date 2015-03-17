@@ -3,9 +3,9 @@ package abv.sys.flash;
 import flash.text.Font;
 import flash.display.BitmapData;
 
-@:font("assets/fonts/regular.ttf") class DefaultFont extends Font {}
-@:bitmap("assets/img/0.120.png") class BD1 extends BitmapData {}
-@:bitmap("assets/img/ok.gif") class BD2 extends BitmapData {}
+@:font("res/fonts/regular.ttf") class DefaultFont extends Font {}
+@:bitmap("res/img/0.120.png") class BD1 extends BitmapData {}
+@:bitmap("res/img/ok.gif") class BD2 extends BitmapData {}
 
 class FS{
 

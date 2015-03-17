@@ -162,6 +162,7 @@ class Style extends StyleProps{
 
 class StyleProps{
 	public var name = "";
+	public var visibility = "";
 	public var left:Null<Float> = null;
 	public var top:Null<Float> = null;
 	public var width:Null<Float> = null;

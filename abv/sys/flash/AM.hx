@@ -37,6 +37,7 @@ class AM extends Sprite implements IComm {
 	public var sign(null,null):Int;
 	public var msg(default,null):MsgProp;
 		
+	var cfg:Dynamic = null;
 		
 //
 	var last:Float;

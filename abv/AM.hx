@@ -4,10 +4,12 @@ package abv;
  * haxelib run dox --title Title -o docs -i cpp.xml
  **/
 
-#if openfl
-typedef AM = abv.sys.openfl.AM;
-#elseif (neko || cpp)
+#if (neko || cpp)
+	#if gui
+typedef AM = abv.sys.gui.AM;
+	#else
 typedef AM = abv.sys.cpp.AM;
+	#end
 #elseif flash
 typedef AM = abv.sys.flash.AM;
 #elseif js

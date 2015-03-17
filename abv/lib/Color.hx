@@ -43,13 +43,21 @@ class Color{
 
 	public static inline function srgba(f:Float)
 	{
-		var c = clr(f);
-		var s = c.rgb.hex(6);
-		var r = Std.parseInt("0x"+s.substr(0,2));
-		var g = Std.parseInt("0x"+s.substr(2,2));
-		var b = Std.parseInt("0x"+s.substr(4,2));
-		return 'rgba($r,$g,$b,${c.alpha})';
+		var c = trgba(f);
+		return 'rgba(${c.r},${c.g},${c.b},${c.a})';
 	}// srgba()
+
+	public static inline function trgba(f:Float)
+	{
+		var c = clr(f);
+		var rgb = c.rgb;
+ 
+		var r = (rgb >> 16) & 255;  
+		var g = (rgb >> 8) & 255;
+		var b = rgb & 255;
+		var a = Std.int(c.alpha * 255);
+		return {r:r, g:g, b:b, a:a};
+	}// trgba()
 
 	public static inline function web(rgb:Int)
 	{

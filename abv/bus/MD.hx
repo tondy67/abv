@@ -22,25 +22,29 @@ class MD {
 	public static inline var MWHEEL 		= 1 << 9;
 	public static inline var MOVER 			= 1 << 10;
 	public static inline var MOUT 			= 1 << 11;
+	public static inline var MOUSE_X 		= 1 << 12;
+	public static inline var MOUSE_Y 		= 1 << 13;
 // Widget
-	public static inline var NEW 			= 1 << 12;
-	public static inline var OPEN 			= 1 << 13;
-	public static inline var SAVE 			= 1 << 14;
-	public static inline var STATE 			= 1 << 15;
-	public static inline var CLOSE 			= 1 << 16;
-	public static inline var DESTROY 		= 1 << 17;
-	public static inline var RESIZE 		= 1 << 18;
-	public static inline var DRAW 			= 1 << 19;
-	public static inline var SCROLL 		= 1 << 20;
-	public static inline var SELECT 		= 1 << 21;
-	public static inline var TAB 			= 1 << 22;
+	public static inline var NEW 			= 1 << 14;
+	public static inline var OPEN 			= 1 << 15;
+	public static inline var SAVE 			= 1 << 16;
+	public static inline var STATE 			= 1 << 17;
+	public static inline var CLOSE 			= 1 << 18;
+	public static inline var DESTROY 		= 1 << 19;
+	public static inline var RESIZE 		= 1 << 20;
+	public static inline var DRAW 			= 1 << 21;
+	public static inline var SCROLL 		= 1 << 22;
+	public static inline var SELECT 		= 1 << 23;
+	public static inline var TAB 			= 1 << 24;
 // Play
-	public static inline var START 			= 1 << 23;
-	public static inline var STOP 			= 1 << 24;
-	public static inline var PAUSE 			= 1 << 25;
-	public static inline var MOVE 			= 1 << 26;
-	public static inline var TWEEN 			= 1 << 27;
-	public static inline var EXIT 			= 1 << 28;
+	public static inline var START 			= 1 << 25;
+	public static inline var STOP 			= 1 << 26;
+	public static inline var PAUSE 			= 1 << 27;
+	public static inline var PLAY 			= 1 << 28;
+	public static inline var MOVE 			= 1 << 29;
+	public static inline var TWEEN 			= 1 << 30;
+	public static inline var EXIT 			= 1 << 31;
+
 //
 // Message groups
 	public static inline var ALL 			= 0xFFFFFF;

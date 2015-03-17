@@ -4,8 +4,7 @@ package abv.io;
  * KeyBoard
  **/
 @:dce
-class KB {
-	
+class KB { 
 	
 	public static inline var A:Int = 65;
 	public static inline var B:Int = 66;
@@ -38,14 +37,14 @@ class KB {
 	public static inline var BACKQUOTE:Int = 192;
 	public static inline var BACKSLASH:Int = 220;
 	public static inline var BACKSPACE:Int = 8;
-	public static inline var CAPS_LOCK:Int = 20;
+	public static inline var CAPSLOCK:Int = 20;
 	public static inline var COMMA:Int = 188;
 	public static inline var COMMAND:Int = 15;
 	public static inline var CTRL:Int = 17;
-	public static inline var DEL:Int = 46;
+	public static inline var DELETE:Int = 46;
 	public static inline var DOWN:Int = 40;
 	public static inline var END:Int = 35;
-	public static inline var ENTER:Int = 13;
+	public static inline var RETURN:Int = 13; 
 	public static inline var EQUAL:Int = 187;
 	public static inline var ESC:Int = 27;
 	public static inline var F1:Int = 112;
@@ -64,7 +63,7 @@ class KB {
 	public static inline var F14:Int = 125;
 	public static inline var F15:Int = 126;
 	public static inline var HOME:Int = 36;
-	public static inline var INS:Int = 45;
+	public static inline var INSERT:Int = 45;
 	public static inline var LEFT:Int = 37;
 	public static inline var LEFTBRACKET:Int = 219;
 	public static inline var MINUS:Int = 189;
@@ -89,14 +88,14 @@ class KB {
 	public static inline var NUMPAD_7:Int = 103;
 	public static inline var NUMPAD_8:Int = 104;
 	public static inline var NUMPAD_9:Int = 105;
-	public static inline var NUMPAD_ADD:Int = 107;
+	public static inline var NUMPAD_PLUS:Int = 107;
 	public static inline var NUMPAD_DECIMAL:Int = 110;
 	public static inline var NUMPAD_DIVIDE:Int = 111;
-	public static inline var NUMPAD_ENTER:Int = 108;
+	public static inline var NUMPAD_RETURN:Int = 108;
 	public static inline var NUMPAD_MULTIPLY:Int = 106;
-	public static inline var NUMPAD_SUBTRACT:Int = 109;
-	public static inline var PAGE_DOWN:Int = 34;
-	public static inline var PAGE_UP:Int = 33;
+	public static inline var NUMPAD_MINUS:Int = 109;
+	public static inline var PAGEDOWN:Int = 34;
+	public static inline var PAGEUP:Int = 33;
 	public static inline var PERIOD:Int = 190;
 	public static inline var QUOTE:Int = 222;
 	public static inline var RIGHT:Int = 39;
@@ -107,5 +106,6 @@ class KB {
 	public static inline var SPACE:Int = 32;
 	public static inline var TAB:Int = 9;
 	public static inline var UP:Int = 38;
+	public static inline var UNKNOWN:Int = 0;
 
 }// abv.io.KB

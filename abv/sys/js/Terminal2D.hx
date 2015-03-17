@@ -15,9 +15,9 @@ import abv.lib.ui.widget.*;
 import js.Lib;
 import js.html.*;
 import js.Browser;
-import js.html.Element;
+import js.html.HTMLElement;
 import js.html.CanvasElement;
-import js.html.Element; 
+import js.html.HTMLElement; 
 import js.html.DivElement; 
 import js.html.Document;
 
@@ -51,12 +51,12 @@ class Terminal2D extends Terminal{
 //
         doc = Browser.document;
 /*
-var st = doc.createStyleElement();
+var st = doc.createStyleHTMLElement();
 st.type = "text/css"; 
 doc.head.appendChild(st); 
 cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'DefaultFont';src: url('../../assets/fonts/regular.ttf')  format('truetype');");
 */
-        body = doc.body;
+        body = doc.getElementById("body");
         var canvas = cast(doc.createElement("Canvas"),CanvasElement);
 		var style = canvas.style;
         body.appendChild(canvas);
@@ -117,7 +117,7 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 	
 	function onClick(e:MouseEvent)
 	{ 
-		var oid:String  = cast(e.toElement,Element).id;
+		var oid:String  = cast(e.target,HTMLElement).id;
 		if(oid.good())onMsg(oid,MD.CLICK); 
 LG.log(oid);
 	}// onClick
@@ -191,22 +191,22 @@ LG.log(oid);
 			elm = elms[ro.o.id];
 		}else{
 			if(kind == "button"){
-				elm = doc.createButtonElement();
+				elm = doc.createElement("Button");
 				elm.addEventListener("click", onClick, false);
 			}else if(kind == "hbox"){
-				elm = doc.createDivElement();
+				elm = doc.createElement("Div");
 				elm.className = "hbox"; 
 			}else if(kind == "vbox"){
-				elm = doc.createDivElement();
+				elm = doc.createElement("Div");
 				elm.className = "vbox"; 
 			}else if(ro.style.name == ".dialog"){
-				elm = doc.createDivElement();
+				elm = doc.createElement("Div");
 				elm.className = "dialog";  
 			}else if(ro.style.name == ".text"){
-				elm = doc.createDivElement();
+				elm = doc.createElement("Div");
 				elm.className = "text"; 
 			}else{ trace(ro.o);
-				elm = doc.createDivElement();
+				elm = doc.createElement("Div");
 				elm.className = "text"; 
 			}
 		
@@ -272,7 +272,7 @@ LG.log(oid);
 	public override function drawText()
 	{ //trace(ro);
 		if(ro.ctx == Ctx1D){
-			elm.innerText = ro.o.text;
+			elm.innerHTML = ro.o.text;
 		}else{		
 			var c = .0;
 			if(ro.style == null)c = ro.o.color;

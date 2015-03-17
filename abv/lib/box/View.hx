@@ -5,14 +5,14 @@ import abv.lib.anim.IAnim;
 #if flash
 import flash.display.Sprite;
 import flash.events.Event;
-#elseif js
+#elseif (js||gui)
 #else
 import openfl.display.Sprite;
 import openfl.events.Event;
 #end
 //
 @:dce
-#if js
+#if (js||gui)
 class View {
 	public function new()
 	{

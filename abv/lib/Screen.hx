@@ -66,8 +66,8 @@ class Screen extends Component{
 
 	public inline function con(d:Dynamic)
 	{
-		console.text += "\n" + Std.string(d); 
-		render(conRoot);
+//		console.text += "\n" + Std.string(d); 
+//		render(conRoot);
 	}// con()
 		
 	public inline function render(obj:Component=null)

@@ -54,10 +54,11 @@ class Terminal implements IComm{
 		} 
 		return r;
 	}// getObjectsUnderPoint()
-	
+	function update(){}
 //	@:overload( function(li:List<Float> ) :Void {} )
 	public function render(list:List<DoData>)
 	{ 
+		update();
 		var ix = -1, oid = "", i = 0;
 		var fill = queue.length == 0 ? true:false;
 		for(el in list){
@@ -108,6 +109,8 @@ class Terminal implements IComm{
 			
 			drawEnd(); 
 		}
+		
+		renderScreen(); 
 	}// render()
 	
 	public function drawClear(){}
@@ -119,6 +122,8 @@ class Terminal implements IComm{
 	public function drawText(){}
 
 	public function drawEnd(){}
+
+	public function renderScreen(){}
 
 	public function exec(mdt:MD)
 	{ 

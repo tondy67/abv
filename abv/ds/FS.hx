@@ -4,8 +4,8 @@ package abv.ds;
 typedef FS = abv.sys.flash.FS;
 #elseif js
 typedef FS = abv.sys.js.FS;
+#elseif gui
+typedef FS = abv.sys.gui.FS;
 #else
-typedef FS = openfl.Assets;
 #end
 
-//typedef FS = openfl.Assets;
