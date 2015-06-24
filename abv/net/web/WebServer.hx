@@ -129,7 +129,7 @@ class WebServer extends ThreadServer<Client, Message>{
 					if(ctx.pair(WT.AUTHORIZATION,"Basic "+auth))app(ctx,session,form);
 					else ctx["status"] = "401";
 				}else if(path.exists()){
-						if(path.dir())mkDir(ctx); else mkFile(ctx,session);
+						if(path.isDir())mkDir(ctx); else mkFile(ctx,session);
 				}else{
 					app(ctx,session,form);
 				}

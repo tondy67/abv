@@ -28,7 +28,7 @@ class Button extends Text {
 		_pos.set(x,y);
 		_width = width; _height = height;
 
-		msg.accept = MD.MENABLED | MD.KENABLED;
+		msg.accept = MD.MOUSE_ENABLED | MD.KEY_ENABLED;
 		state = 1;
 		lastState = state;
 		states = [{text:Normal},{text:label}];//new Map();
@@ -40,12 +40,12 @@ class Button extends Text {
 	override function processExec(mdt:MD)
 	{ //trace(mdt);
 		switch(mdt.msg){
-			case MD.MOVER: 
+			case MD.MOUSE_OVER: 
 				if(states[0].text != Disabled){
 					states[0].text = Hover;
 					draw(this);
 				}
-			case MD.MOUT: 
+			case MD.MOUSE_OUT: 
 				if(states[0].text != Disabled){
 					states[0].text = states[lastState].text;
 					draw(this);

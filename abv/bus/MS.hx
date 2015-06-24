@@ -11,22 +11,23 @@ typedef Subscriber = {obj:IComm,sign:Int}
 class MS{
 
 //
-	static var msgMap:Map<String,Int> = ["NONE" => MD.NONE,   
-		"MSG" => MD.MSG,"KeyUp" => MD.KUP,"KDOWN" => MD.KDOWN,   
-		"CLICK" => MD.CLICK,"CLICK2" => MD.CLICK2,"MUP" => MD.MUP,   
-		"MDOWN" => MD.MDOWN,"MMOVE" => MD.MMOVE,
-		"MWHEEL" => MD.MWHEEL,"MOVER" => MD.MOVER,   
-		"MOUT" => MD.MOUT,"NEW" => MD.NEW,"OPEN" => MD.OPEN,   
+	static var msgMap:Map<String,Int> = ["NONE" => MD.NONE,"MSG" => MD.MSG,
+		"KEY_UP" => MD.KEY_UP,"KEY_DOWN" => MD.KEY_DOWN,"CLICK" => MD.CLICK,
+		"DOUBLE_CLICK" => MD.DOUBLE_CLICK,"MOUSE_UP" => MD.MOUSE_UP,   
+		"MOUSE_DOWN" => MD.MOUSE_DOWN,"MOUSE_MOVE" => MD.MOUSE_MOVE,
+		"MOUSE_WHEEL" => MD.MOUSE_WHEEL,"MOUSE_OVER" => MD.MOUSE_OVER,   
+		"MOUSE_OUT" => MD.MOUSE_OUT,"NEW" => MD.NEW,"OPEN" => MD.OPEN,   
 		"SAVE" => MD.SAVE,"STATE" => MD.STATE,"CLOSE" => MD.CLOSE,
 		"DESTROY" => MD.DESTROY,"RESIZE" => MD.RESIZE,"DRAW" => MD.DRAW,
 		"START" => MD.START, "STOP" => MD.STOP,"PAUSE" => MD.PAUSE,  
 		"MOVE" => MD.MOVE,"TWEEN" => MD.TWEEN,"EXIT" => MD.EXIT
 	];
-// custom message codes
+// custom messages
 	static var cmMap = new Map<String,Int>();
 // inbox
 	static var inbox = ["*" => new List<MD>()];
 	static var subscribers = new Map<String,Subscriber>();
+	static var slots = new Map<Int,List<IComm>>();
 	static var trash = new List<MD>();
 	
 	public static inline function cmName(m:Int)
@@ -89,27 +90,54 @@ class MS{
 		trash.clear();
 	}// emptyTrash()
 	
+	static inline function getSlot(msg:Int)
+	{
+		var l = new List<IComm>();
+		if(slots.exists(msg)) l = slots[msg];
+		return l;
+	}// getSlot()
+	
+	public static inline function setSlot(o:IComm,msg:Int)
+	{
+		if(slots.exists(msg)){
+			slots[msg].add(o);
+		}else{
+			var l = new List<IComm>();
+			l.add(o);
+			slots.set(msg,l);
+		}
+	}// setSlot()
+	
+	static inline function objExec(o:IComm,md:MD)
+	{
+		try o.exec(md)
+		catch (d:Dynamic){LG.log(o.id+": "+d);}
+		md.free(); 
+		md = null;
+	}// objExec()
+	
 	static inline function setBox(md:MD,exec=false)
 	{ //trace(md.to+":"+subscribers[md.to]);
-		if(!isMsg(md,subscribers[md.from].sign))return;
-		var to = md.to;
-		if(check(to)){
-			if(to != "*"){
-					checkBox(to);
-					if (exec) { 
-						md.signin(subscribers[to].sign); //trace(subscribers[to]);
-						try subscribers[to].obj.exec(md)
-						catch (d:Dynamic){LG.log(to+": "+d);}
-//						emptyTrash(md);
-						md.free(); 
-						md = null;
-					}else inbox[to].add(md.clone());  
-			}else{
-				for(k in inbox.keys()){
-					if(k != "*")inbox[k].add(md.clone());
+		if(isMsg(md,subscribers[md.from].sign)){ 
+			var to = md.to;
+			if(to == ""){
+				for(o in getSlot(md.msg)){ // trace(o.id);
+					objExec(o,md);
 				}
-			}; 
-		} 
+			}else if(check(to)){
+				if(to != "*"){
+						checkBox(to);
+						if (exec) { 
+							md.signin(subscribers[to].sign); //trace(subscribers[to]);
+							objExec(subscribers[to].obj,md);
+						}else inbox[to].add(md.clone());  
+				}else{
+					for(k in inbox.keys()){
+						if(k != "*")inbox[k].add(md.clone());
+					}
+				}; 
+			} 
+		}
 	}// setBox()
 	
 	public static inline function isMsg(md:MD,sign:Int)

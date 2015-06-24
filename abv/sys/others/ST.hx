@@ -25,11 +25,11 @@ class ST{
 		return r;
 	}// exists()
 
-	public static inline function dir(path:String,msg="")
+	public static inline function isDir(path:String,msg="")
 	{
 		throw err;
 		return false;
-	}// dir()
+	}// isDir()
 	
 	public static inline function print(msg="",level:LogLevel)
 	{   

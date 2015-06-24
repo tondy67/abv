@@ -83,26 +83,6 @@ class CR{
 		return r;
 	}// utf8()
 
-	public static inline function fields(o:Dynamic)
-	{ 
-		var r:Array<String> = [];
-		var a:Array<String> = null;
-		var cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-		
-		if(o != null){
-			switch(Type.typeof(o)){
-				case TObject: 
-					a = Reflect.fields(o);
-					if(a != null){ 
-						haxe.ds.ArraySort.sort(a, cmp);
-						for(s in a)if(!s.starts("#"))r.push(s);
-					};
-				default: trace("Only Anonymous structures!");
-			}
-		}
-		return r;
-	}// fields()
-
 	public static inline function good(v:String,msg="",?pif:haxe.PosInfos)
 	{ 
 #if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end

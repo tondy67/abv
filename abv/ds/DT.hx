@@ -3,11 +3,13 @@ package abv.ds;
 import haxe.ds.StringMap;
 
 using abv.CR;
+using abv.lib.TP;
 /**
  * DataTools
  **/
 @:dce
 class DT{
+	static inline var m1 = "Only Anonymous structures!";
 	
 	public static inline function good<T>(v:Array<T>,msg="",?pif:haxe.PosInfos)
 	{ 
@@ -106,6 +108,80 @@ class DT{
 		
 		return r;
 	}// blank<T>()
-	
+
+	public static inline function fields(o:Dynamic,?pif:haxe.PosInfos)
+	{ 
+		var r:Array<String> = [];
+		var a:Array<String> = null;
+		var cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
+		
+		if(o != null){
+			switch(Type.typeof(o)){
+				case TObject: 
+					a = Reflect.fields(o);
+					if(a != null){ 
+						haxe.ds.ArraySort.sort(a, cmp);
+						for(s in a)if(!s.starts("#"))r.push(s);
+					};
+				default: 
+					var msg = m1;
+#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
+					trace(msg);
+			}
+		}
+		return r;
+	}// fields()
+
+	public static inline function field(o:Dynamic, field:String,?pif:haxe.PosInfos)
+	{ 
+		var r:Dynamic = null;
+		
+		if(o != null){
+			switch(Type.typeof(o)){
+				case TObject: 
+					if(field.good())r = Reflect.field(o,field);
+					else CR.print("["+pif.fileName +":"+ pif.lineNumber+"] "+"no good field: " + field,WARN);
+				default: 
+					var msg = m1;
+#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
+					trace(msg);
+			}
+		}
+//trace(Type.typeof(r)+":"+r+":"+field);
+		return r;
+	}// field()
+
+	public static function setField(o:Dynamic, field:String, value:Dynamic,?pif:haxe.PosInfos)
+	{
+		if(o != null){
+			switch(Type.typeof(o)){
+				case TObject: 
+					if(field.good())Reflect.setField(o,field,value);
+					else CR.print("["+pif.fileName +":"+ pif.lineNumber+"] "+"no good field: " + field,WARN);
+				default: 
+					var msg = m1;
+#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
+					trace(msg);
+			}
+		}
+	}// setField()
+
+	public static function hasField(o:Dynamic, field:String,?pif:haxe.PosInfos)
+	{
+		var r = false;
+		
+		if(o != null){
+			switch(Type.typeof(o)){
+				case TObject: 
+					r = Reflect.hasField(o,field);
+				default: 
+					var msg = m1;
+#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
+					trace(msg);
+			}
+		}
+		return r;
+	}//
+		
 }// abv.ds.DT
 

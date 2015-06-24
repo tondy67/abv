@@ -64,15 +64,15 @@ class ST{
 	{
 		var a:Array<String> = [];
 		
-		if(dir(path,msg))a = FileSystem.readDirectory(path);
+		if(isDir(path,msg))a = FileSystem.readDirectory(path);
 		
 		return a;
 	}// get()
 	
-	public static inline function dir(path:String,msg="")
+	public static inline function isDir(path:String,msg="")
 	{ 		
 		return exists(path,msg) && FileSystem.isDirectory(path);
-	}// dir()
+	}// isDir()
 	
 	public static inline function sleep(seconds:Float)
 	{
@@ -87,7 +87,7 @@ class ST{
 	public static inline function open(path:String)
 	{
 		var r = "";
-		if(exists(path))r = dir(path)?"is dir":File.getContent(path);
+		if(exists(path))r = isDir(path)?"is dir":File.getContent(path);
 		return r;
 	}// open()
 
@@ -114,13 +114,13 @@ class ST{
 
 	public static inline function del(path:String)
 	{
-		if(dir(path,"del"))FileSystem.deleteDirectory(path);
+		if(isDir(path,"del"))FileSystem.deleteDirectory(path);
 		else FileSystem.deleteFile(path);
 	}// del()
 
 	public static inline function mkdir(path:Null<String>,opt="p")
 	{
-		if(path.good() && !dir(path,path)) 
+		if(path.good() && !isDir(path,path)) 
 			FileSystem.createDirectory(path);
 	}// mkdir()
 	

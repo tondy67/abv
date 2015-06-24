@@ -411,7 +411,7 @@ class WT{
 			var dirs:Array<String> = [];
 			var files:Array<String> = [];
 			for(p in a){
-				if(ST.dir(path+"/"+p))dirs.push(p);else files.push(p);
+				if(ST.isDir(path+"/"+p))dirs.push(p);else files.push(p);
 			}
 			dirs.sortAZ();
 			dirs.unshift("..");

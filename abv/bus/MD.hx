@@ -11,17 +11,17 @@ class MD {
 	public static inline var NONE 			= 0;
 	public static inline var MSG 			= 1;
 // Keyboard
-	public static inline var KUP 			= 1 << 2;
-	public static inline var KDOWN 			= 1 << 3;
+	public static inline var KEY_UP 		= 1 << 2;
+	public static inline var KEY_DOWN 		= 1 << 3;
 // Mouse
 	public static inline var CLICK			= 1 << 4;
-	public static inline var CLICK2 		= 1 << 5;
-	public static inline var MUP 			= 1 << 6;
-	public static inline var MDOWN 			= 1 << 7;
-	public static inline var MMOVE 			= 1 << 8;
-	public static inline var MWHEEL 		= 1 << 9;
-	public static inline var MOVER 			= 1 << 10;
-	public static inline var MOUT 			= 1 << 11;
+	public static inline var DOUBLE_CLICK 	= 1 << 5;
+	public static inline var MOUSE_UP 		= 1 << 6;
+	public static inline var MOUSE_DOWN 	= 1 << 7;
+	public static inline var MOUSE_MOVE 	= 1 << 8;
+	public static inline var MOUSE_WHEEL 	= 1 << 9;
+	public static inline var MOUSE_OVER 	= 1 << 10;
+	public static inline var MOUSE_OUT 		= 1 << 11;
 	public static inline var MOUSE_X 		= 1 << 12;
 	public static inline var MOUSE_Y 		= 1 << 13;
 // Widget
@@ -48,9 +48,9 @@ class MD {
 //
 // Message groups
 	public static inline var ALL 			= 0xFFFFFF;
-	public static inline var MENABLED 		= CLICK | CLICK2 | MUP | 
-		MDOWN | MMOVE |	MWHEEL | MOVER | MOUT;
-	public static inline var KENABLED		= KUP | KDOWN;
+	public static inline var MOUSE_ENABLED 		= CLICK | DOUBLE_CLICK | MOUSE_UP | 
+		MOUSE_DOWN | MOUSE_MOVE |	MOUSE_WHEEL | MOUSE_OVER | MOUSE_OUT;
+	public static inline var KEY_ENABLED		= KEY_UP | KEY_DOWN;
 
 // Subscribers
 	public var from(get,never):String;

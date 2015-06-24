@@ -15,9 +15,8 @@ import abv.lib.ui.widget.*;
 import js.Lib;
 import js.html.*;
 import js.Browser;
-import js.html.HTMLElement;
+import js.html.HtmlElement;
 import js.html.CanvasElement;
-import js.html.HTMLElement; 
 import js.html.DivElement; 
 import js.html.Document;
 
@@ -30,11 +29,11 @@ using abv.lib.Color;
 @:dce
 class Terminal2D extends Terminal{
 
-	var elms = new Map<String,Element>();
-	var elm:Element;
+	var elms = new Map<String,DOMElement>();
+	var elm:DOMElement;
 	var shapes:Map<String,DoData>;
 	var doc:Document;
-	var body: Element;   
+	var body: DOMElement;   
     var ctx: CanvasRenderingContext2D;
 	var xx:Float = 0; 
 	var yy:Float = 0;
@@ -51,7 +50,7 @@ class Terminal2D extends Terminal{
 //
         doc = Browser.document;
 /*
-var st = doc.createStyleHTMLElement();
+var st = doc.createStyleHtmlElement();
 st.type = "text/css"; 
 doc.head.appendChild(st); 
 cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'DefaultFont';src: url('../../assets/fonts/regular.ttf')  format('truetype');");
@@ -81,14 +80,14 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 		if(l.length > 0){ 
 			var t = l.first(); 
 			if(ui.click){
-				onMsg(t,MD.MMOVE);
+				onMsg(t,MD.MOUSE_MOVE);
 				return;
-			}else if(MS.accept(t,MD.MOVER)){
-				if(hovered != t)onMsg(hovered,MD.MOUT);
+			}else if(MS.accept(t,MD.MOUSE_OVER)){
+				if(hovered != t)onMsg(hovered,MD.MOUSE_OUT);
 				hovered = t;
-				onMsg(hovered,MD.MOVER);
+				onMsg(hovered,MD.MOUSE_OVER);
 			}else if(hovered.good()){
-				onMsg(hovered,MD.MOUT);
+				onMsg(hovered,MD.MOUSE_OUT);
 				hovered = "";
 			}
 		}
@@ -102,7 +101,7 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 		var a = getObjectsUnderPoint(e.clientX,e.clientY);
 //LG.log(a+""); 
 		for(o in a){  
-			if(MS.accept(o,MD.MDOWN)){ 
+			if(MS.accept(o,MD.MOUSE_DOWN)){ 
 				oid = o; LG.log(oid);
 				break;
 			}
@@ -116,8 +115,9 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 	}// onMouseDown
 	
 	function onClick(e:MouseEvent)
-	{ 
-		var oid:String  = cast(e.target,HTMLElement).id;
+	{ trace(e.target);
+		var oid:String  = cast(e.target,DOMElement).id; 
+trace(oid);
 		if(oid.good())onMsg(oid,MD.CLICK); 
 LG.log(oid);
 	}// onClick
@@ -126,39 +126,15 @@ LG.log(oid);
 	{
 		e.preventDefault();
 		ui.keys[e.keyCode] = false;
-	}
+		MS.exec(new MD(id,"",MD.KEY_UP,sign,[e.keyCode]));
+	}// onKeyUp()
+	
 	function onKeyDown(e:KeyboardEvent)
 	{
 		e.preventDefault();
 		ui.keys[e.keyCode] = true;
-
-		if(isKey(KB.SPACE)){LG.log("SPACE");}
-		else if(isKey(KB.N1)){LG.log(MS.show());};
-		else if(isKey(KB.N2))LG.log(AM.info()+"");
-		
-		var a = [KB.UP,KB.DOWN,KB.LEFT,KB.RIGHT];
-		for(i in 0...a.length){
-			xx = yy = 0;
-			if(isKey(a[i])){ 
-				switch(i){
-					case 0:yy = -speed;
-					case 1:yy = speed;
-					case 2:xx = -speed;
-					case 3:xx = speed;
-				}		
-				MS.exec(new MD(id,"snake",MD.MOVE,sign,[xx,yy],"",[ui.delta]));
-				break;
-			}	
-		}	
-	}
-	
-	function isKey(k:Int)
-	{
-		if(ui.keys[k]){
-			ui.keys[k] = false;
-			return true;
-		}else return false;
-	}// isKey()
+		MS.exec(new MD(id,"",MD.KEY_DOWN,sign,[e.keyCode]));
+	}// onKeyDown()
 	
 	public function init()
 	{ 

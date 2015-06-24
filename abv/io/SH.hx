@@ -9,6 +9,7 @@ import abv.sys.ST;
 using abv.CR;
 using abv.lib.TP;
 using abv.sys.ST;
+using abv.ds.DT;
 
 @:dce
 class SH{
@@ -28,7 +29,7 @@ class SH{
 	{
 		var r:Array<String> = [];
 
-		if (path.dir('ls: $path')) {
+		if (path.isDir('ls: $path')) {
 			if (opt.indexOf("R") != -1) {
 				files.clear();
 				ls_R(path);
@@ -42,11 +43,11 @@ class SH{
 	static function ls_R(path:Null<String>)
 	{
 		var c = ""; 
-		var f:Array<String> = path.dir('ls_R: $path')?path.get():[];
+		var f:Array<String> = path.isDir('ls_R: $path')?path.get():[];
 		for(i in f){ 
 			c = '$path/$i';
 			files.push(c);
-			if(c.dir("ls_R"))ls_R(c);
+			if(c.isDir("ls_R"))ls_R(c);
 		}
 	}// ls_R()
 	
@@ -62,7 +63,7 @@ class SH{
 		else if(!path.dirname().abs().starts(pwd()))
 			throw "rm: Not permitted outside current directory!";
 
-		if(path.dir()){
+		if(path.isDir()){
 			files.clear();
 			ls_R(path);
 			for(f in files)f.del();
@@ -79,7 +80,7 @@ class SH{
 	{
 		if(!src.good("mv: src") && !src.exists('mv: $src') && !dst.good("mv: dst")) return;
 // trace(ls(dst).length);	
-		if(src.dir()){
+		if(src.isDir()){
 /*			if(ls(dst).length == 0)FileSystem.rename(src,dst);
 			else {
 				cp(src,dst,"r");
@@ -99,7 +100,7 @@ class SH{
 		if(!msg.good(msg))msg = "";
 		if(!AM.silent){ 
 			if(path.good()){
-				if(!path.dir(path))path.save(msg + " ");
+				if(!path.isDir(path))path.save(msg + " ");
 			}else CR.print(msg,INFO); 
 		}else output += msg;
 	}//echo()
@@ -141,7 +142,7 @@ class SH{
 	{
 		var r:Null<String> = "";
 		var s = 'cat: $path';
-		if(path.exists(s) && !path.dir(s)){
+		if(path.exists(s) && !path.isDir(s)){
 			try r = path.open()
 			catch(m:Dynamic){CR.print(s + " "+m,WARN);}
 		}
@@ -175,7 +176,7 @@ class SH{
 	
 	public static inline function cd(path:Null<String>)
 	{
-		if(path.dir('cd: $path'))Sys.setCwd(path);
+		if(path.isDir('cd: $path'))Sys.setCwd(path);
 	}// cd()
 	
 	public static inline function zip(path:Null<String>,file:String,opt="r")
@@ -203,7 +204,7 @@ class SH{
 				case "Math": ip.variables.set("Math",Math);
 				case "json": ip.variables.set("json",CR.json);
 				case "good": ip.variables.set("good",good);
-				case "fields": ip.variables.set("fields",CR.fields);
+				case "fields": ip.variables.set("fields",DT.fields);
 //
 				case "ls": ip.variables.set("ls",ls);
 				case "mkdir": ip.variables.set("mkdir",mkdir);

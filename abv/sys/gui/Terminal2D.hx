@@ -101,14 +101,14 @@ class Terminal2D extends Terminal{
 		if(l.length > 0){ 
 			var t = l.first(); 
 			if(ui.click){
-				onMsg(t,MD.MMOVE);
+				onMsg(t,MD.MOUSE_MOVE);
 				return;
-			}else if(MS.accept(t,MD.MOVER)){
-				if(hovered != t)onMsg(hovered,MD.MOUT);
+			}else if(MS.accept(t,MD.MOUSE_OVER)){
+				if(hovered != t)onMsg(hovered,MD.MOUSE_OUT);
 				hovered = t;
-				onMsg(hovered,MD.MOVER);
+				onMsg(hovered,MD.MOUSE_OVER);
 			}else if(hovered.good()){
-				onMsg(hovered,MD.MOUT);
+				onMsg(hovered,MD.MOUSE_OUT);
 				hovered = "";
 			}
 		}
@@ -122,7 +122,7 @@ class Terminal2D extends Terminal{
 		var a = getObjectsUnderPoint(x,y);
 //LG.log(a+""); 
 		for(o in a){  
-			if(MS.accept(o,MD.MDOWN)){ 
+			if(MS.accept(o,MD.MOUSE_DOWN)){ 
 				oid = o; LG.log(oid);
 				break;
 			}
@@ -148,41 +148,14 @@ LG.log(oid);
 	function onKeyUp(key:Int)
 	{
 		ui.keys[key] = false;
-	}
+		MS.exec(new MD(id,"",MD.KEY_UP,sign,[key]));
+	}// onKeyUp()
+	
 	function onKeyDown(key:Int)
 	{ 
 		ui.keys[key] = true;
-
-		if(isKey(KB.SPACE)){CR.print("SPACE",INFO);}
-		else if(isKey(KB.N1)){LG.log(MS.show());};
-		else if(isKey(KB.N2))LG.log(AM.info()+"");
-		else if(isKey(KB.ESC)){play=true;playm();}
-		else if(isKey(KB.RETURN)){plays=true;playms();}
-		else if(isKey(KB.Q))GUI.quit = true;
-		
-		var a = [KB.UP,KB.DOWN,KB.LEFT,KB.RIGHT];
-		for(i in 0...a.length){
-			xx = yy = 0;
-			if(isKey(a[i])){ 
-				switch(i){
-					case 0:yy = -speed;
-					case 1:yy = speed;
-					case 2:xx = -speed;
-					case 3:xx = speed;
-				}		
-				MS.exec(new MD(id,"snake",MD.MOVE,sign,[xx,yy],"",[ui.delta]));
-				break;
-			}	
-		}	
-	}
-	
-	function isKey(k:Int)
-	{
-		if(ui.keys[k]){
-			ui.keys[k] = false;
-			return true;
-		}else return false;
-	}// isKey()
+		MS.exec(new MD(id,"",MD.KEY_DOWN,sign,[key]));
+	}// onKeyDown()
 	
 	public function init()
 	{ 

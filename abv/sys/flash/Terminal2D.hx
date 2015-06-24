@@ -24,8 +24,7 @@ class Terminal2D extends Terminal{
 	var shapes:Map<String,Sprite>;
 	var sp:Sprite;
 	public var monitor:Sprite;
-	var ui:Input;
-	var xx = 100; var yy = 100; var speed = 4;
+	public var ui:Input;
 
 	public function new()
 	{
@@ -59,11 +58,11 @@ class Terminal2D extends Terminal{
 		if(oid.good())MS.exec(new MD(id,oid,cmd,sign,[monitor.mouseX,monitor.mouseY],"",[ui.delta]));
 //LG.log(to+":"+MS.msgName(cmd));
 	}// onMsg()	
-	function onMouseOver(e:MouseEvent){onMsg(tid(e),MD.MOVER);}
-	function onMouseOut(e:MouseEvent){onMsg(tid(e),MD.MOUT);}
+	function onMouseOver(e:MouseEvent){onMsg(tid(e),MD.MOUSE_OVER);}
+	function onMouseOut(e:MouseEvent){onMsg(tid(e),MD.MOUSE_OUT);}
 	function onMouseMove(e:MouseEvent){
 		if(ui.click){
-			onMsg(tid(e),MD.MMOVE);
+			onMsg(tid(e),MD.MOUSE_MOVE);
 		};
 	}
 	function onMouseWheel(e:MouseEvent){ui.wheel = e.delta;}
@@ -74,7 +73,7 @@ class Terminal2D extends Terminal{
 		var a = getObjectsUnderPoint(monitor.mouseX,monitor.mouseY);
  
 		for(o in a){  
-			if(MS.accept(o,MD.MDOWN)){ 
+			if(MS.accept(o,MD.MOUSE_DOWN)){ 
 				oid = o; LG.log(oid);
 				break;
 			}
@@ -91,37 +90,17 @@ class Terminal2D extends Terminal{
 	{ 
 	}// onClick
 	
-	function onKeyUp(e:KeyboardEvent){ui.keys[e.keyCode] = false;}
-	function onKeyDown(e:KeyboardEvent){
-		ui.keys[e.keyCode] = true;
-
-		if(isKey(KB.SPACE)){LG.log("SPACE");}
-		else if(isKey(KB.N1)){LG.log(MS.show());};
-		else if(isKey(KB.N2))LG.log("n2");
-		
-		var a = [KB.UP,KB.DOWN,KB.LEFT,KB.RIGHT];
-		for(i in 0...a.length){
-			xx = yy = 0;
-			if(isKey(a[i])){ 
-				switch(i){
-					case 0:yy = -speed;
-					case 1:yy = speed;
-					case 2:xx = -speed;
-					case 3:xx = speed;
-				}		
-				MS.exec(new MD(id,"snake",MD.MOVE,sign,[xx,yy],"",[ui.delta]));
-				break;
-			}	
-		}	
-	}
-	
-	function isKey(k:Int)
+	function onKeyUp(e:KeyboardEvent)
 	{
-		if(ui.keys[k]){
-			ui.keys[k] = false;
-			return true;
-		}else return false;
-	}// isKey()
+		ui.keys[e.keyCode] = false;
+		MS.exec(new MD(id,"",MD.KEY_UP,sign,[e.keyCode]));
+	}// onKeyUp()
+
+	function onKeyDown(e:KeyboardEvent)
+	{ 
+		ui.keys[e.keyCode] = true;
+		MS.exec(new MD(id,"",MD.KEY_DOWN,sign,[e.keyCode]));
+	}// onKeyDown()
 	
 	public function init()
 	{ 

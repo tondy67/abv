@@ -13,7 +13,9 @@ typedef AM = abv.sys.cpp.AM;
 #elseif flash
 typedef AM = abv.sys.flash.AM;
 #elseif js
+	#if gui
 typedef AM = abv.sys.js.AM;
+	#end
 #else
 typedef AM = abv.sys.others.AM;
 #end

@@ -85,6 +85,7 @@ class Component extends MObject implements IAnim {
 				draw(this);
 			case MD.MOVE: 
 				pos.offset(mdt.f[0],mdt.f[1]);
+				draw(this); 
 		}
 	}// processExec
 
