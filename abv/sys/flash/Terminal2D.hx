@@ -2,21 +2,21 @@ package abv.sys.flash;
 
 import abv.bus.*;
 import abv.*;
-import abv.lib.style.Style;
-import abv.lib.style.IStyle;
-import abv.lib.Color;
-import abv.ds.FS;
+import abv.lib.LG;
+import abv.lib.style.*;
 import abv.io.*;
-import abv.AM;
 import abv.lib.comp.Component;
+import abv.lib.math.Rectangle;
 
 import flash.display.Sprite;
+import flash.display.BitmapData;
+import flash.geom.Matrix;
 import flash.text.*;
 import flash.events.*;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.math.MT;
-using abv.lib.Color;
+using abv.lib.style.Color;
 
 @:dce
 class Terminal2D extends Terminal{
@@ -25,7 +25,8 @@ class Terminal2D extends Terminal{
 	var sp:Sprite;
 	public var monitor:Sprite;
 	public var ui:Input;
-
+	var bmd = new Map<String,BitmapData>();
+	
 	public function new()
 	{
 		super("Terminal2D");
@@ -55,7 +56,7 @@ class Terminal2D extends Terminal{
 	
 	function onMsg(oid:String,cmd:Int)
 	{ 
-		if(oid.good())MS.exec(new MD(id,oid,cmd,sign,[monitor.mouseX,monitor.mouseY],"",[ui.delta]));
+		if(oid.good())MS.exec(new MD(sign,oid,cmd,[monitor.mouseX,monitor.mouseY],"",[ui.delta]));
 //LG.log(to+":"+MS.msgName(cmd));
 	}// onMsg()	
 	function onMouseOver(e:MouseEvent){onMsg(tid(e),MD.MOUSE_OVER);}
@@ -93,13 +94,13 @@ class Terminal2D extends Terminal{
 	function onKeyUp(e:KeyboardEvent)
 	{
 		ui.keys[e.keyCode] = false;
-		MS.exec(new MD(id,"",MD.KEY_UP,sign,[e.keyCode]));
+		MS.exec(new MD(sign,"",MD.KEY_UP,[e.keyCode]));
 	}// onKeyUp()
 
 	function onKeyDown(e:KeyboardEvent)
 	{ 
 		ui.keys[e.keyCode] = true;
-		MS.exec(new MD(id,"",MD.KEY_DOWN,sign,[e.keyCode]));
+		MS.exec(new MD(sign,"",MD.KEY_DOWN,[e.keyCode]));
 	}// onKeyDown()
 	
 	public function init()
@@ -131,36 +132,74 @@ class Terminal2D extends Terminal{
 		sp.visible = o.visible; 
 	}// drawStart()
 
-	public override function drawRect()
+	public override function drawShape()
 	{ 
-		var r = .0;
+		var radius = .0;
+		var border = .0;
 		var c = ro.o.color.clr();
-
-		if(ro.style != null){
-			if(ro.style.border != null){
-				if(ro.style.border.radius.good())r = ro.style.border.radius;
-				if(ro.style.border.color.good()){
-					c = ro.style.border.color.clr(); 
-					sp.graphics.lineStyle(1,c.rgb ,c.alpha);
+		var bd:BitmapData = null;
+		var x = ro.x, y = ro.y, w = ro.o.width , h = ro.o.height ;
+		var style = ro.o.style;
+		var scale = ro.o.scale;
+		var tile:Rectangle = null;
+		var src = "";
+		
+		if(style != null){
+			if(style.border != null){ 
+				radius = style.border.radius;
+				border = style.border.width;
+				if(border > 0){
+					c = style.border.color.clr(); 
+					sp.graphics.lineStyle(border,c.rgb ,c.alpha);
 				}
 			}
-			if(ro.style.background.color.good())c = ro.style.background.color.clr(); 
+
+			if(style.background == null){}
+			else if(style.background.image.good()){
+				if(style.background.position != null)
+					tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
+				src = style.background.image; 
+				if(bmd.exists(src+tile)){
+					bd = bmd[src+tile]; 
+//		if(ro.o.id == "player")trace(src+tile);
+				}else{
+					bd = getTile(FS.getTexture(src),tile,scale);
+					if(bd != null){
+						bmd.set(src+tile,bd); 
+					}
+				}
+			}else c = style.background.color.clr(); 
 		}
-		sp.graphics.beginFill(c.rgb ,c.alpha); 
+		
+		if (bd == null) {
+			sp.graphics.beginFill(c.rgb ,c.alpha); 
+		}else{
+			var m:Matrix = new Matrix();
+			m.translate(x, y);
+			sp.graphics.beginBitmapFill(bd,m,false); 
+		}
 
-		if(r == 0)sp.graphics.drawRect(ro.x, ro.y, ro.o.width, ro.o.height);
-		else sp.graphics.drawRoundRect(ro.x, ro.y, ro.o.width, ro.o.height, r);
-
+		sp.graphics.drawRoundRect(x, y, w* scale, h* scale, radius);
 		sp.graphics.endFill();
-	}// drawRect()
+	}// drawShape()
 
 	public override function drawText()
 	{ //trace(ro);
 		var c = ro.o.color.clr();
-		if((ro.style != null)&&(ro.style.color.good()))c = ro.style.color.clr(); 
+		var name = "_sans";
+		var size = 14.;
+		var style = ro.o.style;
+		if(style != null){
+			if(style.color.good())c = style.color.clr();
+			if(style.font != null){
+				if(style.font.name.good())name = style.font.name;
+				if(style.font.size != null)size = style.font.size;
+			}
+		}
+//trace(style.font);
 		var tf = new TextField();
-		var font = FS.getFont ("assets/fonts/regular.ttf"); //trace(font.fontName);
-		var ft = new TextFormat(font.fontName, 14, c.rgb);
+		var font = FS.getFont (name);
+		var ft = new TextFormat(font.fontName, size, c.rgb);
 		tf.defaultTextFormat = ft;
 		tf.width = ro.o.width;
 		tf.height = ro.o.height;
@@ -173,6 +212,28 @@ class Terminal2D extends Terminal{
 		tf.y = ro.y + 1;
 		sp.addChild(tf);	
 	}// drawText()
+
+	function getTile(bm:BitmapData,rect:Rectangle,scale = 1.)
+	{
+		var sbm:BitmapData = null;
+		if(bm == null) return sbm;
+		var bd = new BitmapData(MT.closestPow2(rect.w.int()), MT.closestPow2(rect.h.int()), true, 0);
+		var pos = new flash.geom.Point();
+		var r = new flash.geom.Rectangle(rect.x,rect.y,rect.w,rect.h);
+		bd.copyPixels(bm, r, pos, null, null, true);
+		
+		if(scale == 1){
+			sbm = bd;
+		}else{
+			var m = new flash.geom.Matrix();
+			m.scale(scale, scale);
+			var w = (bd.width * scale).int(), h = (bd.height * scale).int();
+			sbm = new BitmapData(w, h, true, 0x000000);
+			sbm.draw(bd, m, null, null, null, true);
+		}		
+		return sbm;
+	}// getTile()
+
 
 	public override function drawEnd()
 	{

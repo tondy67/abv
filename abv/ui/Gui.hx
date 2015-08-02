@@ -1,62 +1,59 @@
-package abv.lib.ui;
+package abv.ui;
+
 
 import abv.lib.comp.Component;
 import abv.bus.*;
 import abv.lib.math.Point;
-import abv.lib.ui.box.*; 
-import abv.lib.ui.widget.*;
-import abv.lib.ui.widget.Button;
+import abv.ui.box.*; 
+import abv.ui.widget.*;
+import abv.ui.widget.Button;
 import abv.lib.style.*;
 import abv.lib.style.Style;
-import abv.lib.Screen;
+import abv.io.Screen;
 import abv.ds.FS;
 import haxe.Json;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.TP;
 /**
  * 
  **/
 @:dce
-class GUI extends Root{
+class Gui extends Root{
 	
-	public static var cssfile 	= "skin.css";
-	public static var skinfile 	= "skin.html";
 	var styles:Map<String,Style>;
 
 	public function new(w:Float,h:Float) 
 	{
-		_id = "GUI";
+		_id = "Gui";
 		super(id,w,h);
 		context = Ctx1D;
 //		init() ;
 	}// new() 
 	
-	public function build(path:String)
+	public function build(skin:String,css:String)
 	{
-		var css = FS.getText(path + "/" + cssfile);
 		var cp = new CssParser();
-		styles = cp.parse(css) ; // for(k in styles.keys())trace(k);
+		styles = cp.parse(css) ;  //for(k in styles.keys())trace(k);
 		
-		var skin = FS.getText(path + "/" + skinfile); 
 		try{
 			var html = Xml.parse(skin).firstElement(); 
-			var body = html.elementsNamed("body").next(); //trace(body); 
+			var body = html.elementsNamed("body").next(); 
 			for(node in body.elements())processNode(node);
-		}catch(d:Dynamic){LG.log("Skin: " + skin.basename() +": "+d);}
+		}catch(d:Dynamic){trace(CR.ERROR+skin.basename() +": "+d);}
 	}// build()
 
 	function processNode(node:Xml)
 	{
 		var att = new Map<String,String>(); 
-		for(a in node.attributes()) att.set(a,node.get(a));
+		for(a in node.attributes()) att.set(a,node.get(a)); 
  
 		var elm = "" + node.nodeName; 
 		var nid = "" + node.get("id");
 		var cls = "" + node.get("class"); 
 
 		if((elm == "") || (nid == "")) {
-			LG.log('elm: $elm, nid: $nid'); 
+			trace("elm: "+elm+", nid: "+nid); 
 			return;
 		}
 		var label = "" + node.firstChild().nodeValue; 
@@ -74,7 +71,7 @@ class GUI extends Root{
 		}
 
 		if(obj == null){
-			trace('$elm> id: $nid, class: $cls');
+			trace(elm+"> id: "+nid+", class: "+cls);
 			return;
 		}
 		
@@ -83,42 +80,42 @@ class GUI extends Root{
 		if(pid == null)addChild(obj);else cast(wdg[pid],Box).addChild(obj);
 
 		applyAttributes(att,obj);		
-		applyStyle(elm,att,cast(obj,IStyle));		
-
+		applyStyle(elm,att,obj);
+	
+		obj.style.state = NORMAL;
 		try cast(obj.parent,Box).placeChild(obj)
-		catch(d:Dynamic){LG.log(obj.parent.id+": "+d);}
+		catch(d:Dynamic){trace(CR.ERROR+obj.parent.id+": "+d);}
 
 		for(child in node.elements())processNode(child);
 	}// processNode()
 	
-	function applyStyle(elm:String,att:Map<String,String>,obj:IStyle)
+	function applyStyle(elm:String,att:Map<String,String>,obj:Component)
 	{
 		var cl = "." + att["class"];
 		var nid = "#" + att["id"]; 
 		var cid = cl + nid; 
-		var sel = new List<String>();
+		var sel = new List<String>(); //trace(elm+":"+cl+":"+nid+":"+cid);
 		if(styles.exists(elm)) sel.add(elm);
 		if(styles.exists(cl)) sel.add(cl);
 		if(styles.exists(nid))sel.add(nid);
 		if(styles.exists(cid)) sel.add(cid);
 		for (s in sel) {
-			try obj.style[Normal].apply(styles[s])
-			catch(d:Dynamic) {LG.log(s +": "+d);}
+			try obj.style.apply(styles[s])
+			catch(d:Dynamic) {trace(CR.ERROR+s +": "+d);}
 		}
 		var pc:String;
-		for (k in Style.State.keys()) {
+		for (k in Style.State.keys()) { 
 			sel.clear();
 			pc = ":" + k;
 			if(styles.exists(elm+pc)) sel.add(elm+pc);
 			if(styles.exists(cl+pc)) sel.add(cl+pc);
 			if(styles.exists(nid+pc)) sel.add(nid+pc);
-			if(styles.exists(cid + pc)) sel.add(cid + pc);
-			if(sel.length > 0) {
-				obj.style.set(Style.State[k], new Style());
-				obj.style[Style.State[k]].apply(obj.style[Normal]);
-				for (s in sel) {
-					try obj.style[Style.State[k]].apply(styles[s])
-					catch(d:Dynamic) {LG.log(s +": "+d);}
+			if(styles.exists(cid + pc)) sel.add(cid + pc); 
+			if(sel.length > 0) { 
+				obj.style.set(Style.State[k]); 
+				for (s in sel) { 
+					try obj.style.apply(styles[s])
+					catch(d:Dynamic) {trace(CR.ERROR+s +": "+d);}
 				}
 			}
 		}
@@ -133,11 +130,11 @@ class GUI extends Root{
 		var act:Array<String> = [];
 
 		for(att in attr.keys()){
-			av = attr[att].trim().replace("'",'"');
+			av = attr[att].trim().replace("'",'"'); 
 			switch(att){
 				case "action": 
 					try act = Json.parse(av)
-					catch(d:Dynamic){LG.log(attr["id"] +"(action): "+d);}; 
+					catch(d:Dynamic){trace(CR.ERROR+attr["id"] +"(action): "+d);}; 
 					if(act.length == 0)continue;
 					for(a in act){
 						p = a.split(","); 
@@ -148,12 +145,12 @@ class GUI extends Root{
 					}
 				case "states": 
 					try st = Json.parse(av)
-					catch(d:Dynamic){LG.log(attr["id"] +"(states): "+d);}; 
+					catch(d:Dynamic){trace(CR.ERROR+attr["id"] +"(states): "+d);}; 
 					if(st.length == 0)continue;
 					st.unshift({text:Button.Normal});
 					cast(obj, Button).states = st;
 					obj.text = cast(obj, Button).states[obj.state].text;
-				case "visible": obj.visible = av == "false" ? false:true;  //LG.log(obj.id+":"+av);
+				case "visible": obj.visible = av == "false" ? false:true;  
 			}
 		}
 	}//
@@ -163,4 +160,4 @@ class GUI extends Root{
 
 	}// init() 
 	
-}// abv.lib.ui.GUI
+}// abv.ui.Gui

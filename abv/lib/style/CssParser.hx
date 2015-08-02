@@ -1,12 +1,13 @@
 package abv.lib.style;
 
+
 import abv.lib.style.Style;
 import Type;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.math.MT;
 using abv.lib.TP;
-using abv.lib.Color;
+using abv.lib.style.Color;
 
 @:dce
 class CssParser {
@@ -19,7 +20,8 @@ class CssParser {
 	}
 	
 	public function parse(css:String)
-	{
+	{  
+		css = css.reduceSpaces();
 		css = delComments(css);
 		var L1:Array<String> = [];
 		var L2:Array<String> = [];
@@ -58,12 +60,12 @@ class CssParser {
 		var sub = p.length == 2 ? p[1].toLowerCase().trim():"";
 		
 		val = val.trim();
-		var m = ["px"=>" ","url("=>" ",")"=>" ","'"=>" ",'"'=>" ",
+		var m = ["px"=>"","url("=>"",")"=>"","'"=>"",'"'=>"",
 		"auto"=>Std.string(CR.AUTO)];
-		for(k in m.keys())if(val.indexOf(k) != -1)val = val.replace(k,m[k]).trim(); 
+		for(k in m.keys())if(val.indexOf(k) != -1)val = val.replace(k,m[k]); 
 
 		if(val.indexOf("%") != -1){
-			var f = float(val.replace("%"," ").trim()).range(100); 
+			var f = float(val.replace("%","")).range(100); 
 			if(f == 100)f = 99; 
 			f /= 100;
 			val = f+"";
@@ -71,22 +73,22 @@ class CssParser {
 
 		switch(field){
 			case "border": 
-				styles[name].set("border");
+				styles[name].setBorder();
 				switch(sub){
 					case "width": styles[name].border.width = float(val);
 					case "color": styles[name].border.color = getColor(val);
 					case "radius": styles[name].border.radius = float(val);
 				}
 			case "background": 
-				styles[name].set("background");
+				styles[name].setBackground();
 				switch(sub){
 					case "color": styles[name].background.color = getColor(val);
 					case "image": styles[name].background.image = val;
 					case "repeat": styles[name].background.repeat = 1;
-					case "position": styles[name].background.position = 2;
+					case "position": styles[name].background.position = getPosition(val);
 				}
 			case "margin": 
-				styles[name].set("margin");
+				styles[name].setMargin();
 				switch(sub){
 					case "top": styles[name].margin.top = float(val);
 					case "right": styles[name].margin.right = float(val);
@@ -94,7 +96,7 @@ class CssParser {
 					case "left": styles[name].margin.left = float(val);
 				}
 			case "padding": 
-				styles[name].set("padding");
+				styles[name].setPadding();
 				switch(sub){
 					case "top": styles[name].padding.top = float(val);
 					case "right": styles[name].padding.right = float(val);
@@ -102,12 +104,12 @@ class CssParser {
 					case "left": styles[name].padding.left = float(val);
 				}
 			case "box": 
-				styles[name].set("boxShadow");
+				styles[name].setBoxShadow();
 				switch(sub){
 					case "shadow": styles[name].boxShadow = null;
 				}
 			case "font": 
-				styles[name].set("font");
+				styles[name].setFont();
 				switch(sub){
 					case "family": styles[name].font.name = val;
 					case "size": styles[name].font.size = float(val);
@@ -118,12 +120,23 @@ class CssParser {
 			case "width": styles[name].width = float(val);
 			case "height": styles[name].height = float(val);
 			case "color": styles[name].color = getColor(val);
-			default: LG.log(name+">"+field+": Not implemented");
+			case "src":styles[name].font.src = getSrc(val);
+			default: trace(CR.WARN+name+":"+field+" Not implemented");
 		}
 	}// setField()
 	
 	inline function int(s:String) {return Std.parseInt(s); }
 	inline function float(s:String) {return Std.parseFloat(s); }
+	
+	function getSrc(s:String)
+	{
+		var r = "";
+		if(s.good()){
+			var t = s.splitt(" "); 
+			r = t[0].trim();
+		}
+		return r;
+	}//
 	
 	function getColor(s:String)
 	{
@@ -140,7 +153,18 @@ class CssParser {
 		}else f = float(v);
 		
 		return f;		
-	}//
+	}// getColor()
+	
+	function getPosition(s:String)
+	{
+		var p:BgPosition = null; 
+		var t = s.split(" "); 
+		var x:Null<Int> = Std.parseInt(t[0]);
+		var y:Null<Int> = Std.parseInt(t[1]); 
+		if((x != null) && (y != null) )p = {x:x,y:y};
+		
+		return p;		
+	}// getPosition()
 	
 	function delComments(s:String)
 	{ 

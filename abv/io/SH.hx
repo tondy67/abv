@@ -3,10 +3,10 @@ package abv.io;
  * This class mimics Bash Shell 
  **/
 import abv.AM;
-import abv.lib.Timer;
+import abv.cpu.Timer;
 import abv.sys.ST;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.TP;
 using abv.sys.ST;
 using abv.ds.DT;
@@ -16,9 +16,13 @@ class SH{
 
 	public static var ds:Dynamic = null;
 	public static var ctx:Array<String> = null;
+	public static var args:Array<String> = null;
 	static var files = new List<String>();
 	static var platform = "";
 	public static var output = ""; 
+	static var T = new TextProcessing();
+
+	inline function new(){ }
 
 	public static function ln(path:Null<String>,link:String,opt="s")
 	{
@@ -97,11 +101,11 @@ class SH{
 
 	public static inline function echo(msg="",path="",append=false)
 	{// TODO: colors
-		if(!msg.good(msg))msg = "";
+		if(!msg.good())msg = "";
 		if(!AM.silent){ 
 			if(path.good()){
 				if(!path.isDir(path))path.save(msg + " ");
-			}else CR.print(msg,INFO); 
+			}else Sys.print(msg); 
 		}else output += msg;
 	}//echo()
 	
@@ -110,11 +114,6 @@ class SH{
 		var end = !AM.silent?CR.LF:"<br>\n"; 
 		echo(msg + end);
 	}// print()
-	
-	public static inline function compile(target:String,opt:Array<String>,compiler="haxe")
-	{
-		print('compile: $compiler $target ${opt}');
-	}// compile()
 	
 	public static inline function clear(lines=25)
 	{
@@ -130,11 +129,24 @@ class SH{
 		if(s.good() && v.good())Sys.putEnv(s,v);
 	}//export()
 
-	public static inline function env(what="")
+	public static inline function exit(msg="")
 	{
-		var r:Map<String,String> = new Map();
-		if(what.good('env $what'))r.set(what,Sys.getEnv(what));
-		else r = Sys.environment();
+		var code = 0;
+		if(msg.good()){
+			print(msg);
+			code = -1;
+		}
+		Sys.exit(code);
+	}//exit()
+
+	public static inline function env(what="")
+	{// TODO: MapString
+		var r = new Map<String,String>();
+		if(what.good('env $what')){
+			r.set(what,Sys.getEnv(what));
+		}else{
+			r = Sys.environment();
+		}
 		return r;
 	}//env()
 
@@ -144,7 +156,7 @@ class SH{
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.isDir(s)){
 			try r = path.open()
-			catch(m:Dynamic){CR.print(s + " "+m,WARN);}
+			catch(m:Dynamic){trace(CR.WARN+s + " "+m);}
 		}
 		
 		return r;
@@ -186,51 +198,47 @@ class SH{
 	
 	public static function execute(script:String)
 	{
-		var cmd = ["ds","ctx","TP","Math","json","good","fields","ls","mkdir","rm","pwd","cd",
-		"mv","cp","echo","print","clear","compile","read","exec","export",
-		"cat","date","time","uname","ln","zip","sleep","bg","stat"];
 		var parser = new hscript.Parser();
 		parser.allowJSON = true;
 		parser.allowTypes = true;
 		var program = parser.parseString(script); 
 		var ip = new hscript.Interp(); 
-		for(c in cmd){ //trace(c);
-			if(ip.variables.get(c) != null)continue; 
-			switch(c){
-				case "ds": ip.variables.set("ds",ds);
-				case "ctx": ip.variables.set("ctx",ctx);
+ 
+		ip.variables.set("ds",ds);
+		ip.variables.set("ctx",ctx);
+		ip.variables.set("args",args);
 //
-				case "TP": ip.variables.set("TP",TP);
-				case "Math": ip.variables.set("Math",Math);
-				case "json": ip.variables.set("json",CR.json);
-				case "good": ip.variables.set("good",good);
-				case "fields": ip.variables.set("fields",DT.fields);
+		ip.variables.set("TP",TP);
+		ip.variables.set("Math",Math);
+		ip.variables.set("json",CR.json);
+		ip.variables.set("good",good);
+		ip.variables.set("fields",DT.fields);
 //
-				case "ls": ip.variables.set("ls",ls);
-				case "mkdir": ip.variables.set("mkdir",mkdir);
-				case "rm": ip.variables.set("rm",rm);
-				case "pwd": ip.variables.set("pwd",pwd);
-				case "cd": ip.variables.set("cd",cd);
-				case "mv": ip.variables.set("mv",mv);
-				case "cp": ip.variables.set("cp",cp);
-				case "echo": ip.variables.set("echo",echo);
-				case "print": ip.variables.set("print",print);
-				case "clear": ip.variables.set("clear",clear);
-				case "compile": ip.variables.set("compile",compile);
-				case "read": ip.variables.set("read",read);
-				case "export": ip.variables.set("export",export);
-				case "cat": ip.variables.set("cat",cat);
-				case "date": ip.variables.set("date",date);
-				case "time": ip.variables.set("time",time);
-				case "uname": ip.variables.set("uname",uname);
-				case "ln": ip.variables.set("ln",ln);
-				case "zip": ip.variables.set("zip",zip);
-				case "sleep": ip.variables.set("sleep",sleep);
-				case "exec": ip.variables.set("exec",ST.exec);
-				case "bg": ip.variables.set("bg",ST.bg);
-				case "stat": ip.variables.set("stat",ST.stat);
-			}
-		}
+		ip.variables.set("ls",ls);
+		ip.variables.set("mkdir",mkdir);
+		ip.variables.set("rm",rm);
+		ip.variables.set("pwd",pwd);
+		ip.variables.set("cd",cd);
+		ip.variables.set("mv",mv);
+		ip.variables.set("cp",cp);
+		ip.variables.set("echo",echo);
+		ip.variables.set("print",print);
+		ip.variables.set("clear",clear);
+		ip.variables.set("read",read);
+		ip.variables.set("export",export);
+		ip.variables.set("cat",cat);
+		ip.variables.set("date",date);
+		ip.variables.set("time",time);
+		ip.variables.set("uname",uname);
+		ip.variables.set("ln",ln);
+		ip.variables.set("zip",zip);
+		ip.variables.set("sleep",sleep);
+		ip.variables.set("exec",ST.exec);
+		ip.variables.set("bg",ST.bg);
+		ip.variables.set("stat",ST.stat);
+		ip.variables.set("T",T);
+		ip.variables.set("command",ST.command);
+		ip.variables.set("exit",exit);
 		
 		var t = ip.execute(program); 
 //		var f = ip.variables.get("update"); 
@@ -244,9 +252,44 @@ class SH{
 	
 	public static inline function sleep(seconds:Float)
 	{
-		ST.sleep(seconds);
+		Sys.sleep(seconds);
 	}// sleep()
 
 
 }// abv.io.SH
 
+class TextProcessing
+{
+	public inline function new(){}
+	
+	public inline function length(s:String){return TP.length(s);}
+	public inline function order(a:Array<String>){return TP.order(a);}
+	public inline function chr(code:Int){return TP.chr(code);}
+	public inline function ord(char:String){return TP.ord(char);}
+	public inline function split(v:String,sep=","){return TP.splitt(v,sep);}
+	public inline function substr(s:String, pos:Int, len:Int){return TP.substr(s,pos,len);}
+	public inline function reduceSpaces(s:String,sp=" "){return TP.reduceSpaces(s,sp);}
+	public inline function toUtf8(s:String){return TP.toUtf8(s);}
+	public inline function fromUtf8(s:String){return TP.fromUtf8(s);}
+	public inline function lower(s:String){return TP.lower(s);}
+	public inline function upper(s:String){return TP.upper(s);}
+	public inline function trim(s:String){return TP.trim(s);}
+	public inline function rtrim(v:String,s="/"){return TP.rtrim(v,s);}
+	public inline function ltrim(s:String){return TP.ltrim(s);}
+	public inline function starts(s:String, start:String){return TP.starts(s,start);}
+	public inline function ends(s:String, end:String){return TP.ends(s,end);}
+	public inline function hex(n:Int){return TP.hex(n);}
+	public inline function eof(c:Int){return TP.eof(c);}
+	public inline function space(s:String, pos:Int){return TP.space(s,pos);}
+	public inline function lpad(s:String, c:String, l:Int){return TP.lpad(s,c,l);}
+	public inline function rpad(s:String, c:String, l:Int){return TP.rpad(s,c,l);}
+	public inline function replace(s:String, sub:String, by:String){return TP.replace(s,sub,by);}
+	public inline function has(src:String,what:String,start=0){return TP.has(src,what,start);}
+	public inline function search(src:String,what:String,start=0){return TP.search(src,what,start);}
+	public inline function find(src:String,what:String,start=0,len=0){return TP.find(src,what,start);}
+	public inline function extract(src:String,open="",close=""){return TP.extract(src,open,close);}
+	public inline function map2str(m:Map<String,String>,sep1=CR.SEP1,sep3=CR.SEP3){return TP.map2str(m,sep1,sep3);}
+	public inline function str2map(s:String,sep1=CR.SEP1,sep3=CR.SEP3){return TP.str2map(s,sep1,sep3);}
+	public inline function urlEncode(s:String){return TP.urlEncode(s);}
+	public inline function urlDecode(s:String){return TP.urlDecode(s);}   
+}// abv.io.TextProcessing

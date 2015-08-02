@@ -1,6 +1,6 @@
 package abv.sys.others;
 
-import abv.CR;
+import abv.lib.CR;
 /**
  * SystemTools
  **/
@@ -31,9 +31,9 @@ class ST{
 		return false;
 	}// isDir()
 	
-	public static inline function print(msg="",level:LogLevel)
+	public static inline function print(msg="",color="")
 	{   
-//		throw err;
+		trace(msg);
 	}// print()
 
 	static inline function log(msg=""){CR.log(err);}

@@ -4,7 +4,7 @@ package abv.cpu;
  **/
 import abv.cpu.Thread;
 
-using abv.CR;
+using abv.lib.CR;
 
 class Worker{
 
@@ -12,9 +12,7 @@ class Worker{
 	var id = "";
 	var arg = "";
 
-	public function new()
-	{ 
-	}// new()
+	public inline function new(){ }
 	
 	public function run()
 	{ 

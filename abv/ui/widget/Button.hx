@@ -1,4 +1,4 @@
-package abv.lib.ui.widget;
+package abv.ui.widget;
 
 import abv.lib.math.Point;
 import abv.bus.*;
@@ -37,9 +37,9 @@ class Button extends Text {
 //
 	}// new()
 	
-	override function processExec(mdt:MD)
-	{ //trace(mdt);
-		switch(mdt.msg){
+	override function dispatch(md:MD)
+	{ //trace(md);
+		switch(md.msg){
 			case MD.MOUSE_OVER: 
 				if(states[0].text != Disabled){
 					states[0].text = Hover;
@@ -80,5 +80,5 @@ class Button extends Text {
         return '$s Button(id: $id, state: $state)';
     }// toString() 
 
-}// abv.lib.ui.widget.Button
+}// abv.ui.widget.Button
 

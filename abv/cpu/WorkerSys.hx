@@ -5,7 +5,7 @@ package abv.cpu;
 import sys.io.Process;
 import abv.cpu.Worker;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.TP;
 
 class WorkerSys extends Worker{

@@ -1,70 +1,116 @@
 package abv.lib.style;
-
+/**
+ * -1 = auto; 0-0.9999 = %; >=1 px
+ * RGB.A
+ **/
 import abv.lib.comp.Component;
-import abv.lib.Color;
+
+
+using abv.lib.CR;
 
 typedef BoxShadow = {h:Null<Float>,v:Null<Float>,blur:Null<Float>,spread:Null<Float>,color:Null<Float>};
 typedef Margin = {top:Null<Float>,right:Null<Float>,bottom:Null<Float>,left:Null<Float>}
 typedef Padding = {top:Null<Float>,right:Null<Float>,bottom:Null<Float>,left:Null<Float>}
-typedef Font = {name:Null<String>,size:Null<Float>,style:Null<Int>}
-typedef Background = {color:Null<Float>,image:Null<String>,repeat:Null<Int>,position:Null<Int>}
+typedef Font = {name:Null<String>,size:Null<Float>,style:Null<Int>,src:Null<String>}
+typedef Background = {color:Null<Float>,image:Null<String>,repeat:Null<Int>,position:Null<BgPosition>}
 typedef Border = {width:Null<Float>,color:Null<Float>,radius:Null<Float>}
-
+typedef BgPosition = {x:Int,y:Int}
 	
-enum StyleState{
-	Disabled;
-	Normal;
-	Active;
-	Visited;
-	Hover;
-	Focus;
-	Link;
-}
-/**
- * 
- **/
 @:dce
 class Style extends StyleProps{
-// -1 = auto; 0-0.9999 = %; >=1 px
-// RGB.A
-// states
-	public static var State:Map<String,StyleState> = ["active" => Active, 
-	"visited" => Visited, "hover" => Hover, "focus" => Focus,"link" => Link];
+
+	public static var State = [
+		"active" 	=> ACTIVE, 
+		"visited" 	=> VISITED, 
+		"hover" 	=> HOVER, 
+		"focus" 	=> FOCUS,
+		"link" 		=> LINK
+	];
 	
-	public function new(name="",basic = false) 
+	public var state:States = NORMAL;
+	var styles = [NORMAL => new StyleProps()];
+
+	override function get_left(){return styles[state].left;};
+	override function set_left(v:Float){return styles[state].left = v;};
+
+	override function get_top(){return styles[state].top;};
+	override function set_top(v:Float){return styles[state].top = v;};
+
+	override function get_width(){return styles[state].width;};
+	override function set_width(v:Float){return styles[state].width = v;};
+
+	override function get_height(){return _height;};
+	override function set_height(v:Float){return _height = v;};
+
+	override function get_color(){return styles[state].color;};
+	override function set_color(v:Float){return styles[state].color = v;};
+
+	override function get_border(){return styles[state].border;};
+	override function set_border(v:Border){return styles[state].border = v;};
+
+	override function get_margin(){return styles[state].margin;};
+	override function set_margin(v:Margin){return styles[state].margin = v;};
+
+	override function get_padding(){return styles[state].padding;};
+	override function set_padding(v:Padding){return styles[state].padding = v;};
+
+	override function get_background(){return styles[state].background;};
+	override function set_background(v:Background){return styles[state].background = v;};
+
+	override function get_font(){return styles[state].font;};
+	override function set_font(v:Font){return styles[state].font = v;};
+
+	override function get_boxShadow(){return styles[state].boxShadow;};
+	override function set_boxShadow(v:BoxShadow){return styles[state].boxShadow = v;};
+	
+	public function new(name="") 
 	{ 
 		super();
-		if(basic){
-			width = height = left = top = 0;
-			color = Color.WHITE;
-			set("background");
-			set("border");
-			set("font");
-			set("margin");
-			set("padding");
-			set("boxShadow");
-		}
 		this.name = name;
-	}
+	}// new()
 
-	public function set(s:String)
+	public function set(sel:States = null)
 	{
-		switch(s){
-			case "background":
-				if(background == null)background = { color:null, image:null, repeat:null, position:null };
-			case "border":
-				if(border == null)border = { width:0, color:null, radius:0 };
-			case "font":
-				if(font == null)font = { name:null, size:null, style:null };
-			case "margin":
-				if(margin == null)margin = { top:0, right:0, bottom:0, left:0 };
-			case "padding":
-				if(padding == null)padding = { top:0, right:0, bottom:0, left:0 };
-			case "boxShadow":
-				if(boxShadow == null)boxShadow = { h:0, v:0, blur:null, spread:null, color:null };
-		}
-	}
+		state = sel == null? NORMAL:sel;
+		styles.set(state, new StyleProps());
+	}// set()
+	
+	public function get(sel:States = null) 
+	{
+		state = sel == null? NORMAL:sel;
+		return styles[state];
+	}// get()
 
+	public function setBackground()
+	{
+		if(background == null)background = { color:0, image:null, repeat:null, position:null };
+	}// setBackground()
+	
+	public function setBorder()
+	{
+		if(border == null)border = { width:0, color:0, radius:0 };
+	}// setBorder()
+	
+	public function setFont()
+	{
+		if(font == null)font = { name:null, size:12, style:null,src:null };
+	}// setFont()
+	
+	public function setMargin()
+	{
+		if(margin == null)margin = { top:0, right:0, bottom:0, left:0 };
+	}// setMargin()
+	
+	public function setPadding()
+	{
+		if(padding == null)padding = { top:0, right:0, bottom:0, left:0 };
+	}// setPadding()
+	
+	public function setBoxShadow()
+	{
+		if(boxShadow == null)boxShadow = { h:0, v:0, blur:null, spread:null, color:null };
+	}// setBoxShadow()
+	
 	public function apply(s:Style)
 	{ 
 		if (s == null) return;
@@ -75,40 +121,41 @@ class Style extends StyleProps{
 		if (s.height != null) height = s.height;  
 		if (s.color != null) color = s.color; 
 		if (s.background != null) {
-			set("background");
+			setBackground();
 			if (s.background.color != null)  background.color = s.background.color;
 			if (s.background.image != null)  background.image = s.background.image;
 			if (s.background.repeat != null)  background.repeat = s.background.repeat;
 			if (s.background.position != null)  background.position = s.background.position;
 		}
 		if (s.border != null) {
-			set("border");
+			setBorder();
 			if (s.border.width != null)  border.width = s.border.width;
 			if (s.border.color != null)  border.color = s.border.color;
 			if (s.border.radius != null)  border.radius = s.border.radius;
 		}
 		if (s.font != null) {
-			set("font");
+			setFont();
 			if (s.font.name != null)  font.name = s.font.name;
 			if (s.font.size != null)  font.size = s.font.size;
 			if (s.font.style != null)  font.style = s.font.style;
+			if (s.font.src != null)  font.src = s.font.src;
 		}
 		if (s.margin != null) {
-			set("margin");
+			setMargin();
 			if (s.margin.top != null)  margin.top = s.margin.top;
 			if (s.margin.right != null)  margin.right = s.margin.right;
 			if (s.margin.bottom != null)  margin.bottom = s.margin.bottom;
 			if (s.margin.left != null)  margin.left = s.margin.left;
 		}
 		if (s.padding != null) {
-			set("padding");
+			setPadding();
 			if (s.padding.top != null)  padding.top = s.padding.top;
 			if (s.padding.right != null)  padding.right = s.padding.right;
 			if (s.padding.bottom != null)  padding.bottom = s.padding.bottom;
 			if (s.padding.left != null)  padding.left = s.padding.left;
 		}
 		if (s.boxShadow != null) {
-			set("boxShadow");
+			setBoxShadow();
 			if (s.boxShadow.h != null)  boxShadow.h = s.boxShadow.h;
 			if (s.boxShadow.v != null)  boxShadow.v = s.boxShadow.v;
 			if (s.boxShadow.blur != null)  boxShadow.blur = s.boxShadow.blur;
@@ -118,36 +165,26 @@ class Style extends StyleProps{
 	
 	}// apply()
 
-	public function export() 
-	{
-/*		var o:StyleProps = {left:left,top:top,width:width,height:height,color:color,border:border,
-			margin:margin,padding:padding,background:background,
-			font:font,boxShadow:boxShadow}; */
-		return cast(this,StyleProps);//haxe.Json.stringify(o);
-	}
-
 	public static inline function applyStyle(obj:Component,style:Style)
 	{
-		if(style == null){
-			return;
-		}
+		if(style == null){trace("no style");return;}
+
 		if (style.left != null) obj.pos.x = style.left;
 		if (style.top != null) obj.pos.y = style.top;
 		if (style.width != null) obj.width = style.width;
 		if (style.height != null) obj.height = style.height;
 		if ((style.background != null) && (style.background.color != null)) 
 			obj.color = Std.int(style.background.color);
-//trace(cast(obj,IStyle).style[Normal]);
 	}	
 
 	public function toString() 
 	{
 		var s = "Style(";
-		if(left != null)s += '\nleft: $left,';
-		if(top != null)s += '\ntop: $top,';
-		if(width != null)s += '\nwidth: $width,';
-		if(height != null)s += '\nheight: $height,'; 
-		if(color != null)s += '\ncolor; $color,';
+		if(left != null)s += 'left: $left,';
+		if(top != null)s += 'top: $top,';
+		if(width != null)s += 'width: $width,';
+		if(height != null)s += 'height: $height,'; 
+		if(color != null)s += 'color; $color,';
 		if(border != null)s += '\nborder: ${border},';
 		if(margin != null)s += '\nmargin: ${margin},';
 		if(padding != null)s += '\npadding: ${padding},';
@@ -163,17 +200,61 @@ class Style extends StyleProps{
 class StyleProps{
 	public var name = "";
 	public var visibility = "";
-	public var left:Null<Float> = null;
-	public var top:Null<Float> = null;
-	public var width:Null<Float> = null;
-	public var height:Null<Float> = null;
-	public var color:Null<Float> = null;
-	public var border:Null<Border>;
-	public var margin:Null<Margin>;
-	public var padding:Null<Padding>;
-	public var background:Null<Background>;
-	public var font:Null<Font>;
-	public var boxShadow:Null<BoxShadow>;
+
+	public var left(get,set):Null<Float>;
+	var _left:Null<Float> = null;
+	function get_left(){return _left;};
+	function set_left(v:Float){return _left = v;};
+
+	public var top(get,set):Null<Float>;
+	var _top:Null<Float> = null;
+	function get_top(){return _top;};
+	function set_top(v:Float){return _top = v;};
+
+	public var width(get,set):Null<Float>;
+	var _width:Null<Float> = null;
+	function get_width(){return _width;};
+	function set_width(v:Float){return _width = v;};
+
+	public var height(get,set):Null<Float>;
+	var _height:Null<Float> = null;
+	function get_height(){return _height;};
+	function set_height(v:Float){return _height = v;};
+
+	public var color(get,set):Null<Float>;
+	var _color:Null<Float> = null;
+	function get_color(){return _color;};
+	function set_color(v:Float){return _color = v;};
+
+	public var border(get,set):Null<Border>;
+	var _border:Null<Border> = null;
+	function get_border(){return _border;};
+	function set_border(v:Border){return _border = v;};
+
+	public var margin(get,set):Null<Margin>;
+	var _margin:Null<Margin> = null;
+	function get_margin(){return _margin;};
+	function set_margin(v:Margin){return _margin = v;};
+
+	public var padding(get,set):Null<Padding>;
+	var _padding:Null<Padding> = null;
+	function get_padding(){return _padding;};
+	function set_padding(v:Padding){return _padding = v;};
+
+	public var background(get,set):Null<Background>;
+	var _background:Null<Background> = null;
+	function get_background(){return _background;};
+	function set_background(v:Background){return _background = v;};
+
+	public var font(get,set):Null<Font>;
+	var _font:Null<Font> = null;
+	function get_font(){return _font;};
+	function set_font(v:Font){return _font = v;};
+
+	public var boxShadow(get,set):Null<BoxShadow>;
+	var _boxShadow:Null<BoxShadow> = null;
+	function get_boxShadow(){return _boxShadow;};
+	function set_boxShadow(v:BoxShadow){return _boxShadow = v;};
 	
 	public inline function new(){}
 	

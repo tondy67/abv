@@ -3,11 +3,11 @@ package abv.cpu;
  * Boss
  **/
 import abv.cpu.WorkerSys;
-import abv.lib.Timer;
+import abv.cpu.Timer;
 import sys.io.Process;
 import abv.sys.ST;
 import abv.cpu.Thread;
-using abv.CR;
+using abv.lib.CR;
 
 class Boss{
 
@@ -30,12 +30,12 @@ class Boss{
 		var w:Thread = null;
 		if(queue.isEmpty()){
 			if(workers.length < maxThreads){
-				try w = Thread.create(func)catch(m:Dynamic){CR.print(m+"",ERROR);}
+				try w = Thread.create(func)catch(m:Dynamic){trace(CR.ERROR+m);}
 				if(w != null){
 					id = workers.push(w) - 1; 
 					stdout.push([]);
 				}
-			}else CR.print("Threads > " + maxThreads,WARN);
+			}else trace(CR.WARN+"Threads > " + maxThreads);
 		}else id = queue.pop();
 	
 		return id;
@@ -74,7 +74,7 @@ class Boss{
 	public static inline function read(id:Int)
 	{ 
 		var r:Array<String> = [];
-		var ix = -1, t=0, max = 0, s = "";
+		var ix = -1, t = 0, max = 0, s = "";
 		var delta = Timer.stamp() - last; 
 		last += delta;
 
@@ -87,7 +87,7 @@ class Boss{
 					}
 				}
 				max++;
-				if(max > 1000)CR.print("Messages > 1000",WARN);
+				if(max > 1000)trace(CR.WARN+"Messages > 1000");
 			}
 		}
 

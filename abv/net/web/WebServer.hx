@@ -9,7 +9,7 @@ import abv.net.ThreadServer;
 import abv.lib.math.MT;
 import abv.ds.*;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.TP;
 using abv.sys.ST;
 using abv.ds.DT;
@@ -135,7 +135,7 @@ class WebServer extends ThreadServer<Client, Message>{
 				}
 				ctx["length"] = ctx["body"].length +"";
 				var now = Date.now().getTime();
-				log('${c.ip} [${WT.getDate(now,true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',LOG);
+				log('${c.ip} [${WT.getDate(now,true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',CR.LOG);
 				ST.lock.release();
 			}
 
@@ -181,7 +181,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		ST.lock.acquire();
 		var id = Std.random(100000);
 		var ip = sock.peer().host + "";
-		log('client: $id: $ip',DEBUG); 
+		log('client: $id: $ip',CR.DEBUG); 
 		var r = {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip};
 		ST.lock.release();
 		return r;
@@ -190,7 +190,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	override function clientDisconnected(c: Client)
 	{
 		ST.lock.acquire();
-		log('client: ${c.id} disconnected',DEBUG);
+		log('client: ${c.id} disconnected',CR.DEBUG);
 		ST.lock.release();
 	}// clientDisconnected()
 
@@ -200,7 +200,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		var ok = false;
 		var start = pos; 
 		var max = pos + len;
-// todo: overflow & zero checks
+// TODO: overflow & zero checks
 		while (start < max && !ok){
 			ok = (buf.get(start) == 13)&&(buf.get(start+1) == 10);
 			if(ok)start += 2;else start++;
@@ -231,7 +231,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		ctx["body"] = WT.mkPage(body);
 	}// app();
 
-	public dynamic function log(msg="",level:LogLevel)
+	public dynamic function log(msg="",level:String)
 	{
 	}// log()
 
@@ -258,7 +258,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		}
 	}// tset()
 
-	function tell(msg="",level:LogLevel)
+	function tell(msg="",level:String)
 	{
 		if(!single && (boss != null))
 			boss.sendMessage(tid+":"+level + CR.SEP3 + msg.trim());

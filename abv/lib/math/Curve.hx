@@ -1,22 +1,23 @@
-package abv.lib.anim;
-
-import abv.lib.math.Point;
+package abv.lib.math;
 /**
  * 
  **/
+import abv.lib.math.Point;
+import abv.lib.anim.*;
+
 @:dce
 class Curve{
 	
-	public function new(){}
+	inline function new(){}
 	
-	public static function rect(x:Float,y:Float,width:Float,height:Float,trans=Transitions.linear,reverse=false,step=100)
+	public static function quad(x:Float,y:Float,width:Float,height:Float,trans=Transitions.LINEAR,reverse=false,step=100)
 	{
 		var path:Array<Point> = [];
 		var corner:Array<Point> = [new Point(x,y)];
 		var cur:Float;
 		var dir = reverse ? -1: 1;
 		width = Math.abs(width); height = Math.abs(height);
-		var length = 2*(width + height); //trace(length);
+		var length = 2*(width + height); 
 		
 		for(i in 0...step){
 			cur = Transitions.get(trans)(i/step) * length;
@@ -34,13 +35,11 @@ class Curve{
 			}
 		}
 		path.push(corner[0]);
-//var p1 = new Point(0,0); var p2 = new Point(100,0);
-//trace(p1+":"+p2+" angle: "+p1.angle(p2)/Cfg.degree);
 		
 		return path;
-	}// rect()
+	}// quad()
 	
-	public static function circle(cp:Point,radius:Float,reverse=false,trans=Transitions.linear,step=100)
+	public static function circle(cp:Point,radius:Float,trans=Transitions.LINEAR,step=1000,reverse=false)
 	{
 		var q = 2*Math.PI/step;
 		var path:Array<Point> = [];
@@ -55,5 +54,5 @@ class Curve{
 		return path;
 	}
 	
-}// abv.lib.anim.Curve
+}// abv.lib.math.Curve
 

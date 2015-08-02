@@ -1,6 +1,6 @@
-package abv.lib;
+package abv.cpu;
 /**
- * Of course Timer class must be rewriten to hold many timers.
+ * Timer 
  **/ 
 @:dce
 class Timer {
@@ -26,11 +26,11 @@ class Timer {
 		}
 	}// update()
 	
-	public static function stamp()
+	public static inline function stamp()
 	{ 
 		return haxe.Timer.stamp();
 	}// stamp()
 	
 	public dynamic function run() { }
 	
-}// abv.lib.Timer
+}// abv.cpu.Timer

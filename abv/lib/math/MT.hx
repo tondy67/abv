@@ -1,25 +1,27 @@
 package abv.lib.math;
 
-using abv.CR;
+using abv.lib.CR;
 /**
  * MathTools
  **/
 @:dce
 class MT{
 
-	public static inline function good(v:Null<Float>,msg="",?pif:haxe.PosInfos)
+	inline function new(){ }
+
+	public static inline function good(v:Null<Float>,msg="")
 	{ 
-#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = true;
+		function m(s){if(msg != ""){trace(CR.DEBUG+msg+s);}}
 
 		if(v == null){
-			CR.print(msg+": Null number",WARN); 
+			m(" Null number"); 
 			r = false;
 		}else if(Math.isNaN(v)){
-			CR.print(msg+": NaN number",WARN); 
+			m(" NaN number"); 
 			r = false;
 		}else if(!Math.isFinite(v)){
-			CR.print(msg+": Not number",WARN); 
+			m(" Not number"); 
 			r = false;
 		}
 
@@ -44,6 +46,14 @@ class MT{
 		else r = f;
 		return r;
 	}// val()
+
+	public static inline function closestPow2(v:Int)
+	{
+		var p = 2;
+		while (p < v) p = p << 1;
+		return p;
+	}// closestPow2()
+
 
 }// abv.lib.math.MT
 

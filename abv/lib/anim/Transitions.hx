@@ -4,29 +4,26 @@ package abv.lib.anim;
  **/
 @:dce
 class Transitions{
-	public static inline var linear 			= "linear";
-	public static inline var easeIn 			= "easeIn";
-	public static inline var easeOut 			= "easeOut";
-	public static inline var easeInOut 			= "easeInOut";
-	public static inline var easeOutIn 			= "easeOutIn";
-	public static inline var easeInBack 		= "easeInBack";
-	public static inline var easeOutBack 		= "easeOutBack";
-	public static inline var easeInOutBack 		= "easeInOutBack";
-	public static inline var easeOutInBack 		= "easeOutInBack";
-	public static inline var easeInElastic 		= "easeInElastic";
-	public static inline var easeOutElastic 	= "easeOutElastic";
-	public static inline var easeInOutElastic 	= "easeInOutElastic";
-	public static inline var easeOutInElastic 	= "easeOutInElastic";  
-	public static inline var easeInBounce 		= "easeInBounce";
-	public static inline var easeOutBounce 		= "easeOutBounce";
-	public static inline var easeInOutBounce 	= "easeInOutBounce";
-	public static inline var easeOutInBounce 	= "easeOutInBounce";
- 	static var transitions:Map<String,Float->Float>;
+	public static inline var LINEAR 				= "linear";
+	public static inline var EASE_IN 				= "easeIn";
+	public static inline var EASE_OUT 				= "easeOut";
+	public static inline var EASE_IN_OUT 			= "easeInOut";
+	public static inline var EASE_OUT_IN 			= "easeOutIn";
+	public static inline var EASE_IN_BACK 			= "easeInBack";
+	public static inline var EASE_OUT_BACK 			= "easeOutBack";
+	public static inline var EASE_IN_OUT_BACK 		= "easeInOutBack";
+	public static inline var EASE_OUT_IN_BACK 		= "easeOutInBack";
+	public static inline var EASE_IN_ELASTIC 		= "easeInElastic";
+	public static inline var EASE_OUT_ELASTIC 		= "easeOutElastic";
+	public static inline var EASE_IN_OUT_ELASTIC 	= "easeInOutElastic";
+	public static inline var EASE_OUT_IN_ELASTIC 	= "easeOutInElastic";  
+	public static inline var EASE_IN_BOUNCE 		= "easeInBounce";
+	public static inline var EASE_OUT_BOUNCE 		= "easeOutBounce";
+	public static inline var EASE_IN_OUT_BOUNCE 	= "easeInOutBounce";
+	public static inline var EASE_OUT_IN_BOUNCE 	= "easeOutInBounce";
+ 	static var transitions:Map<String,Float->Float> = null;
  	
-	function new()
-	{
-
-	}// new()
+	inline function new(){	}
 
 	public static function get(name = "")
 	{
@@ -42,78 +39,78 @@ class Transitions{
 	
 	static function registerDefaults()
 	{
-		transitions = new Map();
-
-		register(linear, _linear);
-		register(easeIn, _easeIn);
-		register(easeOut, _easeOut);
-		register(easeInOut, _easeInOut);
-		register(easeOutIn, _easeOutIn);
-		register(easeInBack, _easeInBack);
-		register(easeOutBack, _easeOutBack);
-		register(easeInOutBack, _easeInOutBack);
-		register(easeOutInBack, _easeOutInBack);
-		register(easeInElastic, _easeInElastic);
-		register(easeOutElastic, _easeOutElastic);
-		register(easeInOutElastic, _easeInOutElastic);
-		register(easeOutInElastic, _easeOutInElastic);
-		register(easeInBounce, _easeInBounce);
-		register(easeOutBounce, _easeOutBounce);
-		register(easeInOutBounce, _easeInOutBounce);
-		register(easeOutInBounce, _easeOutInBounce);
+		transitions = [
+			LINEAR 				=> linear ,
+			EASE_IN 			=> easeIn ,
+			EASE_OUT 			=> easeOut ,
+			EASE_IN_OUT 		=> easeInOut ,
+			EASE_OUT_IN 		=> easeOutIn ,
+			EASE_IN_BACK 		=> easeInBack ,
+			EASE_OUT_BACK 		=> easeOutBack ,
+			EASE_IN_OUT_BACK 	=> easeInOutBack ,
+			EASE_OUT_IN_BACK 	=> easeOutInBack ,
+			EASE_IN_ELASTIC 	=> easeInElastic ,
+			EASE_OUT_ELASTIC 	=> easeOutElastic ,
+			EASE_IN_OUT_ELASTIC => easeInOutElastic ,
+			EASE_OUT_IN_ELASTIC => easeOutInElastic ,
+			EASE_IN_BOUNCE 		=> easeInBounce ,
+			EASE_OUT_BOUNCE 	=> easeOutBounce ,
+			EASE_IN_OUT_BOUNCE 	=> easeInOutBounce ,
+			EASE_OUT_IN_BOUNCE 	=> easeOutInBounce 
+		];
 	}// registerDefaults() 
 
 // transition functions
-	static function _linear(ratio:Float)
+	static function linear(ratio:Float)
 	{
 		return ratio;
-	}// _linear()
+	}// linear()
 			
-	static function _easeIn(ratio:Float)
+	static function easeIn(ratio:Float)
 	{
 		return ratio * ratio * ratio;
-	}// _easeIn    
+	}// easeIn    
 
-	static function _easeOut(ratio:Float)
+	static function easeOut(ratio:Float)
 	{
 		var inverse = ratio - 1.0;
 		return inverse * inverse * inverse + 1;
 	}
 
-	static function _easeInOut(ratio:Float)
+	static function easeInOut(ratio:Float)
 	{
-		return _easeCombined(_easeIn, _easeOut, ratio);
+		return easeCombined(easeIn, easeOut, ratio);
 	}   
 
-	static function _easeOutIn(ratio:Float)
+	static function easeOutIn(ratio:Float)
 	{
-		return _easeCombined(_easeOut, _easeIn, ratio);
+		return easeCombined(easeOut, easeIn, ratio);
 	}
 
-	static function _easeInBack(ratio:Float)
+	static function easeInBack(ratio:Float)
 	{
 		var s:Float = 1.70158;
 		return Math.pow(ratio, 2) * ((s + 1.0)*ratio - s);
 	}
 
-	static function _easeOutBack(ratio:Float)
+	static function easeOutBack(ratio:Float)
 	{
 		var invRatio:Float = ratio - 1.0;
 		var s:Float = 1.70158;
 		return Math.pow(invRatio, 2) * ((s + 1.0)*invRatio + s) + 1.0;
 	}
 
-	static function _easeInOutBack(ratio:Float)
+	static function easeInOutBack(ratio:Float)
 	{
-		return _easeCombined(_easeInBack, _easeOutBack, ratio);
+		return easeCombined(easeInBack, easeOutBack, ratio);
 	}   
 
-	static function _easeOutInBack(ratio:Float)
+	static function easeOutInBack(ratio:Float)
 	{
-		return _easeCombined(_easeOutBack, _easeInBack, ratio);
+		return easeCombined(easeOutBack, easeInBack, ratio);
 	}
 
-	static function _easeInElastic(ratio:Float)
+	static function easeInElastic(ratio:Float)
 	{
 		if (ratio == 0 || ratio == 1) return ratio;
 		else{
@@ -124,7 +121,7 @@ class Transitions{
 		}
 	}
 
-	static function _easeOutElastic(ratio:Float)
+	static function easeOutElastic(ratio:Float)
 	{
 		if (ratio == 0 || ratio == 1) return ratio;
 		else{
@@ -134,22 +131,22 @@ class Transitions{
 		}
 	}
 
-	static function _easeInOutElastic(ratio:Float)
+	static function easeInOutElastic(ratio:Float)
 	{
-		return _easeCombined(_easeInElastic, _easeOutElastic, ratio);
+		return easeCombined(easeInElastic, easeOutElastic, ratio);
 	}   
 
-	static function _easeOutInElastic(ratio:Float)
+	static function easeOutInElastic(ratio:Float)
 	{
-		return _easeCombined(_easeOutElastic, _easeInElastic, ratio);
+		return easeCombined(easeOutElastic, easeInElastic, ratio);
 	}
 
-	static function _easeInBounce(ratio:Float)
+	static function easeInBounce(ratio:Float)
 	{
-		return 1.0 - _easeOutBounce(1.0 - ratio);
+		return 1.0 - easeOutBounce(1.0 - ratio);
 	}
 
-	static function _easeOutBounce(ratio:Float)
+	static function easeOutBounce(ratio:Float)
 	{
 		var s:Float = 7.5625;
 		var p:Float = 2.75;
@@ -173,21 +170,21 @@ class Transitions{
 		return l;
 	}
 
-	static function _easeInOutBounce(ratio:Float)
+	static function easeInOutBounce(ratio:Float)
 	{
-		return _easeCombined(_easeInBounce, _easeOutBounce, ratio);
+		return easeCombined(easeInBounce, easeOutBounce, ratio);
 	}   
 
-	static function _easeOutInBounce(ratio:Float)
+	static function easeOutInBounce(ratio:Float)
 	{
-		return _easeCombined(_easeOutBounce, _easeInBounce, ratio);
+		return easeCombined(easeOutBounce, easeInBounce, ratio);
 	}
 
-	static function _easeCombined(startFunc:Float->Float, endFunc:Float->Float, ratio:Float)
+	static function easeCombined(startFunc:Float->Float, endFunc:Float->Float, ratio:Float)
 	{
 		if (ratio < 0.5) return 0.5 * startFunc(ratio*2.0);
 		else return 0.5 * endFunc((ratio-0.5)*2.0) + 0.5;
-	}// _easeCombined()
+	}// easeCombined()
 
 }// abv.lib.anim.Transitions
 

@@ -9,7 +9,7 @@ import abv.net.web.WebServer;
 
 using abv.lib.TP;
 using abv.sys.ST;
-using abv.CR;
+using abv.lib.CR;
  
 
 @:dce
@@ -93,7 +93,7 @@ class WT{
 			"hx" 		=> "text/plain",
 			"n" 		=> "application/octet-stream",
 			"ttf" 		=> "application/x-font-ttf",
-			"post-url" 	=> "application/x-www-form-urlencoded",
+			"post-url" 	=> "application/x-www-form-urlEncoded",
 			"post-dat" 	=> "multipart/form-data",
 			"post-mix" 	=> "multipart/mixed",
 			];
@@ -176,12 +176,12 @@ class WT{
 	
 	public static inline function parseQuery(s:String)
 	{ 
-		return TP.str2map(s.trim().urldecode(),"=","&");	
+		return TP.str2map(s.trim().urlDecode(),"=","&");	
 	}// parseQuery()
 
 	public static inline function parseCookie(s:String,sep=";")
 	{
-		return TP.str2map(s.urldecode(),"=",sep);	
+		return TP.str2map(s.urlDecode(),"=",sep);	
 	}// parseCookie()
 
 	public static inline function parsePostData(ctx:Map<String,String>)
@@ -223,7 +223,7 @@ class WT{
 	}// parsePostData()
 	
 	public static inline function parseRequest(s:String)
-	{ // todo: websockets, chunked 
+	{ // TODO: websockets, chunked 
 		var r = [
 			"root"=>"","ip"=>"","status" => "400", "protocol" => "","version" => "",
 			"host" => "", "port" => "",	"request" => "", "path" => "","cookies" => "",
@@ -396,7 +396,7 @@ class WT{
 	
 	public static inline function fsPath(url:String)
 	{ 
-		var path = url.substr(1).urldecode(); 
+		var path = url.substr(1).urlDecode(); 
 		if(!path.good())path = ".";
 		return path; 
 	}// fsPath()
@@ -418,7 +418,7 @@ class WT{
 			files.sortAZ();
 			if(path == ".")path="";
 			for(p in dirs){
-				f = p == ".."?path.dirname():path + p.urlencode();
+				f = p == ".."?path.dirname():path + p.urlEncode();
 				r += '<img src="${Icons.p}dir.png" alt="dir.png" width="16" height="16" /> <a href="$prefix$f">$p/</a><br>';
 			}
 			for(p in files){
@@ -493,7 +493,7 @@ class WT{
 						t = w.substr(p);
 					}
 				}else h = w;
-				if(url.good())r += '<li><a $cs href="$url/${h.urlencode()}">$h $t</a></li>\n';
+				if(url.good())r += '<li><a $cs href="$url/${h.urlEncode()}">$h $t</a></li>\n';
 				else r += '<li>$h $t</li>\n';
 			}
 			r += "</ul>";

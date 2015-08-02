@@ -1,62 +1,59 @@
 package abv.sys.cpp;
 
-import abv.lib.Timer;
+import abv.cpu.Timer;
+import abv.sys.ST;
 
-using abv.CR;
+using abv.lib.TP;
+using abv.lib.CR;
 
 @:dce
 class AM {
 	
-	public static var verbose:LogLevel 	= DEBUG;
-	public static var exitTime 			= .0;
-	public static var silent 			= false;
-	public static var logFile			= "";
+	public static var verbose 	= CR.DEBUG;
+	public static var exitTime 	= .0;
+	public static var silent 	= false;
+	public static var logFile	= "";
+	public static var colors 	= true;
 
-	public static var colors(get,set):Null<Bool>; 
-	static var _colors:Null<Bool> = null;
-	static inline function get_colors()	return _colors;
-	static inline function set_colors(b:Bool)
+	public static var args(get,never):Array<String>;
+	static var _args:Array<String> = null;
+	static function get_args()
 	{
-		var ok = Sys.getEnv("TERM") == "xterm" || Sys.getEnv("ANSICON") != null;
-		_colors = b && ok?true:false;
-		return _colors;
-	}// set_colors()
+		if(_args == null) _args = Sys.args();
+		return _args;
+	}
 	
-	
-	static var _args:Array<String>;
-	static var _env:Map<String,String>;
+	public static var env(get,never):Map<String,String>;
+	static var _env:Map<String,String> = null;
+	static function get_env()
+	{
+		if(_env == null) _env = Sys.environment();
+		return _env;
+	}
 
     var updateTime:Float 	= 0;
 	var last = Timer.stamp();
 	public static var err = 0;
 	var cfg:Map<String,String>;
+	public static var trace = haxe.Log.trace; 
 	
 	public function new(_config="")
-	{
-		args();
+	{ 
+		haxe.Log.trace = ST.trace;  
+
 		var hlp = ["help","--help","-help","-h","/h"];
 		
-		if(hlp.indexOf(_args[0]) != -1){
-			print(help("help"),INFO);
+		if(hlp.indexOf(args[0]) != -1){
+			print(help("help"),CR.INFO);
 			exit();
 		}else{
 			cfg = config(_config);
 			init();
 		}
+		
+		colors = true;
  	}// new()
 
-	public static inline function args()      
-	{
-		if(_args == null) _args = Sys.args();
-		return _args.copy();
-	}//args()
-	
-	public static inline function env()      
-	{
-		if(_env == null) _env = Sys.environment();
-		return _env;
-	}//env()
-	
 	function config(s:String) 
 	{
 		var r = new Map<String,String>();
@@ -81,20 +78,15 @@ class AM {
 		return r;
 	}// help()
 
-	public static inline function sleep(seconds:Float)
-	{
-		Sys.sleep(seconds);
-	}// sleep()
-
 	public static inline function exit()
 	{
-		sleep(.5);
+		Sys.sleep(.5);
 		Sys.exit(err);
 	}// exit()
 
-	function print(msg="",level:LogLevel)
+	function print(msg:String,color="")
 	{
-		CR.print(msg,level);
+		CR.print(msg,color);
 	}// print()
 
 
@@ -106,7 +98,7 @@ class AM {
 		var lang = "",os = "",home = "",run = "cpp";
 
 		try lang = Sys.getEnv("LANG") catch(m:Dynamic){} 
-		try os = Sys.systemName().toLowerCase() catch(m:Dynamic){} 
+		try os = Sys.systemName() catch(m:Dynamic){} 
 		try home = Sys.getEnv("HOME") catch(m:Dynamic){}  
 
 #if neko 
@@ -114,8 +106,12 @@ class AM {
 #elseif windows
 		try home = Sys.getEnv("USERPROFILE") catch(m:Dynamic){}  
 #end
- 		var r = {lang:lang,os:os,home:home,run:run};
-		return r;
+		if(lang.good())lang = lang.substr(0,2);
+		if(os.starts("Linux"))os = "Linux";
+		else if(os.starts("Windows"))os = "Windows";
+		else if(os.starts("OSX"))os = "OSX";
+ 
+		return {lang:lang,os:os,home:home,run:run};
 	}// info()
 
 }// abv.sys.cpp.AM

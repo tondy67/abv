@@ -10,8 +10,6 @@ import abv.lib.math.Point;
 interface IAnim extends IObject{
 
 	public var state(get,set):Int;
-// custom animation
-	public var animate(get,set):Float;
 // label, name, tile ...
 	public var text(get,set):String;
 // width
@@ -29,7 +27,8 @@ interface IAnim extends IObject{
 // scaling
 	public var scale(get,set):Float;
 	
-	public function update():Void;
+	public function moveTo(dest:Point):Void;
+	public function moveBy(from:Point,delta:Point):Void;
 
 }// abv.lib.anim.IAnim
 

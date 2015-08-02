@@ -1,12 +1,13 @@
-package abv.lib.ui.widget;
+package abv.ui.widget;
 
 import abv.lib.comp.Object;
 import abv.lib.math.Point;
+import abv.lib.comp.Component;
 /**
  * 
  **/
 @:dce
-class Text extends Widget{
+class Text extends Component{
 	
 	public function new(id:String,label="Text",pos:Point=null,width=300.,height=150.)
 	{
@@ -22,5 +23,5 @@ class Text extends Widget{
  		return '$s Text(id: $id,text: $text)';
     }// toString() 
     
-}// abv.lib.ui.widget.Text
+}// abv.ui.widget.Text
 

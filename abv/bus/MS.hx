@@ -1,9 +1,8 @@
 package abv.bus;
 
-import abv.lib.Timer;
-using abv.CR;
+import abv.cpu.Timer;
+using abv.lib.CR;
 
-typedef Subscriber = {obj:IComm,sign:Int}
 /**
  * Message System
  **/
@@ -26,10 +25,13 @@ class MS{
 	static var cmMap = new Map<String,Int>();
 // inbox
 	static var inbox = ["*" => new List<MD>()];
-	static var subscribers = new Map<String,Subscriber>();
+	static var subscribers = new Map<Int,IComm>();
+	static var subscribersID = new Map<String,IComm>();
 	static var slots = new Map<Int,List<IComm>>();
 	static var trash = new List<MD>();
 	
+	inline function new(){ }
+
 	public static inline function cmName(m:Int)
 	{
 		var r = "";
@@ -51,25 +53,27 @@ class MS{
 	{
 		return msgMap[n];
 	}
-	public static inline function subscribe(obj:IComm,?p:haxe.PosInfos)
+	public static inline function subscribe(obj:IComm)
 	{ 
-#if debug var inf = "[" + p.fileName + ":" + p.lineNumber + "] "; 
-		var m = "";
+#if debug var m = "";
 		if (obj == null)m += "Null Subscriber! ";
 		else if(!obj.id.good())m += "No subscriber ID! ";
-		else if(subscribers.exists(obj.id))m += "Subscriber ("+obj.id+") exist! ";
-		if(m != "")LG.log(m+inf); 
+		else if(subscribers.exists(obj.sign))m += "Subscriber ("+obj.id+") exist! ";
+		if(m != "")trace(CR.ERROR+m); 
 #end		
 		var ts = Timer.stamp()- Std.int(Timer.stamp());
-		var sgn = Std.int(100000*(ts +Math.random())); 
-		subscribers.set(obj.id,{obj:obj,sign:sgn}); //trace(obj.id+":"+sgn);
+		var sign = Std.int(1000000*(ts + Math.random())); 
+		subscribers.set(sign,obj);  
+		subscribersID.set(obj.id,obj);  
 
-		return sgn;
+		return sign;
 	}// register()
 
-	public static inline function unsubscribe(id:String)
+	public static inline function unsubscribe(sign:Int)
 	{
-		subscribers.remove(id);
+		var o = subscribers[sign];
+		subscribersID.remove(o.id);
+		subscribers.remove(sign);
 	}// unsubscribe()
 	
 	public static inline function send(md:MD)
@@ -110,26 +114,25 @@ class MS{
 	
 	static inline function objExec(o:IComm,md:MD)
 	{
-		try o.exec(md)
-		catch (d:Dynamic){LG.log(o.id+": "+d);}
+		try o.exec(md) catch (d:Dynamic){trace(CR.ERROR+o.id+": "+d);}
 		md.free(); 
 		md = null;
 	}// objExec()
 	
 	static inline function setBox(md:MD,exec=false)
-	{ //trace(md.to+":"+subscribers[md.to]);
-		if(isMsg(md,subscribers[md.from].sign)){ 
+	{ 
+		if(isSender(md)){ 
 			var to = md.to;
 			if(to == ""){
-				for(o in getSlot(md.msg)){ // trace(o.id);
+				for(o in getSlot(md.msg)){ 
 					objExec(o,md);
 				}
-			}else if(check(to)){
+			}else if(isSubscriber(to)){
 				if(to != "*"){
 						checkBox(to);
 						if (exec) { 
-							md.signin(subscribers[to].sign); //trace(subscribers[to]);
-							objExec(subscribers[to].obj,md);
+							md.sign = subscribersID[to].sign; 
+							objExec(subscribersID[to],md);
 						}else inbox[to].add(md.clone());  
 				}else{
 					for(k in inbox.keys()){
@@ -140,28 +143,28 @@ class MS{
 		}
 	}// setBox()
 	
-	public static inline function isMsg(md:MD,sign:Int)
+	public static inline function isSender(md:MD)
 	{
 		var r = true;
 		if(md == null){
-			LG.log("Null data?!"); 
+			trace(CR.FATAL+"Null data?!"); 
 			r = false;
-		}else if(sign != md.sign){ 
-			LG.log('Fake ${md.from} sign!'); 
+		}else if(!subscribers.exists(md.sign)){ 
+			trace(CR.ERROR+"Fake sign!"); 
 			r = false;
 		}
 		return r;
-	}// isMsg()
+	}// isSender()
 	
-	public static inline function check(id:String)
+	public static inline function isSubscriber(id:String)
 	{
-		return (subscribers.exists(id))&&(subscribers[id] != null);
-	}// check()
+		return subscribersID.exists(id) && (subscribersID[id] != null);
+	}// isSubscriber()
 	
 	public static inline function accept(id:String,cmd:Int)
 	{
 		var r = false; 
-		if((check(id))&&(subscribers[id].obj.msg.accept & cmd  != 0))r = true;
+		if((isSubscriber(id))&&(subscribersID[id].msg.accept & cmd  != 0))r = true;
 		return r;
 	}// accept()
 	
@@ -176,7 +179,7 @@ class MS{
 	public static inline function recv(to:String)
 	{
 		var r = new List<MD>();
-		if(check(to)){
+		if(isSubscriber(to)){
 			checkBox(to);
 			if(!inbox[to].isEmpty()){ //trace(inbox);
 				for(m in inbox[to]){
@@ -190,7 +193,7 @@ class MS{
 		return r;
 	}// recv()
 
-	public static function show() 
+	public static function info() 
 	{ 
 		var s = "Msg(inbox: ";
 		for(k in inbox.keys())s += k+",";

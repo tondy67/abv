@@ -1,7 +1,7 @@
-package abv.lib;
+package abv.lib.style;
 
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.math.MT;
 using abv.lib.TP;
 /**
@@ -97,5 +97,5 @@ class Color{
 		return argb(rgb,alpha);
 	}// hex2clr()
 
-}// abv.lib.Color
+}// abv.lib.style.Color
 

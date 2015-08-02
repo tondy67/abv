@@ -1,27 +1,44 @@
-package abv;
+package abv.lib;
 /**
  * Common Constants & Tools
  * 
  **/
+import haxe.crypto.Md5;
+
 import abv.AM;
-import abv.lib.Timer;
+import abv.cpu.Timer;
 import abv.lib.math.MT;
 import abv.sys.ST;
 
 using abv.lib.TP;
 
-enum LogLevel{
-	OFF;
-	FATAL;
-	LOG;
-	ERROR;
-	INFO;
-	WARN;
-	DEBUG;
+enum States{
+	DISABLED;
+	NORMAL;
+	ACTIVE;
+	VISITED;
+	HOVER;
+	FOCUS;
+	LINK;
+	PRESSED;
+	CLICK;
 }
 
 @:dce
 class CR{
+
+//  Levels
+	public static inline var OFF 	= "OFF:";
+	public static inline var FATAL 	= "FATAL:";
+	public static inline var LOG 	= "LOG:";
+	public static inline var ERROR 	= "ERROR:";
+	public static inline var INFO 	= "INFO:";
+	public static inline var WARN 	= "WARN:";
+	public static inline var DEBUG 	= "DEBUG:";
+// Separators
+	public static inline var SEP1 		= "|";
+	public static inline var SEP3 		= "|||";
+
 // constants
 	public static inline var AUTO 		= -1;
 	public static inline var PI 		= 3.141592653589793;
@@ -30,14 +47,18 @@ class CR{
 // degree, radian
 	public static inline var DEG 		= 0.01745329251;
 	public static inline var RAD 		= 57.295779513;
-// SEP3arators
-	public static inline var SEP1 		= "|";
-	public static inline var SEP3 		= "|||";
 // log 
 	static var logData:Array<String>	= [];
 	static var logMax 					= 1 << 16;
 //
 	static var start = Timer.stamp();
+
+	inline function new(){ }
+
+	public static inline function md5(s:String)
+	{
+		return Md5.encode(s);
+	}// md5()
 
 	public static inline function dow(week:Array<String>=null)
 	{
@@ -62,38 +83,29 @@ class CR{
 		var d = now.getDate();
 		var n = new Date(y, m, d, 0, 0, 0 );
 		var t =  n.getTime(); 
-		return Std.int(24 * Math.ceil(t / 24 / ms ) - t/ms);  
+		return int(24 * Math.ceil(t / 24 / ms ) - t/ms);  
 	}// timezone();
 	
+	public static inline function int(f:Float)return Std.int(f);
+
 	public static inline function json(s="")
 	{
 		var r:Dynamic = null;
 		if(good(s))
-			try r = haxe.Json.parse(s) catch (m:Dynamic){print(m,ERROR);} 
+			try r = haxe.Json.parse(s) catch (m:Dynamic){trace(ERROR+m);} 
 		return r;
 	}// json()
 	
-	public static inline function utf8(s:Null<String>,msg="")
-	{
-		var r = false;
-		if(good(s,msg)){
-			r = haxe.Utf8.validate(s);
-			if(!r)print(msg + " Not utf8",ERROR); 
-		}
-		return r;
-	}// utf8()
-
-	public static inline function good(v:String,msg="",?pif:haxe.PosInfos)
+	public static inline function good(v:String,msg="")
 	{ 
-#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = true;
-		function m(s){if(msg != ""){msg += " ";print(msg+s,WARN);}}
+		function m(s){if(msg != ""){trace(DEBUG+msg+s);}}
 		
 		if(v == null){
-			m("Null String"); 
+			m(" Null String"); 
 			r = false;
 		}else if(v == ""){
-			m("Empty String");
+			m(" Empty String");
 			r = false;
 		}
 		
@@ -157,7 +169,7 @@ class CR{
 	
 	public static inline function clear<T>(a:Array<T>)
 	{
-		a.splice(0,a.length); 
+#if flash untyped a.length = 0; #else a.splice(0,a.length); #end
     }// clear()
 	
 	public static inline function getLog(line=0,filter="")
@@ -181,7 +193,7 @@ class CR{
 		a = a.slice(a.length - last);
 		for(m in a){ 
 			t = m.splitt(SEP3); 
-			ST.print(t[1],getLogLevel(t[0]));
+			ST.print(t[1],lvl2color(t[0]));
 		}
 	}// printLog()
 
@@ -191,18 +203,33 @@ class CR{
 		return r;
     }// unique()
 	
-	public static inline function print(msg="",level:LogLevel)
+	public static inline function print(msg="",color="")
 	{   
-		if(lvl2int(AM.verbose) >= lvl2int(level)){ 
-			var d = (Timer.stamp() - start) + " ";
-			if(!good(msg))msg = d;
-			if(msg.starts("now:"))msg = msg.replace("now:",d);
-			if(!AM.silent)ST.print(msg,level);
-			log(level + SEP3 + msg.trim());
+		if(good(msg)){
+			var level = getLevel(msg);
+			if(good(level)){
+				msg = msg.replace(level,"");
+				color = lvl2color(level);
+			}
+			ST.print(msg,color);
+			log(msg.trim(),level);
 		}
 	}// print()
 
-	public static inline function lvl2int(level:LogLevel)
+	public static inline function getLevel(s:String)
+	{//AM.trace(s);
+		var r = "";
+		if(s.starts(OFF)) 			r = OFF;
+		else if(s.starts(FATAL)) 	r = FATAL;
+		else if(s.starts(LOG)) 		r = LOG;
+		else if(s.starts(ERROR)) 	r = ERROR;
+		else if(s.starts(INFO)) 	r = INFO;
+		else if(s.starts(WARN)) 	r = WARN;
+		else if(s.starts(DEBUG)) 	r = DEBUG;
+		return r;
+	}// getLevel()
+
+	public static inline function lvl2int(level:String)
 	{
 		return
 			switch(level){
@@ -217,27 +244,28 @@ class CR{
 			}
 	}// lvl2int()
 	
-	public static inline function getLogLevel(s="")
+	public static inline function lvl2color(level:String)
 	{   
-		var r:LogLevel;
-		switch(s){
-			case "OFF": 	r = OFF;
-			case "FATAL": 	r = FATAL;
-			case "LOG": 	r = LOG;
-			case "ERROR": 	r = ERROR;
-			case "INFO": 	r = INFO;
-			case "WARN": 	r = WARN;
-			case "DEBUG": 	r = DEBUG;
-			default: r = INFO;
+		var r = "";
+		if(good(level)){
+			if(level == CR.OFF)r = "green";
+			else if(level == CR.FATAL)r = "magenta";
+			else if(level == CR.LOG)r = "cyan";
+			else if(level == CR.ERROR)r = "red";
+			else if(level == CR.WARN)r = "yellow";
+			else if(level == CR.INFO)r = "white";
+			else if(level == CR.DEBUG)r = "blue";
 		}
 		return r;
-	}// getLogLevel()
+	}// lvl2color()
 
-
-	public static inline function log(msg="")
+	public static inline function log(msg:String,level="")
 	{   
-		if(good(msg))logData.push(msg);
+		if(good(msg)){
+			if(!good(level))level = LOG;
+			logData.push(level+SEP3+msg);
+		}
 	}// log()
 
-}// abv.CR
+}// abv.lib.CR
 

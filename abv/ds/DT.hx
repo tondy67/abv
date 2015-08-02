@@ -1,43 +1,43 @@
 package abv.ds;
-
-import haxe.ds.StringMap;
-
-using abv.CR;
-using abv.lib.TP;
 /**
  * DataTools
  **/
+import haxe.ds.StringMap;
+
+using abv.lib.CR;
+using abv.lib.TP;
+
 @:dce
 class DT{
 	static inline var m1 = "Only Anonymous structures!";
 	
-	public static inline function good<T>(v:Array<T>,msg="",?pif:haxe.PosInfos)
+	inline function new(){ }
+
+	public static inline function good<T>(v:Array<T>,msg="")
 	{ 
-#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = true;
 		
 		if(v == null){
-			CR.print(msg+": Null Array",ERROR); 
+			trace(CR.ERROR+msg+": Null Array"); 
 			r = false;
 		}else if(v.length == 0){
-			CR.print(msg+": Empty Array",WARN);
+			trace(CR.WARN+msg+": Empty Array");
 			r = false;
 		}
 		
 		return r;
 	}// good<T>()
 	
-	public static inline function empty<T>(v:StringMap<T>,msg="",?pif:haxe.PosInfos)
+	public static inline function empty<T>(v:StringMap<T>,msg="")
 	{ 
-#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = false;
 		
 		
 		if(v == null){
-			CR.print(msg+": Null StringMap",ERROR); 
+			trace(CR.ERROR+msg+": Null StringMap"); 
 			r = true;
 		}else if(length(v) == 0){
-			CR.print(msg+": Empty StringMap",WARN);
+			trace(CR.WARN+msg+": Empty StringMap");
 			r = true;
 		}
 		
@@ -71,12 +71,11 @@ class DT{
 		return r;
 	}// indexOf<T>()
 	
-	public static inline function copy<T>(v:StringMap<T>,msg="",?pif:haxe.PosInfos)
+	public static inline function copy<T>(v:StringMap<T>,msg="")
 	{ 
-#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r:StringMap<T> = null;
 		
-		if(v == null)CR.print(msg+": Null StringMap",ERROR); 
+		if(v == null)trace(CR.ERROR+msg+": Null StringMap"); 
 		else{ 
 			r = new StringMap<T>();
 			for(k in v.keys())r.set(k,v.get(k));
@@ -93,23 +92,22 @@ class DT{
 		return r;
 	}// pair<T>(()
 
-	public static inline function blank<T>(v:List<T>,msg="",?pif:haxe.PosInfos)
+	public static inline function blank<T>(v:List<T>,msg="")
 	{ 
-#if debug msg = '${pif.fileName}->${pif.methodName}:$msg)'; #else msg = "";#end
 		var r = false;
 		
 		if(v == null){
-			CR.print(msg+": Null List",ERROR); 
+			trace(CR.ERROR+msg+": Null List"); 
 			r = true;
 		}else if(v.length == 0){
-			CR.print(msg+": Empty List",WARN);
+			trace(CR.WARN+msg+": Empty List");
 			r = true;
 		}
 		
 		return r;
 	}// blank<T>()
 
-	public static inline function fields(o:Dynamic,?pif:haxe.PosInfos)
+	public static inline function fields(o:Dynamic)
 	{ 
 		var r:Array<String> = [];
 		var a:Array<String> = null;
@@ -125,14 +123,13 @@ class DT{
 					};
 				default: 
 					var msg = m1;
-#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
 					trace(msg);
 			}
 		}
 		return r;
 	}// fields()
 
-	public static inline function field(o:Dynamic, field:String,?pif:haxe.PosInfos)
+	public static inline function field(o:Dynamic, field:String)
 	{ 
 		var r:Dynamic = null;
 		
@@ -140,33 +137,31 @@ class DT{
 			switch(Type.typeof(o)){
 				case TObject: 
 					if(field.good())r = Reflect.field(o,field);
-					else CR.print("["+pif.fileName +":"+ pif.lineNumber+"] "+"no good field: " + field,WARN);
+					else trace(CR.WARN+"no field: " + field);
 				default: 
 					var msg = m1;
-#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
 					trace(msg);
 			}
 		}
-//trace(Type.typeof(r)+":"+r+":"+field);
+
 		return r;
 	}// field()
 
-	public static function setField(o:Dynamic, field:String, value:Dynamic,?pif:haxe.PosInfos)
+	public static function setField(o:Dynamic, field:String, value:Dynamic)
 	{
 		if(o != null){
 			switch(Type.typeof(o)){
 				case TObject: 
 					if(field.good())Reflect.setField(o,field,value);
-					else CR.print("["+pif.fileName +":"+ pif.lineNumber+"] "+"no good field: " + field,WARN);
+					else trace(CR.WARN+"no field: " + field);
 				default: 
 					var msg = m1;
-#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
 					trace(msg);
 			}
 		}
 	}// setField()
 
-	public static function hasField(o:Dynamic, field:String,?pif:haxe.PosInfos)
+	public static function hasField(o:Dynamic, field:String)
 	{
 		var r = false;
 		
@@ -176,7 +171,6 @@ class DT{
 					r = Reflect.hasField(o,field);
 				default: 
 					var msg = m1;
-#if debug msg = "["+pif.fileName +":"+ pif.lineNumber+"] " + msg;	#end
 					trace(msg);
 			}
 		}

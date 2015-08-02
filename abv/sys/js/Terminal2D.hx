@@ -2,16 +2,15 @@ package abv.sys.js;
 
 import abv.bus.*;
 import abv.*;
-import abv.lib.style.Style;
-import abv.lib.Color;
-import abv.ds.FS;
+import abv.lib.LG;
+import abv.lib.style.*;
 import abv.io.*;
-import abv.lib.Timer;
-import abv.AM;
-import abv.lib.Screen;
-import abv.lib.ui.box.*;
-import abv.lib.ui.widget.*;
-
+import abv.cpu.Timer;
+import abv.io.Screen;
+import abv.ui.box.*;
+import abv.ui.widget.*;
+import abv.lib.math.Rectangle;
+//
 import js.Lib;
 import js.html.*;
 import js.Browser;
@@ -20,10 +19,10 @@ import js.html.CanvasElement;
 import js.html.DivElement; 
 import js.html.Document;
 
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.math.MT;
 using abv.lib.TP;
-using abv.lib.Color;
+using abv.lib.style.Color;
 
 //
 @:dce
@@ -35,13 +34,8 @@ class Terminal2D extends Terminal{
 	var doc:Document;
 	var body: DOMElement;   
     var ctx: CanvasRenderingContext2D;
-	var xx:Float = 0; 
-	var yy:Float = 0;
-	var delta = 2;
 //
 	var ui:Input;
-	var speed = 4;
-	var hovered = "";
 	
 	public function new()
 	{
@@ -71,7 +65,7 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 
 	function onMsg(oid:String,cmd:Int)
 	{ 
-		if(oid.good())MS.exec(new MD(id,oid,cmd,sign,[],"",[ui.delta]));
+		if(oid.good())MS.exec(new MD(sign,oid,cmd,[],"",[ui.delta]));
 //LG.log(to+":"+MS.msgName(cmd));
 	}// onMsg()	
 	function onMouseMove(e:MouseEvent)
@@ -82,13 +76,6 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 			if(ui.click){
 				onMsg(t,MD.MOUSE_MOVE);
 				return;
-			}else if(MS.accept(t,MD.MOUSE_OVER)){
-				if(hovered != t)onMsg(hovered,MD.MOUSE_OUT);
-				hovered = t;
-				onMsg(hovered,MD.MOUSE_OVER);
-			}else if(hovered.good()){
-				onMsg(hovered,MD.MOUSE_OUT);
-				hovered = "";
 			}
 		}
 	}// onMouseMove()
@@ -126,14 +113,14 @@ LG.log(oid);
 	{
 		e.preventDefault();
 		ui.keys[e.keyCode] = false;
-		MS.exec(new MD(id,"",MD.KEY_UP,sign,[e.keyCode]));
+		MS.exec(new MD(sign,"",MD.KEY_UP,[e.keyCode]));
 	}// onKeyUp()
 	
 	function onKeyDown(e:KeyboardEvent)
 	{
 		e.preventDefault();
 		ui.keys[e.keyCode] = true;
-		MS.exec(new MD(id,"",MD.KEY_DOWN,sign,[e.keyCode]));
+		MS.exec(new MD(sign,"",MD.KEY_DOWN,[e.keyCode]));
 	}// onKeyDown()
 	
 	public function init()
@@ -153,6 +140,7 @@ LG.log(oid);
 
 	public override function drawStart()
 	{
+		var style = ro.o.style;
 		if(ro.ctx != Ctx1D)return;
 		var kind = switch(Type.typeof(ro.o)){
 			case TClass(HBox):"hbox";
@@ -175,10 +163,10 @@ LG.log(oid);
 			}else if(kind == "vbox"){
 				elm = doc.createElement("Div");
 				elm.className = "vbox"; 
-			}else if(ro.style.name == ".dialog"){
+			}else if(style.name == ".dialog"){
 				elm = doc.createElement("Div");
 				elm.className = "dialog";  
-			}else if(ro.style.name == ".text"){
+			}else if(style.name == ".text"){
 				elm = doc.createElement("Div");
 				elm.className = "text"; 
 			}else{ trace(ro.o);
@@ -194,8 +182,8 @@ LG.log(oid);
 		if(ro.o.visible){
 			if(elm.style.visibility != "visible"){
 				elm.style.visibility = "visible"; 
-				if(ro.style.name.starts(".")){
-					var name = ro.style.name.replace(".","");
+				if(style.name.starts(".")){
+					var name = style.name.replace(".","");
 					var ix = name.indexOf("#");
 					if(ix != -1)name = name.substr(0,ix);
 					elm.className = name;
@@ -206,55 +194,79 @@ LG.log(oid);
 		}
  	}// drawStart()
 
-	public override function drawRect()
+	public override function drawShape()
 	{ 
 		var r = .0;
-		var c = .0;
+		var border = .0;
+		var c = ro.o.color;
+		var src = "";
+		var x = ro.x, y = ro.y, w = ro.o.width, h = ro.o.height;
+		var scale = ro.o.scale;
+		var tile:Rectangle = null;
+		var style = ro.o.style;
+
 		if(ro.ctx == Ctx2D){
-			if(ro.style == null){
-				c = ro.o.color;
-			}else{
-				if(ro.style.background.color.good())c = ro.style.background.color;
-				if(ro.style.border != null){
-					if(ro.style.border.radius.good())r = ro.style.border.radius;
-					if(ro.style.border.color.good()){
-						ctx.strokeStyle = ro.style.border.color.srgba();
-						ctx.lineWidth = 1;
+			if(style != null){
+				if(style.background == null){}
+				else if(style.background.image.good()){
+					src = style.background.image;
+					if(style.background.position != null)
+						tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
+				}else c = style.background.color;
+				
+				if(style.border != null){
+					r = style.border.radius;
+					border = style.border.width;
+					if(border > 0){
+						ctx.strokeStyle = style.border.color.srgba();
+						ctx.lineWidth = border;
 					}
 				}
 			}
 			ctx.fillStyle = c.srgba(); 
-			drawRoundRect(ro.x, ro.y, ro.o.width, ro.o.height, r);
+//			drawRoundRect(x, y, w, h, r, src);
+			ctx.beginPath();
+			ctx.moveTo(x + r, y);
+			ctx.lineTo(x + w*scale - r, y);
+			ctx.quadraticCurveTo(x + w*scale, y, x + w*scale, y + r);
+			ctx.lineTo(x + w*scale, y + h*scale - r);
+			ctx.quadraticCurveTo(x + w*scale, y + h*scale, x + w*scale - r, y + h*scale);
+			ctx.lineTo(x + r, y + h*scale);
+			ctx.quadraticCurveTo(x, y + h*scale, x, y + h*scale - r);
+			ctx.lineTo(x, y + r);
+			ctx.quadraticCurveTo(x, y, x + r, y);
+			ctx.closePath();
+			ctx.stroke();
+			ctx.fill();
+			if(src.good()){
+				var img = FS.getTexture(src); //trace(img.w);
+				if(img != null){
+					if(tile == null)ctx.drawImage(img,x,y);
+					else ctx.drawImage(img,tile.x,tile.y,w,h, x,y,w*scale,h*scale);
+					//trace(tile+":"+w+":"+scale);
+				}
+			}
 		}
-	}// drawRect()
+	}// drawShape()
 
-	function drawRoundRect(x:Float,y:Float, width: Float,height:Float,radius:Float=4 )
-	{
-	  ctx.beginPath();
-	  ctx.moveTo(x + radius, y);
-	  ctx.lineTo(x + width - radius, y);
-	  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-	  ctx.lineTo(x + width, y + height - radius);
-	  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-	  ctx.lineTo(x + radius, y + height);
-	  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-	  ctx.lineTo(x, y + radius);
-	  ctx.quadraticCurveTo(x, y, x + radius, y);
-	  ctx.closePath();
-	  ctx.stroke();
-	  ctx.fill();
-	}// drawRoundRect()
-	
 	public override function drawText()
 	{ //trace(ro);
+		var style = ro.o.style;
 		if(ro.ctx == Ctx1D){
 			elm.innerHTML = ro.o.text;
 		}else{		
-			var c = .0;
-			if(ro.style == null)c = ro.o.color;
-			else if(ro.style.color.good())c = ro.style.color;
+			var c = ro.o.color;
+			var name = "status-bar";
+			var size = 14.;
+			if(style != null){
+				if(style.color.good())c = style.color;
+				if(style.font != null){
+					if(style.font.name.good())name = style.font.name;
+					if(style.font.size != null)size = style.font.size;
+				}
+			}
 			ctx.fillStyle = c.srgba();
-			ctx.font = "12pt DefaultFont"; // status-bar
+			ctx.font = size + "pt " + name; 
 			ctx.fillText(ro.o.text,ro.x+2,ro.y+20);
 		}
 	}// drawText()

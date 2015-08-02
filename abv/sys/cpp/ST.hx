@@ -1,31 +1,51 @@
 package abv.sys.cpp;
-
+/**
+ * SystemTools
+ **/
+import abv.AM;
 import sys.io.Process;
 import sys.FileSystem;
 import sys.io.File;
 import abv.cpu.Boss;
 import abv.cpu.Mutex;
+import abv.cpu.Timer;
 
 using abv.lib.TP;
-using abv.CR;
-/**
- * SystemTools
- **/
+using abv.lib.CR;
+
 @:dce
 class ST{
 
 	public static var lock(default,null) = new Mutex();
 
-	public static inline function print(msg="",level:LogLevel)
+	inline function new(){ }
+
+	public static inline function trace(v:Null<Dynamic>,?infos:Null<haxe.PosInfos>)
 	{   
-		if(msg.good()){
-			msg = colorize(msg,level);
-			Sys.println(msg);
+		var s = Std.string(v).trim();
+		var level = CR.getLevel(s);
+		if(CR.lvl2int(AM.verbose) >= CR.lvl2int(level)){ 
+			if(s.starts("now:"))s = s.replace("now:",Timer.stamp+"");
+			if(level.good())s = s.replace(level,"");
+			var color = CR.lvl2color(level);
+			if(color.good())s = colorize(s,color); 
+			Sys.print(s);
+			Sys.print(" ["+infos.fileName+":"+infos.lineNumber+"]\n");
+			CR.log(s,level);
+		}
+	}// trace()
+
+	public static inline function print(msg:String,color="")
+	{   
+		if(msg.good() && !AM.silent){
+			if(color.good())msg = colorize(msg,color); 
+			Sys.println(msg); 
 		}
 	}// print()
 
-	public static inline function colorize(msg:String,level:LogLevel)
+	public static inline function colorize(msg:String,color:String)
 	{   
+		var r = msg;
 		var rst = "\x1b[0m";
 		var bold = "\x1b[1m";
 		var red = "\x1b[31;1m";
@@ -34,26 +54,32 @@ class ST{
 		var blue = "\x1b[34;1m";
 		var magenta = "\x1b[35;1m";
 		var cyan = "\x1b[36;1m";
-		var white = "\x1b[37;1m";
-		if(AM.colors){
-			if(level == OFF)msg = bold + msg;
-			else if(level == FATAL)msg = magenta + msg;
-//			else if(level == LOG)msg = cyan + msg;
-			else if(level == ERROR)msg = red + msg;
-			else if(level == WARN)msg = yellow + msg;
-			else if(level == INFO)msg = white + msg;
-			else if(level == DEBUG)msg = blue + msg;
-			msg += rst; 
+		var white = "\x1b[37;1m"; 
+		if(AM.colors && hasColor()){ 
+			color = color.lower();
+			if(color == "green")r = green + msg;
+			else if(color == "magenta")r = magenta + msg;
+			else if(color == "cyan")r = cyan + msg;
+			else if(color == "red")r = red + msg;
+			else if(color == "yellow")r = yellow + msg;
+			else if(color == "white")r = white + msg;
+			else if(color == "blue")r = blue + msg;
+			r += rst; 
 		}
-		return msg;
+		return r;
 	}// colorize()
 	
+	public static inline function hasColor()
+	{ 
+		return Sys.getEnv("TERM") == "xterm" || Sys.getEnv("ANSICON") != null;
+	}// hasColor()
+
 	public static inline function exists(path:Null<String>,msg="")
 	{ 
 		var r = true;
 
 		if(path.good(msg) && !FileSystem.exists(path)){
-			if(msg.good())CR.print(msg + ": No such file or directory",ERROR); 
+			if(msg.good())trace(CR.ERROR+msg + ": No such file or directory"); 
 			r = false;
 		}
 
@@ -74,11 +100,6 @@ class ST{
 		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// isDir()
 	
-	public static inline function sleep(seconds:Float)
-	{
-		Sys.sleep(seconds);
-	}// sleep()
-
 	public static inline function abs(path:String)
 	{
 		return FileSystem.fullPath(path);
@@ -95,7 +116,7 @@ class ST{
 	{
 		var r = "";
 		if(url.starts("http")){
-			try r = haxe.Http.requestUrl(url)catch(m:Dynamic){CR.print(m+"",ERROR);}
+			try r = haxe.Http.requestUrl(url)catch(m:Dynamic){trace(CR.ERROR+m);}
 		}
 		return r;
 	}// openurl()
@@ -124,6 +145,23 @@ class ST{
 			FileSystem.createDirectory(path);
 	}// mkdir()
 	
+	public static inline function command(cmd:String, args:Array<String>=null)
+	{ 
+		var r = 0;
+
+		if(cmd.good()){
+			if(args == null){
+				r = Sys.command(cmd);
+			}else{
+				var a = new Array<String>();
+				for(l in args)if(l.good())a.push(l.trim());
+				r = Sys.command(cmd,a);
+			}
+		}
+		
+		return r;
+	}
+
 	public static inline function exec(cmd:String, args:Array<String>=null,background=false,input="")
 	{ 
 		var r = "-1";
@@ -131,16 +169,20 @@ class ST{
 		if(cmd.good()){
 			if(!background){
 					var p:Process = null;
-					if((args == null)||(args.length == 0))args = [""];
+					if((args == null)||(args.length == 0))args = ["-v"];
+					var a = new Array<String>();
+					for(l in args)if(l.good())a.push(l.trim());
 					try{
-						p = new Process(cmd,args);
+						p = new Process(cmd,a); 
 						if(input.good()){
 							p.stdin.writeString(input+"\n");
 							p.stdin.flush();
-						}
+						}; 
 						r = p.stdout.readAll() + ""; 
-					}catch(m:Dynamic){ print(m,ERROR);}
-			}else r = Boss.exec(cmd,args,input) + "";
+					}catch(m:Dynamic){ print(CR.ERROR+m);}
+			}else{
+				r = Boss.exec(cmd,args,input) + "";
+			}
 		}
 		return r;
 	}// exec()

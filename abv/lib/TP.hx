@@ -4,7 +4,7 @@ import haxe.Utf8;
 import haxe.ds.StringMap;
 
 using StringTools;
-using abv.CR;
+using abv.lib.CR;
 using abv.lib.math.MT;
 
 /**
@@ -12,6 +12,8 @@ using abv.lib.math.MT;
  **/
 @:dce
 class TP{
+
+	inline function new(){ }
 
 	public static inline function length(s:String)
 	{
@@ -42,7 +44,7 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic){CR.print(char,ERROR);}
+		catch(m:Dynamic){trace(CR.ERROR+char);}
 
 		return r;
 	}// chr()
@@ -51,7 +53,7 @@ class TP{
 	{ 
 		var a:Array<String> = [];
 		if(v.good()){
-			a = v.split(sep);
+			a = v.trim().split(sep); 
 			for(i in 0...a.length)a[i] = a[i].trim();
 		}
 		return a;
@@ -65,8 +67,24 @@ class TP{
 		
 		return r;
 	}// substr()
+	
+	public static function reduceSpaces(s:String,sp=" ")
+	{
+		var rgx = ~/\s\s+/g;
+		return rgx.replace(s,sp); 
+	}// reduceSpaces()
+	
+	public static inline function isUtf8(s:Null<String>,msg="")
+	{
+		var r = false;
+		if(s.good(msg)){
+			r = haxe.Utf8.validate(s);
+			if(!r)trace(CR.ERROR+msg + " Not utf8"); 
+		}
+		return r;
+	}// isUtf8()
 
-	public static inline function encode(s:String)
+	public static inline function toUtf8(s:String)
 	{
 		var r = "";
 
@@ -75,7 +93,7 @@ class TP{
 		return r;
 	}// encode()
 
-	public static inline function decode(s:String)
+	public static inline function fromUtf8(s:String)
 	{
 		var r = "";
 
@@ -139,7 +157,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic){CR.print(m,ERROR);}
+		catch(m:Dynamic){trace(CR.ERROR+m);}
 		return r;
 	}// ltrim()
 
@@ -291,8 +309,9 @@ class TP{
 		return r;
 	}// str2map()
 
-	public static inline function urlencode(s:String){return s.urlEncode();}
-	public static inline function urldecode(s:String){return s.urlDecode();}
+	public static inline function urlEncode(s:String){return s.urlEncode();}
+	public static inline function urlDecode(s:String){return s.urlDecode();}
+
 
 }// abv.lib.TP
 

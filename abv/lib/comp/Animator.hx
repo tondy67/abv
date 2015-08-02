@@ -1,13 +1,10 @@
 package abv.lib.comp;
-
-
-import abv.lib.anim.*;
-import abv.lib.math.Point;
-import abv.lib.comp.Component;
-
 /**
  * 
  **/
+import abv.lib.anim.*;
+import abv.lib.math.Point;
+import abv.lib.comp.Component;
 @:dce
 class Animator extends Component {
 
@@ -29,26 +26,6 @@ class Animator extends Component {
 		state = stPlay;
 		text = id;
 	}// new()
-
-	public function moveTo(dest:Point,fixed=false)
-	{
-		moveBy(dest.sub(pos),fixed);
-	}// moveTo()
-	
-	public function moveBy(delta:Point,fixed=false)
-	{
-		if(delta.length == 0){
-			dir.set(0,0);
-			return;
-		}
-		pos = pos.add(delta);  
-		update();
-	}// moveBy()
-	
-	override function update()
-	{
-	// override me
-	}// update()
 
 	public override function toString() 
 	{

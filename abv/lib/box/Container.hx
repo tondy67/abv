@@ -2,7 +2,9 @@ package abv.lib.box;
 
 import abv.lib.comp.Component;
 import abv.lib.comp.Object;
-using abv.CR;
+import abv.ui.Root;
+
+using abv.lib.CR;
 /**
  * 
  **/
@@ -43,9 +45,9 @@ class Container extends Component{
 	
 	public function addChild(obj:Component)
 	{
-		if(obj == null)LG.log("Null Object");
-		else if(!obj.id.good())LG.log("No id");
-		else if(childrenMap.exists(obj.id))LG.log("Object: "+obj.id+" exist!");
+		if(obj == null)trace(CR.ERROR+"Null Object");
+		else if(!obj.id.good())trace(CR.ERROR+"No id");
+		else if(childrenMap.exists(obj.id))trace(CR.ERROR+"Object: "+obj.id+" exist!");
 		else{
 			obj.parent = this; //trace(id+":"+root);
 			obj.root = root; 

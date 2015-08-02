@@ -1,58 +1,53 @@
 package abv.lib.comp;
-
-import abv.lib.math.Point;
-import abv.lib.style.Style;
-using abv.CR;
-
-typedef ObjectProps = {id:String,x:Float,y:Float,width:Float,height:Float,
-	fade:Float,rot:Float,scale:Float,visible:Bool,text:String,color:Float,
-	style:StyleProps}
 /**
  * 
  **/
+import abv.bus.*;
+import abv.lib.style.Style;
+using abv.lib.CR;
+
 @:dce
-class Object implements IObject{
+class Object implements IComm{
 
 	public static var traceInherited = true;
 // unique id
 	public var id(get,never):String;
-	var _id:String = "";
+	var _id = "";
 	function get_id() { return _id; };
-// position
-	public var pos(get,set):Point;
-	var _pos:Point;
-	function get_pos(){return _pos;}
-	function set_pos(p:Point){return _pos.copy(p);}
-// width
-	public var width(get,set):Float;
-	var _width:Float = 0;
-	function get_width(){return _width * _scale;}
-	function set_width(f:Float){return _width = f/_scale;}
-// height
-	public var height(get,set):Float;
-	var _height:Float = 0;
-	function get_height(){return _height * _scale;}
-	function set_height(f:Float){return _height = f/_scale; }
-// scaling
-	public var scale(get,set):Float;
-	var _scale:Float = 1;
-	function get_scale(){return _scale;}
-	function set_scale(f:Float){return _scale = f;}
+//
+	public var sign(null,null):Int;
+	public var msg(default,null):MsgProp;
+	
 
 	public function new(id:String)
 	{
-		if(id.good('No ID!')) _id = id;
-		_pos = new Point();
+		if(id.good()) _id = id; else throw "No ID";
+
+		msg = {accept:MD.NONE,action:new Map()};
+		sign = MS.subscribe(this);
 	}// new()
 
-	public function free() 
-	{
-    }// free() 
+	public function update() { };
+	
+	function dispatch(md:MD){}
+	
+	public inline function exec(md:MD)
+	{ 
+		if(!MS.isSender(md))return;
+		var m = md.msg & msg.accept; 
+		
+		dispatch(md); 
+		if(msg.action.exists(m) &&  (msg.action[m] != null))
+			MS.exec(msg.action[m].clone());
+	}// exec()
+	
+	
+	public function free(){ } 
 
 	public function toString() 
 	{
 		var s = traceInherited?"\n":"";
-		return '$s Object(id: $id, pos: $pos, width:$width, height: $height, scale: $scale)';
+		return '$s Object(id: $id)';
     }// toString() 
 
 }// abv.lib.comp.Object

@@ -1,8 +1,8 @@
 package abv.sys.js;
 
-import abv.LG;
+import abv.lib.LG;
 import abv.bus.*;
-import abv.lib.ui.*; 
+import abv.ui.*; 
 import abv.lib.anim.*;
 import abv.lib.comp.*;
 import abv.lib.box.View;
@@ -14,7 +14,8 @@ import abv.lib.*;
 import abv.io.Terminal2D;
 import abv.io.*;
 import haxe.Timer;
- 
+import abv.sys.ST;
+
 import js.Lib;
 import js.html.Event;
 import js.html.Screen in JsScreen;
@@ -22,36 +23,41 @@ import js.Browser;
 import js.html.Element;
 import js.html.CanvasElement;
 
-using abv.CR;
-using StringTools;
+using abv.lib.TP;
+using abv.lib.CR;
 
-class AM implements IComm {
+class AM extends Object {
 
-	public static var verbose:LogLevel 	= DEBUG;
-	public static var exitTime 			= .0;
-	public static var silent 			= false;
-	public static var logFile			= "";
+	public static var verbose 	= CR.DEBUG;
+	public static var exitTime 	= .0;
+	public static var silent 	= false;
+	public static var logFile	= "";
+	public static var colors 	= true;
 	var cfg:Dynamic = null;
-// unique id
-	public var id(get, never):String;
-	var _id:String = "App";
-	function get_id() { return _id; };
-//
-	public var sign(null,null):Int;
-	public var msg(default,null):MsgProp;
 //
 	var last:Float;
 
 	var term:Terminal2D;
-	var screen:Screen;
-	var gui:GUI;
+	
+	var gui:Gui;
 	
 	var fps = 32;
+	public static var trace = haxe.Log.trace; 
 	
-	public function new()
+	public function new(configFile="")
 	{
+		haxe.Log.trace = ST.trace;
+		super(id);
+		if(configFile.good()){
+			var s = FS.getText(configFile); 
+			if(s.good()){
+				cfg = s.json(); 
+				if(cfg != null){
+					if(cfg.app != null)trace(cfg.app);
+				}
+			}
+		}
 		msg = {accept:MD.NONE,action:new Map()};
-		sign = MS.subscribe(this);
 // customMessage register
 		MS.cmCode("cmView");
 		MS.cmCode("cmLang");
@@ -61,9 +67,9 @@ class AM implements IComm {
 		term = new Terminal2D(); 
 //		addChild(term.monitor);
 		term.init();
-		screen = Screen.me;
-		screen.addTerminal(term);
-		LG.screen = screen;
+		
+		Screen.addTerminal(term);
+		//LG.screen = screen;
 
 		init();
 //		update();
@@ -71,63 +77,56 @@ class AM implements IComm {
 		tm.run = update;
 	}// new()
 
-	function update()
+	override function update()
 	{  //trace("step");
 		last += Timer.stamp() - last;
 	}// update()
 
-	public function exec(mdt:MD)
-	{ 	//	trace(id+": "+mdt);
-		if(!MS.isMsg(mdt,sign))return;
+	override function dispatch(md:MD)
+	{ 	//	trace(id+": "+md);
+		if(!MS.isSender(md))return;
 //
-		switch(mdt.msg) {
+		switch(md.msg) {
 			case MD.EXIT: exit();
 			case MD.MSG: 
-				var cm = mdt.f[0];
+				var cm = md.f[0];
 				if(cm ==  MS.cmCode("cmLang")){}
 			
 		}
 	}// exec()
 
+	function resize(w:Int,h:Int)
+	{
+		// override me
+	}// resize()
+	
 
 	function onResize()
 	{ 
-//		screenW = Math.ceil(Lib.current.stage.stageWidth / dpi);
-//		screenH = Math.ceil(Lib.current.stage.stageHeight / dpi);
-//		var w = stage.stageWidth;
-//		var h = stage.stageHeight; 
-//		setBackground(w,h);
-
-		var w = 1024;
-		var h = 580;
-		screen.refresh(w,h); 
+		var w:Int = cfg.appWidth; 
+		var h:Int = cfg.appHeight; 
+		resize(w,h);
+		Screen.resize(w,h); 
 
 	}// onResize()
 
+	public static inline function getText(path:String)
+	{
+		return FS.getText(path);
+	}// getText()
+	
 	function init() 
 	{
-// set listeners
-//		addEventListener(Event.ENTER_FRAME, onEnterFrame);
-//		stage.addEventListener(Event.RESIZE, onResize);
-		var w = 1024;
-		var h = 540;
+		var w:Int = cfg.appWidth; 
+		var h:Int = cfg.appHeight; 
 
-		gui = new GUI(w,h); 
-		screen.addRoot(gui);
+		gui = new Gui(w,h); 
+		Screen.addRoot(gui);
 		
 		onResize();		
 
 	}
 	
-	function setBackground(w,h)
-	{ 
-/*		var m = new Matrix();
-		m.createGradientBox(w, h, Math.PI/2,0,0);
-		graphics.beginGradientFill(GradientType.LINEAR,[0xAAAAAA, 0xEEEEEE],[1, 1],[0x00, 0xCC],m);
-		graphics.drawRect(0, 0, w, h);
-*/
-	}// setBackground()
-
 	function exit()
 	{
 		Browser.window.close();
@@ -141,11 +140,11 @@ class AM implements IComm {
 		var width = Browser.window.innerWidth;
 		var height = Browser.window.innerHeight;
 		var dpi = Browser.window.devicePixelRatio;
-		var lang = "en";//Browser.window.clientInformation.language.substr(0, 2);
-		var os = "Linux";//Browser.window.clientInformation.platform;
-		if(os.startsWith("Linux"))os = "Linux";
-		else if(os.startsWith("Windows"))os = "Windows";
-		else if(os.startsWith("OSX"))os = "OSX";
+		var lang = Browser.navigator.language.substr(0, 2); 
+		var os = Browser.navigator.platform;  
+		if(os.starts("Linux"))os = "Linux";
+		else if(os.starts("Windows"))os = "Windows";
+		else if(os.starts("OSX"))os = "OSX";
 		var home = "";
 		var run = "js";
 

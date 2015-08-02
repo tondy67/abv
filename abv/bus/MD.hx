@@ -3,7 +3,7 @@ package abv.bus;
  * Message Data
  **/
 import abv.lib.math.Point;
-using abv.CR;
+using abv.lib.CR;
 
 @:dce
 class MD {
@@ -53,10 +53,6 @@ class MD {
 	public static inline var KEY_ENABLED		= KEY_UP | KEY_DOWN;
 
 // Subscribers
-	public var from(get,never):String;
-	var _from:String = "";
-	function get_from(){return _from;}
-
 	public var to(get,never):String;
 	var _to:String = "";
 	function get_to(){return _to;}
@@ -64,46 +60,37 @@ class MD {
 	public var msg(get,never):Int;
 	var _msg:Int = 0;
 	function get_msg(){return _msg;}
+
+@:allow(abv.bus.MS)	
+	public var sign(default,null):Int;
 	
-	public var sign(get,never):Int;
-	var _sign:Int = 0;
-	function get_sign(){return _sign;}
+	public var f:Array<Float> = [];
+	public var p:Array<Point> = [];
+	public var s = "";
 	
-	public var f:Array<Float>;
-	public var p:Array<Point>;
-	public var s:String;
-	
-	public function new(from:String,to:String,msg:Int,sign:Int,af:Array<Float>=null,str:String="",ap:Array<Point>=null)
+	public function new(sign:Int,to:String,msg:Int,f:Array<Float>=null,s="",p:Array<Point>=null)
 	{
-		_from = from;
 		_to = to;
 		_msg = msg;
-		_sign = sign;
-		f = af != null?af.copy():new Array();
-		s = str.good()?str:"";
-		p = ap != null?ap.copy():new Array();
+		this.sign = sign;
+		if(f != null)this.f = f.copy();
+		if(s.good())this.s = s;
+		if(p != null)this.p = p.copy();
 	}// new()
 
-	public inline function signin(sign:Int=0)
-	{
-		_sign = sign;
-	}
-	public inline function i(k:Int)
-	{
-		return Std.int(f[k]);
-	}
 	public inline function clone()
 	{
-		var n = new MD(from,to,msg,sign);
+		var n = new MD(sign,to,msg);
 		n.f = f.copy();
 		n.s = s;
 		n.p = p.copy();
 		return n;
 	}// copy()
+	
 	public inline function free()
 	{
-		_from = _to = null;
-		_sign = 0;
+		_to = null;
+		sign = 0;
 		_msg = 0;
 		clear(f);
 		s = null;
@@ -118,7 +105,7 @@ class MD {
 
 	public inline function toString() 
 	{
-        return 'MD(from: $from,to: $to,msg: ${MS.msgName(msg)},f:"+$f,s: $s,p: $p,sign: $sign)';
+        return 'MD(sign: $sign,to: $to,msg: ${MS.msgName(msg)},f:"+$f,s: $s,p: $p)';
     }// toString()
 
 
