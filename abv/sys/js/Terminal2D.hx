@@ -2,7 +2,6 @@ package abv.sys.js;
 
 import abv.bus.*;
 import abv.*;
-import abv.lib.LG;
 import abv.lib.style.*;
 import abv.io.*;
 import abv.cpu.Timer;
@@ -19,7 +18,7 @@ import js.html.CanvasElement;
 import js.html.DivElement; 
 import js.html.Document;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.math.MT;
 using abv.lib.TP;
 using abv.lib.style.Color;
@@ -33,7 +32,7 @@ class Terminal2D extends Terminal{
 	var shapes:Map<String,DoData>;
 	var doc:Document;
 	var body: DOMElement;   
-    var ctx: CanvasRenderingContext2D;
+    var ctx: CanvasRenderingContext2D = null;
 //
 	var ui:Input;
 	
@@ -43,24 +42,26 @@ class Terminal2D extends Terminal{
 		ui = new Input(); 
 //
         doc = Browser.document;
+        body = doc.getElementById("body");
 /*
 var st = doc.createStyleHtmlElement();
 st.type = "text/css"; 
 doc.head.appendChild(st); 
 cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'DefaultFont';src: url('../../assets/fonts/regular.ttf')  format('truetype');");
 */
-        body = doc.getElementById("body");
-        var canvas = cast(doc.createElement("Canvas"),CanvasElement);
-		var style = canvas.style;
-        body.appendChild(canvas);
-		ctx = canvas.getContext2d();
-        canvas.width = 1024;    
-		canvas.height = 600;
+		if(CC.CONTEXT > CC.CTX_1D){
+			var canvas = cast(doc.createElement("Canvas"),CanvasElement);
+			var style = canvas.style;
+			body.appendChild(canvas);
+			ctx = canvas.getContext2d();
+			canvas.width = CC.WIDTH;    
+			canvas.height = CC.HEIGHT;
+		}
 //trace("new");
 		Browser.window.addEventListener("keydown", onKeyDown, false);
 		Browser.window.addEventListener("keyup", onKeyUp, false);
-		canvas.addEventListener("mouseup", onMouseUp, false);
-		canvas.addEventListener("mousedown", onMouseDown, false);
+		Browser.window.addEventListener("mouseup", onMouseUp, false);
+		Browser.window.addEventListener("mousedown", onMouseDown, false);
 	}// new()
 
 	function onMsg(oid:String,cmd:Int)
@@ -83,13 +84,13 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 	function onMouseWheel(e:MouseEvent){ui.wheel = 0;}
 	function onMouseUp(e:MouseEvent){ui.click = false;}
 	function onMouseDown(e:MouseEvent)
-	{ 
+	{ trace("mouse down");
 		var oid = "";
 		var a = getObjectsUnderPoint(e.clientX,e.clientY);
-//LG.log(a+""); 
+ 
 		for(o in a){  
 			if(MS.accept(o,MD.MOUSE_DOWN)){ 
-				oid = o; LG.log(oid);
+				oid = o; //trace(oid);
 				break;
 			}
 		}
@@ -106,7 +107,6 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 		var oid:String  = cast(e.target,DOMElement).id; 
 trace(oid);
 		if(oid.good())onMsg(oid,MD.CLICK); 
-LG.log(oid);
 	}// onClick
 	
 	function onKeyUp(e:KeyboardEvent)
@@ -129,19 +129,23 @@ LG.log(oid);
 	
 	public override function drawClear()
 	{
-		var w = 1024, h = 600;
-		ctx.clearRect(0,0,w,h);
+		var w = CC.WIDTH, h = CC.HEIGHT;
+		if(CC.CONTEXT == CC.CTX_2D){
+			ctx.clearRect(0,0,w,h);
+		}
 /*		var grd = ctx.createLinearGradient(150.000, 0.000, 150.000, 300.000);
 		grd.addColorStop(0.125, 'rgba(170, 170, 170, 1.000)');
 		grd.addColorStop(0.994, 'rgba(238, 238, 238, 1.000)');
-		ctx.fillStyle = grd;
-		ctx.fillRect(0,0,w,h); */
+		ctx.copyStyle = grd;
+		ctx.copyRect(0,0,w,h); */
 	}// drawClear()
 
 	public override function drawStart()
 	{
+		if(ro.ctx != CC.CTX_1D)return;
+		
+		var ix = CC.ERR;
 		var style = ro.o.style;
-		if(ro.ctx != Ctx1D)return;
 		var kind = switch(Type.typeof(ro.o)){
 			case TClass(HBox):"hbox";
 			case TClass(VBox):"vbox";
@@ -169,9 +173,10 @@ LG.log(oid);
 			}else if(style.name == ".text"){
 				elm = doc.createElement("Div");
 				elm.className = "text"; 
-			}else{ trace(ro.o);
+			}else{ 
 				elm = doc.createElement("Div");
-				elm.className = "text"; 
+				ix = ro.o.id.indexOf("_");
+				elm.className = ix == CC.ERR?"text":ro.o.id.substr(0,ix);
 			}
 		
 			elm.id = ro.o.id;
@@ -185,7 +190,7 @@ LG.log(oid);
 				if(style.name.starts(".")){
 					var name = style.name.replace(".","");
 					var ix = name.indexOf("#");
-					if(ix != -1)name = name.substr(0,ix);
+					if(ix != CC.ERR)name = name.substr(0,ix);
 					elm.className = name;
 				}
 			}
@@ -205,14 +210,22 @@ LG.log(oid);
 		var tile:Rectangle = null;
 		var style = ro.o.style;
 
-		if(ro.ctx == Ctx2D){
+		if(ro.ctx == CC.CTX_1D){
+			var elm = doc.getElementById(ro.o.id);
+			if(elm != null){  
+				elm.style.left = x + "px"; 
+				elm.style.top = y + "px";
+			}
+		}else if(ro.ctx == CC.CTX_2D){
 			if(style != null){
-				if(style.background == null){}
-				else if(style.background.image.good()){
-					src = style.background.image;
-					if(style.background.position != null)
-						tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
-				}else c = style.background.color;
+				if(style.background != null){
+					if(style.background.image.good()){
+						src = style.background.image;
+						if(style.background.position != null)
+							tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
+					}
+					c = style.background.color;
+				}
 				
 				if(style.border != null){
 					r = style.border.radius;
@@ -252,8 +265,8 @@ LG.log(oid);
 	public override function drawText()
 	{ //trace(ro);
 		var style = ro.o.style;
-		if(ro.ctx == Ctx1D){
-			elm.innerHTML = ro.o.text;
+		if(ro.ctx == 1){
+			elm.innerHTML = ro.o.text.nl2br();
 		}else{		
 			var c = ro.o.color;
 			var name = "status-bar";

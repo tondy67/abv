@@ -3,7 +3,7 @@ package abv.bus;
  * Message Data
  **/
 import abv.lib.math.Point;
-using abv.lib.CR;
+using abv.lib.CC;
 
 @:dce
 class MD {
@@ -105,7 +105,7 @@ class MD {
 
 	public inline function toString() 
 	{
-        return 'MD(sign: $sign,to: $to,msg: ${MS.msgName(msg)},f:"+$f,s: $s,p: $p)';
+        return 'MD(sign: $sign,to: $to,msg: ${MS.msgName(msg)},f: $f,s: $s,p: $p)';
     }// toString()
 
 

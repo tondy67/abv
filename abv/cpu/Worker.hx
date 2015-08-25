@@ -4,7 +4,7 @@ package abv.cpu;
  **/
 import abv.cpu.Thread;
 
-using abv.lib.CR;
+using abv.lib.CC;
 
 class Worker{
 

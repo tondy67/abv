@@ -1,9 +1,10 @@
 package abv.lib.anim;
 /**
+ * Transitions
  * Easing functions thankfully taken from http://www.robertpenner.com/easing
  **/
 @:dce
-class Transitions{
+class TS{
 	public static inline var LINEAR 				= "linear";
 	public static inline var EASE_IN 				= "easeIn";
 	public static inline var EASE_OUT 				= "easeOut";
@@ -186,5 +187,5 @@ class Transitions{
 		else return 0.5 * endFunc((ratio-0.5)*2.0) + 0.5;
 	}// easeCombined()
 
-}// abv.lib.anim.Transitions
+}// abv.lib.anim.TS
 

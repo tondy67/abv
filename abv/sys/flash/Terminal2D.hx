@@ -2,11 +2,11 @@ package abv.sys.flash;
 
 import abv.bus.*;
 import abv.*;
-import abv.lib.LG;
 import abv.lib.style.*;
 import abv.io.*;
 import abv.lib.comp.Component;
 import abv.lib.math.Rectangle;
+import abv.io.Screen;
 
 import flash.display.Sprite;
 import flash.display.BitmapData;
@@ -14,7 +14,7 @@ import flash.geom.Matrix;
 import flash.text.*;
 import flash.events.*;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.math.MT;
 using abv.lib.style.Color;
 
@@ -38,7 +38,7 @@ class Terminal2D extends Terminal{
 	function tid(e:MouseEvent)
 	{ 
 		var oid:Null<String> = "";
-		try oid = e.target.name catch(d:Dynamic){LG.log(d);}; 
+		try oid = e.target.name catch(d:Dynamic){trace(d);}; 
 		return oid;
 	}// tid()
 	
@@ -75,7 +75,7 @@ class Terminal2D extends Terminal{
  
 		for(o in a){  
 			if(MS.accept(o,MD.MOUSE_DOWN)){ 
-				oid = o; LG.log(oid);
+				oid = o; //trace(oid);
 				break;
 			}
 		}
@@ -154,51 +154,52 @@ class Terminal2D extends Terminal{
 				}
 			}
 
-			if(style.background == null){}
-			else if(style.background.image.good()){
-				if(style.background.position != null)
-					tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
-				src = style.background.image; 
-				if(bmd.exists(src+tile)){
-					bd = bmd[src+tile]; 
-//		if(ro.o.id == "player")trace(src+tile);
-				}else{
-					bd = getTile(FS.getTexture(src),tile,scale);
-					if(bd != null){
-						bmd.set(src+tile,bd); 
+			if(style.background != null){
+				if(style.background.image.good()){
+					if(style.background.position != null)
+						tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
+					src = style.background.image; 
+					if(bmd.exists(src+tile)){
+						bd = bmd[src+tile]; 
+					}else{ 
+						bd = getTile(FS.getTexture(src),tile,scale);
+						if(bd != null)bmd.set(src+tile,bd); 
 					}
 				}
-			}else c = style.background.color.clr(); 
+				c = style.background.color.clr(); 
+			}
 		}
-		
-		if (bd == null) {
+	
+		if (c.alpha > 0) { 
 			sp.graphics.beginFill(c.rgb ,c.alpha); 
-		}else{
+			sp.graphics.drawRoundRect(x, y, w * scale, h * scale, radius);
+		}
+		if (bd != null) {
 			var m:Matrix = new Matrix();
 			m.translate(x, y);
 			sp.graphics.beginBitmapFill(bd,m,false); 
+			sp.graphics.drawRoundRect(x, y, w * scale, h * scale, radius);
 		}
 
-		sp.graphics.drawRoundRect(x, y, w* scale, h* scale, radius);
 		sp.graphics.endFill();
 	}// drawShape()
 
 	public override function drawText()
 	{ //trace(ro);
 		var c = ro.o.color.clr();
-		var name = "_sans";
+		var src = "";
 		var size = 14.;
 		var style = ro.o.style;
 		if(style != null){
 			if(style.color.good())c = style.color.clr();
 			if(style.font != null){
-				if(style.font.name.good())name = style.font.name;
+				if(style.font.src.good())src = style.font.src;
 				if(style.font.size != null)size = style.font.size;
 			}
 		}
 //trace(style.font);
 		var tf = new TextField();
-		var font = FS.getFont (name);
+		var font = FS.getFont(src);
 		var ft = new TextFormat(font.fontName, size, c.rgb);
 		tf.defaultTextFormat = ft;
 		tf.width = ro.o.width;
@@ -214,9 +215,12 @@ class Terminal2D extends Terminal{
 	}// drawText()
 
 	function getTile(bm:BitmapData,rect:Rectangle,scale = 1.)
-	{
+	{ 
 		var sbm:BitmapData = null;
-		if(bm == null) return sbm;
+		if(bm == null) return sbm; 
+		if(rect == null){
+			rect = new Rectangle(0,0,bm.width,bm.height);
+		}
 		var bd = new BitmapData(MT.closestPow2(rect.w.int()), MT.closestPow2(rect.h.int()), true, 0);
 		var pos = new flash.geom.Point();
 		var r = new flash.geom.Rectangle(rect.x,rect.y,rect.w,rect.h);
@@ -234,6 +238,18 @@ class Terminal2D extends Terminal{
 		return sbm;
 	}// getTile()
 
+	public override function clear(l:List<Component>)
+	{ 
+		for(el in l){ 
+			queue.remove(el.id);
+			forms.remove(el.id);
+			if(shapes.exists(el.id)){
+				monitor.removeChild(shapes[el.id]);
+				shapes.remove(el.id);
+			}
+		}
+	}// clear()
+	
 
 	public override function drawEnd()
 	{

@@ -10,17 +10,17 @@ class Curve{
 	
 	inline function new(){}
 	
-	public static function quad(x:Float,y:Float,width:Float,height:Float,trans=Transitions.LINEAR,reverse=false,step=100)
+	public static function quad(x:Float,y:Float,width:Float,height:Float,trans=TS.LINEAR,step=1000,reverse=false)
 	{
 		var path:Array<Point> = [];
-		var corner:Array<Point> = [new Point(x,y)];
-		var cur:Float;
+		var corner:Array<Point> = [new Point(x,y),new Point(),new Point(),new Point()];
+		var cur:Float = .0;
 		var dir = reverse ? -1: 1;
 		width = Math.abs(width); height = Math.abs(height);
 		var length = 2*(width + height); 
 		
 		for(i in 0...step){
-			cur = Transitions.get(trans)(i/step) * length;
+			cur = TS.get(trans)(i/step) * length;
 			if(cur < width){
 				corner[1] = new Point(x+ dir*cur,y);
 				path.push(corner[1]);
@@ -39,7 +39,7 @@ class Curve{
 		return path;
 	}// quad()
 	
-	public static function circle(cp:Point,radius:Float,trans=Transitions.LINEAR,step=1000,reverse=false)
+	public static function circle(cp:Point,radius:Float,trans=TS.LINEAR,step=1000,reverse=false)
 	{
 		var q = 2*Math.PI/step;
 		var path:Array<Point> = [];
@@ -47,7 +47,7 @@ class Curve{
 		
 		for(i in 0...step){
 			ratio = reverse?1-i/step:i/step;
-			path[i] = Point.polar(radius,Transitions.get(trans)(ratio)*2*Math.PI);
+			path[i] = Point.polar(radius,TS.get(trans)(ratio)*2*Math.PI);
 			path[i].offset(cp.x,cp.y);
 		}
 		

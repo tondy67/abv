@@ -9,11 +9,11 @@ import flash.display.Loader;
 import flash.events.*;
 import flash.net.*;
 
-using abv.lib.CR;
+using abv.lib.CC;
 
-@:font("res/fonts/regular.ttf") class DefaultFont extends Font {}
+@:font("res/ui/default/font/regular.ttf") class DefaultFont extends Font {}
 
-@:build(abv.macro.BM.embedResources("res/config.json"))
+@:build(abv.macro.BM.embedResources())
 class FS{
 
 	static var textures = new Map<String,BitmapData>();
@@ -90,7 +90,7 @@ class FS{
 
 	static function onComplete(e:Event)
 	{ 
-		var bdir = CR.dirname(e.target.loaderURL);
+		var bdir = CC.dirname(e.target.loaderURL);
 		var id = StringTools.replace(e.target.url,bdir + "/", ""); 
 		var bd = e.target.loader.content.bitmapData; 
 		if (id.good() && (bd != null)) { 

@@ -6,10 +6,11 @@ import haxe.crypto.Md5;
 import haxe.io.Bytes;
 import abv.net.web.Icons;
 import abv.net.web.WebServer;
+import abv.lib.DateGMT;
 
 using abv.lib.TP;
 using abv.sys.ST;
-using abv.lib.CR;
+using abv.lib.CC;
  
 
 @:dce
@@ -35,9 +36,9 @@ class WT{
 	public static inline var HOST 				= "Host"; 
 	public static inline var COOKIE 			= "Cookie"; 
 	
-	public static var tz = CR.timezone();
-	public static var dow = CR.dow();
-	public static var month = CR.month();
+	public static var tz = DateGMT.timezone();
+	public static var dow = DateGMT.dow();
+	public static var month = DateGMT.getMonth();
 
 	public static inline var methods = '$GET $POST $HEAD';
 	public static inline var versions = '$HTTP10 $HTTP11';
@@ -194,9 +195,9 @@ class WT{
 		for(l in lines){ 
 			if(l.starts(CONTENT_DISPOSITION)){
 				n = f = c = m = "";
-				a = l.splitt(CR.LF2);
+				a = l.splitt(CC.LF2);
 				if(a[1].good())c = a[1];
-				t = a[0].splitt(CR.LF);
+				t = a[0].splitt(CC.LF);
 				if(t[1].good() && t[1].starts(CONTENT_TYPE)){
 					m = t[1].replace(CONTENT_TYPE+":"," ").trim();
 				}
@@ -212,7 +213,7 @@ class WT{
 				if(n.good()){
 					r.set(n,"");
 					if(c.good()){
-						if(f.good())r[n] = 'file:$f${CR.SEP3}$m${CR.SEP3}$c';
+						if(f.good())r[n] = 'file:$f${CC.SEP3}$m${CC.SEP3}$c';
 						else r[n] = c;
 					}
 				}
@@ -281,7 +282,7 @@ class WT{
 
 		if(!responseCode.exists(ctx["status"]))ctx["status"] = "500";
 		var code = ctx["status"] + " " + responseCode[ctx["status"]];
-		var r = HTTP11 + " " + code + CR.LF;
+		var r = HTTP11 + " " + code + CC.LF;
 
 		if(ctx["status"] != "200"){
 			ctx["body"] = "";
@@ -293,27 +294,27 @@ class WT{
 		if(ctx["status"] == "304"){
 		}else if(ctx["status"] == "303"){ 
 			var port = ctx["port"].good()?":"+ctx["port"]:""; 
-			r += LOCATION + ": http://" + ctx["host"] + port + ctx["request"] + CR.LF;
+			r += LOCATION + ": http://" + ctx["host"] + port + ctx["request"] + CC.LF;
 		}else if(ctx["status"] == "401"){
-			r += 'WWW-Authenticate: Basic realm="Protected area"' + CR.LF + CONTENT_LENGTH + ": 0" + CR.LF;
+			r += 'WWW-Authenticate: Basic realm="Protected area"' + CC.LF + CONTENT_LENGTH + ": 0" + CC.LF;
 		}else{
 			body = ctx["body"] ; 
 			if(!ctx["mime"].good()) ctx["mime"] = "htm";
 			var type = mimeType.exists(ctx["mime"])?mimeType[ctx["mime"]]:mimeType["bin"];
 			if(type.starts("text"))type += ";charset=utf-8";
 			if(ctx["method"] == HEAD)body = "";
-			r += CONTENT_TYPE + ": " + type + CR.LF +
-			CONTENT_LENGTH + ": " + ctx["length"] + CR.LF ;
+			r += CONTENT_TYPE + ": " + type + CC.LF +
+			CONTENT_LENGTH + ": " + ctx["length"] + CC.LF ;
 		}
 
-		r += DATE + ": " + date + CR.LF; 
-		if(etag(ctx).good()) r += ETAG + ": " + etag(ctx) + CR.LF;
+		r += DATE + ": " + date + CC.LF; 
+		if(etag(ctx).good()) r += ETAG + ": " + etag(ctx) + CC.LF;
 		if(ctx["cookies"].good()){
 			var cc = parseCookie(ctx["cookies"],"\n");
-			for(k in cc.keys()) r += 'Set-Cookie: $k=${cc.get(k)}' + CR.LF;
+			for(k in cc.keys()) r += 'Set-Cookie: $k=${cc.get(k)}' + CC.LF;
 		 }
-		r += SERVER + ": " + WebServer.SIGN + CR.LF +
-		CONNECTION + ": " + KEEP_ALIVE + CR.LF2 + body;
+		r += SERVER + ": " + WebServer.SIGN + CC.LF +
+		CONNECTION + ": " + KEEP_ALIVE + CC.LF2 + body;
 		 
 		return Bytes.ofString(r);
 	}// response()
@@ -407,7 +408,7 @@ class WT{
 		path = slash(path);
 		if(path.exists()){
 			var ext = "",type = "", f = "";
-			var a = path.get();	
+			var a = path.getDir();	
 			var dirs:Array<String> = [];
 			var files:Array<String> = [];
 			for(p in a){

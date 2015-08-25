@@ -6,7 +6,7 @@ import abv.AM;
 import abv.cpu.Timer;
 import abv.sys.ST;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.TP;
 using abv.sys.ST;
 using abv.ds.DT;
@@ -17,43 +17,39 @@ class SH{
 	public static var ds:Dynamic = null;
 	public static var ctx:Array<String> = null;
 	public static var args:Array<String> = null;
-	static var files = new List<String>();
 	static var platform = "";
 	public static var output = ""; 
 	static var T = new TextProcessing();
 
 	inline function new(){ }
 
-	public static function ln(path:Null<String>,link:String,opt="s")
+	public static function ln(path:String,link:String,opt="s")
 	{
 		print('ln: $path $link $opt');
+		// mklink
 	}// ln()
+	
+	public static function hide(path:String)
+	{
+		print("hide");
+		// attrib +h file
+	}// hide()
+	
+	public static function unhide(path:String)
+	{
+		print("unhide");
+		// attrib -h file
+	}// unhide()
 	
 	public static inline function ls(path=".",opt="")
 	{
-		var r:Array<String> = [];
+		var r:Array<String>;
 
-		if (path.isDir('ls: $path')) {
-			if (opt.indexOf("R") != -1) {
-				files.clear();
-				ls_R(path);
-				for(f in files)r.push(f);
-			}else r = path.get();
-		}
+		if (opt.indexOf("R") != -1) r = path.getDir(true);
+		else r = path.getDir();
 
 		return r;
 	}// ls()
-	
-	static function ls_R(path:Null<String>)
-	{
-		var c = ""; 
-		var f:Array<String> = path.isDir('ls_R: $path')?path.get():[];
-		for(i in f){ 
-			c = '$path/$i';
-			files.push(c);
-			if(c.isDir("ls_R"))ls_R(c);
-		}
-	}// ls_R()
 	
 	public static function cp(src:String,dst:String,opt="")
 	{
@@ -64,20 +60,18 @@ class SH{
 	{
 		if(!path.good("rm")) return;
 		else if(!path.exists('rm: $path')) return;
-		else if(!path.dirname().abs().starts(pwd()))
+		else if(!path.dirname().absPath().starts(pwd()))
 			throw "rm: Not permitted outside current directory!";
 
 		if(path.isDir()){
-			files.clear();
-			ls_R(path);
+			var files = path.getDir(true);
 			for(f in files)f.del();
-			path.del();	
 		}else if(path.exists('rm: $path'))path.del();
 	}// rm()
 	
-	public static inline function mkdir(path:Null<String>,opt="p")
+	public static inline function mkdir(path:String,opt="p")
 	{
-		ST.mkdir(path,opt);
+		if(!path.isDir())ST.mkdir(path,opt);
 	}// mkdir()
 	
 	public static function mv(src:String,dst:String)
@@ -99,20 +93,19 @@ class SH{
 		return Sys.stdin().readLine();
 	}// read()
 
-	public static inline function echo(msg="",path="",append=false)
-	{// TODO: colors
+	public static inline function echo(msg:String,color="",path="",append=false)
+	{
 		if(!msg.good())msg = "";
 		if(!AM.silent){ 
-			if(path.good()){
-				if(!path.isDir(path))path.save(msg + " ");
-			}else Sys.print(msg); 
+			if(path.good() && !path.isDir(path))path.save(msg + " ");
+			else ST.print(msg,color); 
 		}else output += msg;
 	}//echo()
 	
-	public static inline function print(msg="")
+	public static inline function print(msg="",color="")
 	{ 
-		var end = !AM.silent?CR.LF:"<br>\n"; 
-		echo(msg + end);
+		var end = !AM.silent?CC.LF:"<br>"+CC.LF; 
+		echo(msg + end,color);
 	}// print()
 	
 	public static inline function clear(lines=25)
@@ -150,13 +143,13 @@ class SH{
 		return r;
 	}//env()
 
-	public static inline function cat(path:Null<String>)
+	public static inline function cat(path:String)
 	{
-		var r:Null<String> = "";
+		var r:String = "";
 		var s = 'cat: $path';
 		if(path.exists(s) && !path.isDir(s)){
 			try r = path.open()
-			catch(m:Dynamic){trace(CR.WARN+s + " "+m);}
+			catch(m:Dynamic){trace(WARN+s + " "+m);}
 		}
 		
 		return r;
@@ -186,12 +179,12 @@ class SH{
 		return Sys.getCwd();
 	}// pwd()
 	
-	public static inline function cd(path:Null<String>)
+	public static inline function cd(path:String)
 	{
 		if(path.isDir('cd: $path'))Sys.setCwd(path);
 	}// cd()
 	
-	public static inline function zip(path:Null<String>,file:String,opt="r")
+	public static inline function zip(path:String,file:String,opt="r")
 	{
 		if(path.good('zip: $path'))echo('zip: $path $opt');
 	}// zip()
@@ -210,7 +203,7 @@ class SH{
 //
 		ip.variables.set("TP",TP);
 		ip.variables.set("Math",Math);
-		ip.variables.set("json",CR.json);
+		ip.variables.set("json",CC.json);
 		ip.variables.set("good",good);
 		ip.variables.set("fields",DT.fields);
 //
@@ -288,8 +281,8 @@ class TextProcessing
 	public inline function search(src:String,what:String,start=0){return TP.search(src,what,start);}
 	public inline function find(src:String,what:String,start=0,len=0){return TP.find(src,what,start);}
 	public inline function extract(src:String,open="",close=""){return TP.extract(src,open,close);}
-	public inline function map2str(m:Map<String,String>,sep1=CR.SEP1,sep3=CR.SEP3){return TP.map2str(m,sep1,sep3);}
-	public inline function str2map(s:String,sep1=CR.SEP1,sep3=CR.SEP3){return TP.str2map(s,sep1,sep3);}
+	public inline function map2str(m:Map<String,String>,sep1=CC.SEP1,sep3=CC.SEP3){return TP.map2str(m,sep1,sep3);}
+	public inline function str2map(s:String,sep1=CC.SEP1,sep3=CC.SEP3){return TP.str2map(s,sep1,sep3);}
 	public inline function urlEncode(s:String){return TP.urlEncode(s);}
 	public inline function urlDecode(s:String){return TP.urlDecode(s);}   
 }// abv.io.TextProcessing

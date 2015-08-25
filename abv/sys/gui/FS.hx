@@ -4,7 +4,7 @@ import haxe.Resource;
 
 using abv.sys.ST;
 
-@:build(abv.macro.BM.embedResources("res/config.json"))
+@:build(abv.macro.BM.embedResources())
 class FS{
 
 	static var texts = new Map<String,String>();

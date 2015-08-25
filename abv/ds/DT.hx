@@ -4,7 +4,7 @@ package abv.ds;
  **/
 import haxe.ds.StringMap;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.TP;
 
 @:dce
@@ -18,10 +18,10 @@ class DT{
 		var r = true;
 		
 		if(v == null){
-			trace(CR.ERROR+msg+": Null Array"); 
+			if(msg != "")trace(ERROR+"Null Array: "+msg); 
 			r = false;
 		}else if(v.length == 0){
-			trace(CR.WARN+msg+": Empty Array");
+			if(msg != "")trace(WARN+"Empty Array: "+msg);
 			r = false;
 		}
 		
@@ -32,12 +32,11 @@ class DT{
 	{ 
 		var r = false;
 		
-		
 		if(v == null){
-			trace(CR.ERROR+msg+": Null StringMap"); 
+			if(msg != "")trace(ERROR+"Null StringMap"+msg); 
 			r = true;
 		}else if(length(v) == 0){
-			trace(CR.WARN+msg+": Empty StringMap");
+			if(msg != "")trace(WARN+"Empty StringMap"+msg);
 			r = true;
 		}
 		
@@ -75,7 +74,7 @@ class DT{
 	{ 
 		var r:StringMap<T> = null;
 		
-		if(v == null)trace(CR.ERROR+msg+": Null StringMap"); 
+		if(v == null)trace(ERROR+"Null StringMap: "+msg); 
 		else{ 
 			r = new StringMap<T>();
 			for(k in v.keys())r.set(k,v.get(k));
@@ -97,10 +96,10 @@ class DT{
 		var r = false;
 		
 		if(v == null){
-			trace(CR.ERROR+msg+": Null List"); 
+			if(msg != "")trace(ERROR+"Null List: "+msg); 
 			r = true;
 		}else if(v.length == 0){
-			trace(CR.WARN+msg+": Empty List");
+			if(msg != "")trace(WARN+"Empty List: "+msg);
 			r = true;
 		}
 		
@@ -121,9 +120,7 @@ class DT{
 						haxe.ds.ArraySort.sort(a, cmp);
 						for(s in a)if(!s.starts("#"))r.push(s);
 					};
-				default: 
-					var msg = m1;
-					trace(msg);
+				default: trace(m1);
 			}
 		}
 		return r;
@@ -137,10 +134,8 @@ class DT{
 			switch(Type.typeof(o)){
 				case TObject: 
 					if(field.good())r = Reflect.field(o,field);
-					else trace(CR.WARN+"no field: " + field);
-				default: 
-					var msg = m1;
-					trace(msg);
+					else trace(WARN+"no field: " + field);
+				default: trace(m1);
 			}
 		}
 
@@ -153,10 +148,8 @@ class DT{
 			switch(Type.typeof(o)){
 				case TObject: 
 					if(field.good())Reflect.setField(o,field,value);
-					else trace(CR.WARN+"no field: " + field);
-				default: 
-					var msg = m1;
-					trace(msg);
+					else trace(WARN+"no field: " + field);
+				default: trace(m1);
 			}
 		}
 	}// setField()
@@ -169,9 +162,7 @@ class DT{
 			switch(Type.typeof(o)){
 				case TObject: 
 					r = Reflect.hasField(o,field);
-				default: 
-					var msg = m1;
-					trace(msg);
+				default: trace(m1);
 			}
 		}
 		return r;

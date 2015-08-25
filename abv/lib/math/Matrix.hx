@@ -6,7 +6,7 @@ import openfl.Vector;
 //
 class Matrix extends Matrix3D{
 
-
+// TODO: rewrite
 	public function new(a:Array<Float> = null)
 	{
 		var v = new Vector<Float>();

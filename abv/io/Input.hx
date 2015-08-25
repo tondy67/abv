@@ -25,7 +25,7 @@ class Input{
 
 	public function update()
 	{
-		if(move.equal(start))last.copy(start);
+		if(move.eq(start))last.copy(start);
 		if(click){
 			delta = move.sub(last);
 			last.copy(move);

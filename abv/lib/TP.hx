@@ -4,7 +4,7 @@ import haxe.Utf8;
 import haxe.ds.StringMap;
 
 using StringTools;
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.math.MT;
 
 /**
@@ -26,7 +26,7 @@ class TP{
 		if(a != null){
 			if(cmp == null)
 				cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-			CR.sort(a, cmp);
+			CC.sort(a, cmp);
 		}
 	}// order()
 
@@ -44,7 +44,7 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic){trace(CR.ERROR+char);}
+		catch(m:Dynamic){trace(ERROR+char);}
 
 		return r;
 	}// chr()
@@ -79,7 +79,7 @@ class TP{
 		var r = false;
 		if(s.good(msg)){
 			r = haxe.Utf8.validate(s);
-			if(!r)trace(CR.ERROR+msg + " Not utf8"); 
+			if(!r)trace(ERROR+msg + " Not utf8"); 
 		}
 		return r;
 	}// isUtf8()
@@ -157,7 +157,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic){trace(CR.ERROR+m);}
+		catch(m:Dynamic){trace(ERROR+m);}
 		return r;
 	}// ltrim()
 
@@ -191,6 +191,24 @@ class TP{
 		return r;
 	}// replace()
 
+	public static inline function nl2br(s:String)
+	{
+		var r = "";
+
+		if(s.good()) r = StringTools.replace(s,"\n","<br>");
+		
+		return r;
+	}// nl2br()
+
+	public static inline function br2nl(s:String)
+	{
+		var r = "";
+
+		if(s.good()) r = StringTools.replace(s,"<br>","\n");
+		
+		return r;
+	}// br2nl()
+
 	public static inline function has(src:String,what:String,start=0)
 	{
 		var r = false; 
@@ -207,7 +225,7 @@ class TP{
 
 	public static inline function search(src:String,what:String,start=0)
 	{// todo: regex
-		var r = -1;
+		var r = CC.ERR;
 
 		if(src.good() && what.good(what)){
 			var len = src.length;
@@ -220,7 +238,7 @@ class TP{
 	}// search()
 
 	public static inline function find(src:String,what:String,start=0,len=0)
-	{// todo: regex
+	{// TODO: regex
 		var r:Array<Int> = [];
 
 		if(src.good("src") && what.good(what)){
@@ -230,11 +248,11 @@ class TP{
 			len = Std.int(len.range(srclen-start,0));
 
 			var cur = 0,i = 0;
-			var str = substr(src,start,len); //trace(str.length);
+			var str = substr(src,start,len); 
  
 			while(cur < str.length){ 
-				i = str.indexOf(what,cur); //trace(i+":"+cur+":"+str.length);
-				if(i == -1)cur = str.length;
+				i = str.indexOf(what,cur); 
+				if(i == CC.ERR)cur = str.length;
 				else{
 					cur = i+what.length-1;
 					r.push(length(src.substr(0,i)));
@@ -255,24 +273,24 @@ class TP{
 			if(!open.good()){
 				if(close.good()){
 					c = src.indexOf(close);  
-					if(c != -1)a.push(src.substring(0,c));
+					if(c != CC.ERR)a.push(src.substring(0,c));
 				}
 			}else if(!close.good()){
 				if(open.good()){
 					o = src.indexOf(open);  
-					if(o != -1)a.push(src.substr(o+open.length));
+					if(o != CC.ERR)a.push(src.substr(o+open.length));
 				}
 			}else{
 				while(o < len-1){ 
 					o = src.indexOf(open,o);
-					if(o == -1)break;
+					if(o == CC.ERR)break;
 					else{
 						c = src.indexOf(close,o);
 						if(c > o){
 							s = src.substring(o + open.length, c);
-							if(s.indexOf(open) == -1)a.push(s);
+							if(s.indexOf(open) == CC.ERR)a.push(s);
 							o = c+1; 
-						}else if(c == -1)break;
+						}else if(c == CC.ERR)break;
 					}
 				}
 			}
@@ -280,7 +298,7 @@ class TP{
 		
 		return a;
 	}// extract()
-	public static inline function map2str(m:Map<String,String>,sep1=CR.SEP1,sep3=CR.SEP3)
+	public static inline function map2str(m:Map<String,String>,sep1=CC.SEP1,sep3=CC.SEP3)
 	{   
 		var r = "";
 		for(k in m.keys()) r += k + sep1 + m.get(k) + sep3;
@@ -288,7 +306,7 @@ class TP{
 		return r;
 	}// map2str()
 
-	public static inline function str2map(s:String,sep1=CR.SEP1,sep3=CR.SEP3)
+	public static inline function str2map(s:String,sep1=CC.SEP1,sep3=CC.SEP3)
 	{   
 		var r = new Map<String,String>();
 		var a:Array<String>;
@@ -300,7 +318,7 @@ class TP{
 				t = splitt(i,sep1);
 				if(t[0].good()){
 					if(t[1].good())v = t[1];
-					if(r.exists(t[0]))r[t[0]] += CR.SEP1 + v;
+					if(r.exists(t[0]))r[t[0]] += CC.SEP1 + v;
 					else r.set(t[0],v);
 				}
 			}

@@ -11,7 +11,7 @@ import abv.lib.style.Style;
 import abv.io.Screen;
 import abv.lib.math.Point;
 
-using abv.lib.CR;
+using abv.lib.CC;
 
 @:dce
 @:allow(abv.io.Screen)
@@ -22,13 +22,11 @@ class Terminal extends Object{
 	var ro:DoData = null;
 	var queue:Array<String> = [];
 	var forms = new Map<String,DoData>();
-	var context = Ctx2D;
 	
-	public function new(id:String)
+	public inline function new(id:String)
 	{
 		super(id);
 		msg = {accept:MD.ALL,action:new Map()}
-//		context = Ctx2D;
 	}// new()
 	
 	function getObjectsUnderPoint(x:Float,y:Float)
@@ -48,19 +46,20 @@ class Terminal extends Object{
 //	@:overload( function(li:List<Float> ) :Void {} )
 	public function render(list:List<DoData>)
 	{ 
-		var ix = -1, oid = "", i = 0;
-		var fill = queue.length == 0 ? true:false;
+		var ix = CC.ERR, oid = "", i = 0;
+
 		for(el in list){
-			oid = el.o.id;
-			if(fill){
+			oid = el.o.id; 
+
+			if(queue.length == 0){
 				queue.push(oid);
 			}else if(i == 0){
 				ix = queue.indexOf(oid);
-				if(ix == -1){
+				if(ix == CC.ERR){
 					queue.push(oid);
 					ix = queue.indexOf(oid);
 				}
-			}else{
+			}else{ 
 				queue.remove(oid);
 				queue.insert(ix+i,oid);	
 			}
@@ -68,32 +67,16 @@ class Terminal extends Object{
 			i++;
 		}
 
-		var x:Float, y:Float;
-		var o:Component, ctx:GraphicsContext;
-		var style:StyleProps, sel = NORMAL;
-		
 		drawClear(); 
 		
 		for(el in queue){
 			ro = forms[el];
-			x = ro.x; y = ro.y;
-			o = ro.o; ctx = ro.ctx;
-			style = null; sel = NORMAL;
-
-			if(Std.is(o,Button)){
-				switch(cast(o, Button).states[0].text) {
-					case Button.Hover:	sel = HOVER; 
-				}
-			}	
-
-				o.style.state = sel;
 			
 			drawStart(); 
 			
 			if(ro.o.visible){
-				if(style == null)drawShape();
-				else if(style.background != null)drawShape();
-				if(o.text.good())drawText();
+				drawShape();
+				if(ro.o.text.good())drawText();
 			}
 			
 			drawEnd(); 
@@ -102,6 +85,14 @@ class Terminal extends Object{
 		renderScreen(); 
 		update();
 	}// render()
+
+	public function clear(l:List<Component>)
+	{ 
+		for(el in l){ 
+			queue.remove(el.id);
+			forms.remove(el.id); 
+		}
+	}// clear()
 	
 	public function drawClear(){}
 

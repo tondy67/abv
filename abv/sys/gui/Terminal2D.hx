@@ -10,11 +10,9 @@ import abv.cpu.Timer;
 import abv.io.Screen;
 import abv.ui.box.*;
 import abv.ui.widget.*;
-import abv.sys.gui.GUI;
 import abv.lib.math.Rectangle;
-import abv.lib.LG;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.math.MT;
 using abv.lib.TP;
 using abv.lib.style.Color;
@@ -24,8 +22,6 @@ using abv.lib.style.Color;
 class Terminal2D extends Terminal{
 
 	var textures:Array<Int> = [];
-	static var SCREEN_WIDTH = 1024;
-	static var SCREEN_HEIGHT = 540;
 	var mX = 0;
 	var sdl:GUI;
 	var reverse = false;
@@ -46,7 +42,7 @@ class Terminal2D extends Terminal{
 		super("Terminal2D");
 		ui = new Input(); 
 ///
-		GUI.init(SCREEN_WIDTH,SCREEN_HEIGHT);
+		GUI.init(CC.NAME, CC.WIDTH, CC.HEIGHT);
 //trace(GUI.getLog());
 		GUI.onMouseWheel = onMouseWheel;
 		GUI.onMouseUp = onMouseUp;
@@ -58,7 +54,10 @@ class Terminal2D extends Terminal{
 
 	}// new()
 
-	override function update(){GUI.update();}
+	public override function update()
+	{
+		GUI.update();
+	}// update()
 	
 	function print(s="")
 	{
@@ -94,10 +93,10 @@ class Terminal2D extends Terminal{
 	{ 
 		var oid = "";
 		var a = getObjectsUnderPoint(x,y);
-//LG.log(a+""); 
+
 		for(o in a){  
 			if(MS.accept(o,MD.MOUSE_DOWN)){ 
-				oid = o; LG.log(oid);
+				oid = o; //trace(oid);
 				break;
 			}
 		}
@@ -115,13 +114,13 @@ class Terminal2D extends Terminal{
 	{ 
 		var oid:String  = "";//cast(e.toElement,Element).id;
 		if(oid.good())onMsg(oid,MD.CLICK); 
-LG.log(oid);
+//LG.log(oid);
 	}// onClick
 	
 	function onKeyUp(key:Int)
 	{
 		ui.keys[key] = false;
-		MS.exec(new MD(sign,"",MD.KEY_UP,[key]));
+		MS.exec(new MD(sign,"",MD.KEY_UP,[key])); 
 	}// onKeyUp()
 	
 	function onKeyDown(key:Int)
@@ -138,7 +137,6 @@ LG.log(oid);
 
 	public override function drawStart()
 	{
-		if(ro.ctx != Ctx1D)return;
 		var kind = switch(Type.typeof(ro.o)){
 			case TClass(HBox):"hbox";
 			case TClass(VBox):"vbox";
@@ -168,12 +166,14 @@ LG.log(oid);
 		var style = ro.o.style;
 		
 		if(style != null){
-			if(style.background == null){}
-			else if(style.background.image.good()){
-				src = style.background.image;
-				if(style.background.position != null)
-					tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
-			}else c = style.background.color;
+			if(style.background != null){
+				if(style.background.image.good()){
+					src = style.background.image;
+					if(style.background.position != null)
+						tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
+				}
+				c = style.background.color; 
+			}
 			
 			if(style.border != null){
 				radius = style.border.radius.int();
@@ -181,23 +181,22 @@ LG.log(oid);
 				bColor = style.border.color;
 			}
 		}
-
-		var rs = GUI.renderQuad(new Rectangle(x,y,w*scale,h*scale),c,border, bColor); 
-		if(src.good()) rs += GUI.renderImage(src,x,y,tile,scale); 
-		if(rs != 0)trace(GUI.getLog());
+//if(ro.o.id == "food_0")trace(c+":"+border);
+		if((c > 0)||(border > 0))GUI.renderQuad(new Rectangle(x,y,w*scale,h*scale),c,border, bColor); 
+		if(src.good()) GUI.renderImage(src,x,y,tile,scale); 
 	}// drawShape()
 
 	public override function drawText()
 	{ //trace(ro);
 		var color = ro.o.color;
-		var wrap = ro.o.width.int();
+		var wrap = ro.o.width.int(); 
 		var font = "";
 		var style = ro.o.style;
 
 		if(style != null){
 			if(style.color.good())color = style.color;
-			if(style.font != null)font = style.font.src;
-			GUI.renderText(font,ro.o.text,ro.x, ro.y, color, wrap);
+			if(style.font != null)font = style.font.src; 
+			if(font.good())GUI.renderText(font,ro.o.text,ro.x, ro.y, color, wrap);
 		}
 		
 	}// drawText()

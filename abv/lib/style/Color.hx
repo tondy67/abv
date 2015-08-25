@@ -1,7 +1,7 @@
 package abv.lib.style;
 
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.math.MT;
 using abv.lib.TP;
 /**
@@ -67,8 +67,7 @@ class Color{
 	public static inline function clr(f:Float) 
 	{
 		var rgb = Std.int(f.range(16777215)); 
-		var a = (f - rgb).range(.99,0); 
-		var alpha = a == 0?.99:a;
+		var alpha = (f - rgb).range(.99,0); 
 		return {rgb:rgb,alpha:alpha};
 	}// new()
 

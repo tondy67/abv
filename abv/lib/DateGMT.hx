@@ -2,6 +2,9 @@ package abv.lib;
 /**
  * DateGMT
  **/
+ 
+using abv.lib.CC;
+
 @:dce
 class DateGMT{
 	public var year(default,null):Int;
@@ -50,7 +53,7 @@ class DateGMT{
 		n = new Date(y, m, d, 0, 0, 0 );
 		var t =  n.getTime(); 
 		var z = Std.int(24 * Math.ceil(t / 24 / ms ) - t/ms);  
-		return new Date(y,m,d,h,mn,s,z);
+		return new DateGMT(y,m,d,h,mn,s,z);
 	}// now()
 		
 	public inline function getDay()
@@ -67,7 +70,7 @@ class DateGMT{
 	public inline function utc()
 	{
 		var n = Date.fromTime(time() - tz * ms); 
-		return new Date(n.getFullYear(),n.getMonth(),n.getDate(),n.getHours(),n.getMinutes(),n.getSeconds(),0);
+		return new DateGMT(n.getFullYear(),n.getMonth(),n.getDate(),n.getHours(),n.getMinutes(),n.getSeconds(),0);
 	}// utc()
 
 	public function format(f:String,lg="en")
@@ -122,6 +125,33 @@ class DateGMT{
 		return StringTools.lpad(Std.string(n), c, 2);
 		
 	}// l()
+
+	public static inline function dow(week:Array<String>=null)
+	{
+		var w = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+		if(week != null) w = week;
+		return w[Date.now().getDay()];
+	}
+	
+	public static inline function getMonth(months:Array<String>=null)
+	{
+		var m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+		if(months != null) m = months;
+		return m[Date.now().getMonth()];
+	}
+	
+	public static inline function timezone()
+	{
+		var ms = 3600000;
+		var now = Date.now();
+		var y = now.getFullYear();
+		var m = now.getMonth();
+		var d = now.getDate();
+		var n = new Date(y, m, d, 0, 0, 0 );
+		var t =  n.getTime(); 
+		return (24 * Math.ceil(t / 24 / ms ) - t/ms).int();  
+	}// timezone();
+	
 	
 	public function toString()
 	{

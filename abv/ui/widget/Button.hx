@@ -1,27 +1,21 @@
 package abv.ui.widget;
-
+/**
+ * Button
+ **/
+import abv.interfaces.*;
 import abv.lib.math.Point;
 import abv.bus.*;
 import abv.lib.comp.Object;
 
-typedef StateData = {text:String,?icon:String}
-/**
- * 
- **/
-@:dce
-class Button extends Text {
-	
-	public static inline var Normal 	= "normal";
-	public static inline var PRESSED 	= "pressed";
-	public static inline var Disabled 	= "disabled";
-	public static inline var Hover 		= "hover";
-	public static inline var Focus 		= "focus";
-	public static inline var CLICK 		= "click";
+using abv.lib.CC;
 
+typedef StateData = {text:String,?icon:String}
+
+@:dce
+class Button extends Text implements IStates{
+	
 	public var states:Array<StateData>;
 
-	var lastState:Int;
-	
 	public function new(id:String,label="Button",x=.0,y=.0,width=120.,height=40.)
 	{
 		super(id);
@@ -29,9 +23,7 @@ class Button extends Text {
 		_width = width; _height = height;
 
 		msg.accept = MD.MOUSE_ENABLED | MD.KEY_ENABLED;
-		state = 1;
-		lastState = state;
-		states = [{text:Normal},{text:label}];//new Map();
+		states = [{text:label}];//new Map();
 		text = label; 
 		
 //
@@ -41,25 +33,25 @@ class Button extends Text {
 	{ //trace(md);
 		switch(md.msg){
 			case MD.MOUSE_OVER: 
-				if(states[0].text != Disabled){
-					states[0].text = Hover;
+				if(style.state != DISABLED){
+					style.state = HOVER;
 					draw(this);
 				}
 			case MD.MOUSE_OUT: 
-				if(states[0].text != Disabled){
-					states[0].text = states[lastState].text;
+				if(style.state != DISABLED){
+					style.state = NORMAL;
 					draw(this);
 				}
 			case MD.CLICK: 
 				state++;
-				if(state > states.length-1)state = 1;
+				if(state > states.length-1)state = 0;
 				text = states[state].text; 
 				draw(this);
 				//onState(cur);
 				if(msg.action.exists(MD.STATE)&&(msg.action[MD.STATE] != null)){
 					var m = msg.action[MD.STATE].clone();
 					m.f[1] = state;
-					MS.exec(m);
+					MS.exec(m); 
 				}
 
 		}

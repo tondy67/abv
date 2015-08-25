@@ -1,16 +1,13 @@
 package abv.lib;
-
+/**
+ * Log & Debug & Profiler class
+ **/ 
 import abv.ui.box.Box;
 import abv.lib.style.Style;
 import abv.io.Screen;
-/**
- * Errors tracing and processing.
- * Debug & Profiler class
- **/ 
 //@:dce
-//@:final 
 // TODO: redesign
-class LG{
+class LT{
 
 	public static var screen:Screen = null;
 	public static var txt = "";
@@ -19,5 +16,5 @@ class LG{
 	{
 	}// log()
 
-}// abv.lib.LG
+}// abv.lib.LT
 

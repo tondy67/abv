@@ -11,7 +11,7 @@ import abv.cpu.Mutex;
 import abv.cpu.Timer;
 
 using abv.lib.TP;
-using abv.lib.CR;
+using abv.lib.CC;
 
 @:dce
 class ST{
@@ -23,15 +23,15 @@ class ST{
 	public static inline function trace(v:Null<Dynamic>,?infos:Null<haxe.PosInfos>)
 	{   
 		var s = Std.string(v).trim();
-		var level = CR.getLevel(s);
-		if(CR.lvl2int(AM.verbose) >= CR.lvl2int(level)){ 
+		var level = CC.getLevel(s);
+		if(CC.lvl2int(AM.verbose) >= CC.lvl2int(level)){ 
 			if(s.starts("now:"))s = s.replace("now:",Timer.stamp+"");
-			if(level.good())s = s.replace(level,"");
-			var color = CR.lvl2color(level);
+			s = s.replace(level+"","");
+			var color = CC.lvl2color(level);
 			if(color.good())s = colorize(s,color); 
 			Sys.print(s);
 			Sys.print(" ["+infos.fileName+":"+infos.lineNumber+"]\n");
-			CR.log(s,level);
+			CC.log(s,level);
 		}
 	}// trace()
 
@@ -39,9 +39,14 @@ class ST{
 	{   
 		if(msg.good() && !AM.silent){
 			if(color.good())msg = colorize(msg,color); 
-			Sys.println(msg); 
+			Sys.print(msg); 
 		}
 	}// print()
+
+	public static inline function println(msg:String,color="")
+	{   
+		print(msg + CC.LF, color);
+	}// println()
 
 	public static inline function colorize(msg:String,color:String)
 	{   
@@ -79,31 +84,55 @@ class ST{
 		var r = true;
 
 		if(path.good(msg) && !FileSystem.exists(path)){
-			if(msg.good())trace(CR.ERROR+msg + ": No such file or directory"); 
+//			if(msg.good())trace(ERROR+msg + ": No such file or directory"); 
 			r = false;
 		}
 
 		return r;
 	}// exists()
 
-	public static inline function get(path:String,msg="")
+	public static inline function getDir(path:String,recursive=false,msg="")
 	{
-		var a:Array<String> = [];
+		var r:Array<String> = [];
 		
-		if(isDir(path,msg))a = FileSystem.readDirectory(path);
+		if(isDir(path,msg)){
+			if(recursive){
+				getDirR(path,r); 
+				if(r.length == 0)r = FileSystem.readDirectory(path);
+			}else{
+				r = FileSystem.readDirectory(path);
+			}
+		}
 		
-		return a;
-	}// get()
+		return r;
+	}// getDir()
+		
+	static inline function getDirR(path:String,dirs:Array<String>)
+	{
+		var t:Array<String>;
+		var cur = "";
+		if(isDir(path)){
+			t = FileSystem.readDirectory(path);
+			for(f in t){
+				cur = path + "/" + f;
+				if(isDir(cur)){
+					dirs.push(cur);
+					getDirR(cur,dirs);
+				}
+			}
+		}
+	}// getDirR()
+	
 	
 	public static inline function isDir(path:String,msg="")
 	{ 		
 		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// isDir()
 	
-	public static inline function abs(path:String)
+	public static inline function absPath(path:String)
 	{
 		return FileSystem.fullPath(path);
-	}// abs()
+	}// absPath()
 
 	public static inline function open(path:String)
 	{
@@ -112,14 +141,14 @@ class ST{
 		return r;
 	}// open()
 
-	public static inline function openurl(url:String)
+	public static inline function openUrl(url:String)
 	{
 		var r = "";
 		if(url.starts("http")){
-			try r = haxe.Http.requestUrl(url)catch(m:Dynamic){trace(CR.ERROR+m);}
+			try r = haxe.Http.requestUrl(url)catch(m:Dynamic){trace(ERROR+m);}
 		}
 		return r;
-	}// openurl()
+	}// openUrl()
 
 	public static inline function save(path:String,s:String)
 	{
@@ -139,7 +168,7 @@ class ST{
 		else FileSystem.deleteFile(path);
 	}// del()
 
-	public static inline function mkdir(path:Null<String>,opt="p")
+	public static inline function mkdir(path:String,opt="p")
 	{
 		if(path.good() && !isDir(path,path)) 
 			FileSystem.createDirectory(path);
@@ -179,7 +208,7 @@ class ST{
 							p.stdin.flush();
 						}; 
 						r = p.stdout.readAll() + ""; 
-					}catch(m:Dynamic){ print(CR.ERROR+m);}
+					}catch(m:Dynamic){ print(ERROR+m);}
 			}else{
 				r = Boss.exec(cmd,args,input) + "";
 			}

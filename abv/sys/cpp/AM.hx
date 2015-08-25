@@ -4,12 +4,12 @@ import abv.cpu.Timer;
 import abv.sys.ST;
 
 using abv.lib.TP;
-using abv.lib.CR;
+using abv.lib.CC;
 
 @:dce
 class AM {
 	
-	public static var verbose 	= CR.DEBUG;
+	public static var verbose 	= DEBUG;
 	public static var exitTime 	= .0;
 	public static var silent 	= false;
 	public static var logFile	= "";
@@ -44,7 +44,7 @@ class AM {
 		var hlp = ["help","--help","-help","-h","/h"];
 		
 		if(hlp.indexOf(args[0]) != -1){
-			print(help("help"),CR.INFO);
+			print(INFO + "" + help("help"));
 			exit();
 		}else{
 			cfg = config(_config);
@@ -86,7 +86,7 @@ class AM {
 
 	function print(msg:String,color="")
 	{
-		CR.print(msg,color);
+		CC.print(msg,color);
 	}// print()
 
 

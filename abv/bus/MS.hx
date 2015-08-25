@@ -1,7 +1,11 @@
 package abv.bus;
 
 import abv.cpu.Timer;
-using abv.lib.CR;
+import abv.interfaces.*;
+
+using abv.lib.CC;
+
+typedef MsgProp = { accept:Int, action:Map<Int,MD> }
 
 /**
  * Message System
@@ -22,7 +26,7 @@ class MS{
 		"MOVE" => MD.MOVE,"TWEEN" => MD.TWEEN,"EXIT" => MD.EXIT
 	];
 // custom messages
-	static var cmMap = new Map<String,Int>();
+	static var cmMap:Array<String> = [];
 // inbox
 	static var inbox = ["*" => new List<MD>()];
 	static var subscribers = new Map<Int,IComm>();
@@ -32,16 +36,22 @@ class MS{
 	
 	inline function new(){ }
 
-	public static inline function cmName(m:Int)
+	public static inline function cmName(c:Int)
 	{
 		var r = "";
-		for(k in cmMap.keys())if(cmMap[k] == m){r = k;break;}
+		if(cmMap[c].good())r = cmMap[c];
 		return r;
 	}
-	public static inline function cmCode(n:String)
+	public static inline function cmCode(s:String)
 	{
-		if(!cmMap.exists(n))cmMap.set(n,Lambda.count(cmMap)+1);
-		return cmMap[n];
+		var r = -1;
+		var ix = cmMap.indexOf(s);
+		if(ix != -1)r = ix;
+		else{
+			cmMap.push(s);
+			r = cmMap.indexOf(s);
+		}
+		return r;
 	}
 	public static inline function msgName(m:Int)
 	{
@@ -59,7 +69,7 @@ class MS{
 		if (obj == null)m += "Null Subscriber! ";
 		else if(!obj.id.good())m += "No subscriber ID! ";
 		else if(subscribers.exists(obj.sign))m += "Subscriber ("+obj.id+") exist! ";
-		if(m != "")trace(CR.ERROR+m); 
+		if(m != "")trace(ERROR+m); 
 #end		
 		var ts = Timer.stamp()- Std.int(Timer.stamp());
 		var sign = Std.int(1000000*(ts + Math.random())); 
@@ -114,7 +124,7 @@ class MS{
 	
 	static inline function objExec(o:IComm,md:MD)
 	{
-		try o.exec(md) catch (d:Dynamic){trace(CR.ERROR+o.id+": "+d);}
+		try o.exec(md) catch (d:Dynamic){trace(ERROR+o.id+": "+d);}
 		md.free(); 
 		md = null;
 	}// objExec()
@@ -127,18 +137,12 @@ class MS{
 				for(o in getSlot(md.msg)){ 
 					objExec(o,md);
 				}
-			}else if(isSubscriber(to)){
-				if(to != "*"){
-						checkBox(to);
-						if (exec) { 
-							md.sign = subscribersID[to].sign; 
-							objExec(subscribersID[to],md);
-						}else inbox[to].add(md.clone());  
-				}else{
-					for(k in inbox.keys()){
-						if(k != "*")inbox[k].add(md.clone());
-					}
-				}; 
+			}else if(isSubscriber(to)){ 
+				checkBox(to);
+				if (exec) { 
+					md.sign = subscribersID[to].sign; 
+					objExec(subscribersID[to],md);
+				}else inbox[to].add(md.clone());  
 			} 
 		}
 	}// setBox()
@@ -147,10 +151,10 @@ class MS{
 	{
 		var r = true;
 		if(md == null){
-			trace(CR.FATAL+"Null data?!"); 
+			trace(FATAL+"Null data?!"); 
 			r = false;
 		}else if(!subscribers.exists(md.sign)){ 
-			trace(CR.ERROR+"Fake sign!"); 
+			trace(ERROR+"Fake sign!"); 
 			r = false;
 		}
 		return r;

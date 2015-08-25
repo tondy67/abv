@@ -14,14 +14,8 @@ import abv.ui.widget.Button;
 import abv.io.Terminal;
 
 
-typedef DoData = {o:Component,x:Float,y:Float,ctx:GraphicsContext}
+typedef DoData = {o:Component,x:Float,y:Float,ctx:Int}
 
-enum GraphicsContext{
-	Ctx3D;
-	Ctx2D;
-	Ctx1D;
-}
- 
 @:dce
 class Screen {
 
@@ -30,61 +24,64 @@ class Screen {
 	static var roots:Array<Root> = [];
 //	var console:Box;
 //	var conRoot:Root;
-	static var ro = new List<DoData>();
 
 	inline function new(){ };
 	
 	public static inline function render(obj:Component=null)
 	{ 
+		var r = new List<Component>();
 		if(obj == null){
-			for(r in roots){ 
-				ro.clear();
-				getDisplayList(r); 
-				draw(r.context);
+			for(root in roots){ 
+				r = root.getChildren(); 
+				draw(r,root.context);
 			}
 		}else{  
-			ro.clear();
-			if(obj.parent != null)getDisplayList(obj.parent);
-			else if(Std.is(obj,Container))getDisplayList(cast(obj,Container));
-			draw(obj.root.context);
+			if(obj.parent != null)r = obj.parent.getChildren();
+			else if(Std.is(obj,Container))r = cast(obj,Container).getChildren();
+			draw(r, obj.root.context);
 		}
 	}// render()
 
-	static inline function getDisplayList(o:Container)
-	{  
-		var child:Component;
-		for (i in 0...o.numChildren){ 
-			child = o.getChildAt(i); 
-			ro.add({o:child,x:0,y:0,ctx:o.root.context});  
-			if (Std.is(child,Container)){  
-				getDisplayList(cast(child,Container)); 
-			}
-		} 
-	}
-	
-	static function draw(ctx:GraphicsContext) 
+	static function draw(rl:List<Component>,ctx:Int) 
 	{ 
-		var x:Float; var y:Float; var p:Container;
-		var w:Float; var h:Float;
-		var o:Component;
-		
-		for(dd in ro){
-			o = dd.o; 
-			dd.x = o.pos.x; dd.y = o.pos.y; p = o.parent;
- 			w = o.width; h = o.height;
+		if(rl.length == 0)return;
+
+		var ro = new List<DoData>();
+		var x:Float, y:Float; 
+		var p:Container;
+
+		for(el in rl){
+			x = el.pos.x; y = el.pos.y; 
+			p = el.parent; 
+
 			while (p != null) { 
-				dd.x += p.pos.x; 
-				dd.y += p.pos.y; 
+				x += p.pos.x; 
+				y += p.pos.y; 
 				p = p.parent; 
 			};
+			ro.add({o:el,x:x,y:y,ctx:ctx});  
 		}
- 
+
 		for(to in terminals){
-			to.context = ctx;
 			to.render(ro); 
 		}
 	}// draw()
 
+	public static inline function clear(obj:Component=null)
+	{
+		var r = new List<Component>();
+		if(obj == null){
+			for(root in roots)r = root.getChildren(); 
+		}else if(Std.is(obj,Container)){
+			r = cast(obj,Container).getChildren();
+		}else{
+			r.add(obj);  
+		}
+		
+		for(to in terminals) to.clear(r); 
+
+	}// clear()
+	
 	public static inline function addRoot(r:Root)
 	{
 		var l:Root = roots.pop();

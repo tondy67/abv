@@ -1,6 +1,6 @@
 package abv.lib.comp;
 
-import abv.lib.anim.IAnim;
+import abv.interfaces.*;
 import abv.bus.*;
 import abv.lib.math.Point;
 import abv.lib.box.Container;
@@ -8,10 +8,10 @@ import abv.ui.Root;
 import abv.lib.style.*;
 import abv.lib.style.Style;
 
-using abv.lib.CR;
+using abv.lib.CC;
 //
 @:dce
-class Component extends MObject implements IAnim implements IStyle {
+class Component extends MObject implements IDraw {
 
 	public var style(get, never):Style;
 	var _style = new Style();
@@ -22,11 +22,6 @@ class Component extends MObject implements IAnim implements IStyle {
 	var _text = "";
 	function get_text(){return _text;}
 	function set_text(s:String){ return _text = s;}
-//
-	public var state(get,set):Int;
-	var _state = 0;
-	function get_state(){return _state;}
-	function set_state(i:Int){ return _state = i;}
 
 	public var parent(default,null):Container = null;
 
@@ -40,44 +35,19 @@ class Component extends MObject implements IAnim implements IStyle {
 	function get_visible(){return _visible;};
 	function set_visible(b:Bool){return _visible = b;};
 //
-// depth
-	public var depth(get,set):Float;
-	var _depth:Float;
-	function get_depth(){return _depth * _scale;}
-	function set_depth(f:Float){_depth = f/_scale; return f;}
-// rotation
-	public var rot(get,set):Point;
-	var _rot = new Point();
-	function get_rot(){return _rot;}
-	function set_rot(p:Point){_rot.copy(p); return p;}
-// transparency
-	public var fade(get,set):Float;
-	var _fade = 1.;
-	function get_fade(){return _fade;};
-	function set_fade(f:Float){return _fade = f;};
-//
-	public var color(get, set):Float;
-	var _color = .0;
-	function get_color() { return _color; }
-	function set_color(c:Float) { return _color = c; }
-
-	public function new(id:String)
+	public inline function new(id:String)
 	{
 		super(id);
 	}// new()
 
-	public function moveTo(dest:Point)
+	public override function moveBy(from:Point,delta:Point)
 	{
-		moveBy(pos,dest.sub(pos));
-	}// moveTo()
-	
-	public function moveBy(from:Point,delta:Point)
-	{
-		pos = from.add(delta);  
+		pos = from.add(delta);
+		draw(this);  
 	}// moveBy()
 	
-	function draw(obj:Component){
-		if (root == null) trace(CR.ERROR+"No Root?");  
+	public function draw(obj:Component){
+		if (root == null) trace(ERROR+"No Root?");  
 		else root.draw(this);
 	}// draw()
 
@@ -93,13 +63,16 @@ class Component extends MObject implements IAnim implements IStyle {
 			case MD.MOVE: 
 				pos.offset(md.f[0],md.f[1]);
 				draw(this); 
+			case MD.NEW: 
+				text = md.s;
+				draw(this);
 		}
 	}// dispatch
 
 	public override function free() 
 	{
 //		delChildren(); 
-		if(parent != null)parent.delChild(this);
+//		if(parent != null)parent.delChild(this);
     }// free() 
 
 	public function resize()

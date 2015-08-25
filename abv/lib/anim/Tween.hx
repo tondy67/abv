@@ -3,6 +3,8 @@ package abv.lib.anim;
 import abv.cpu.Timer;
 import abv.lib.math.Point;
 import abv.lib.anim.*;
+
+using abv.lib.CC;
 //
 @:dce
 class Tween{
@@ -25,16 +27,16 @@ class Tween{
 	var from:Point;
 	var to:Point;
 		
-	public function new(path:Array<Point>,func:Point->Point->Void,duration = 1.,trans=Transitions.LINEAR,repeat=1,delay=0,mirror=false)
+	public function new(path:Array<Point>,func:Point->Point->Void,duration = 1.,trans=TS.LINEAR,repeat=1,delay=0,mirror=false)
 	{
 		if(path == null){
-			trace(CR.FATAL+"null path");
+			trace(FATAL+"null path");
 			run = false;
 		}else if(path.length < 2){
-			trace(CR.FATAL+"no path: "+ path.length);
+			trace(FATAL+"no path: "+ path.length);
 			run = false;
 		}else if(func == null){
-			trace(CR.FATAL+"null func");
+			trace(FATAL+"null func");
 			run = false;
 		}
 
@@ -64,11 +66,12 @@ class Tween{
 		ratio = time / duration; 
 		if(ratio <= 1){
 			segm = Math.floor(ratio * (path.length-1)); 
-			from = path[segm]; to = path[segm+1];
-			delta = to.sub(from); 
-			r = Transitions.get(trans)(ratio); 
+			from = path[segm].clone(); 
+			to = path[segm+1].clone(); 
+			delta = to.sub(from);  //trace(delta+" "+from+":"+to);
+			r = TS.get(trans)(ratio); //trace(delta+" : "+r);
 			delta.scale(r);    
-			func(from,delta);
+			func(from,delta); 
 		}
 	
 		if (time < duration) { 

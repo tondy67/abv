@@ -1,6 +1,6 @@
 package abv.lib.math;
 
-using abv.lib.CR;
+using abv.lib.CC;
 /**
  * MathTools
  **/
@@ -12,16 +12,15 @@ class MT{
 	public static inline function good(v:Null<Float>,msg="")
 	{ 
 		var r = true;
-		function m(s){if(msg != ""){trace(CR.DEBUG+msg+s);}}
 
 		if(v == null){
-			m(" Null number"); 
+			if(msg != "")trace(DEBUG+"Null number: "+msg); 
 			r = false;
 		}else if(Math.isNaN(v)){
-			m(" NaN number"); 
+			if(msg != "")trace(DEBUG+"NaN number: "+msg); 
 			r = false;
 		}else if(!Math.isFinite(v)){
-			m(" Not number"); 
+			if(msg != "")trace(DEBUG+"Not number: "+msg); 
 			r = false;
 		}
 
@@ -38,6 +37,15 @@ class MT{
 		return f;
 	}// range()
 
+	public static inline function closestPow2(v:Int)
+	{
+		var p = 2;
+		while (p < v) p = p << 1;
+		return p;
+	}// closestPow2()
+// css
+	public static inline function auto(f:Float,v=.0)return f == CC.AUTO?v:f;
+	
 	public static inline function val(f:Float,max:Float)
 	{
 		var r:Float;
@@ -46,14 +54,6 @@ class MT{
 		else r = f;
 		return r;
 	}// val()
-
-	public static inline function closestPow2(v:Int)
-	{
-		var p = 2;
-		while (p < v) p = p << 1;
-		return p;
-	}// closestPow2()
-
 
 }// abv.lib.math.MT
 

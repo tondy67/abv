@@ -7,7 +7,8 @@ import abv.cpu.Timer;
 import sys.io.Process;
 import abv.sys.ST;
 import abv.cpu.Thread;
-using abv.lib.CR;
+
+using abv.lib.CC;
 
 class Boss{
 
@@ -30,12 +31,12 @@ class Boss{
 		var w:Thread = null;
 		if(queue.isEmpty()){
 			if(workers.length < maxThreads){
-				try w = Thread.create(func)catch(m:Dynamic){trace(CR.ERROR+m);}
+				try w = Thread.create(func)catch(m:Dynamic){trace(ERROR+m);}
 				if(w != null){
 					id = workers.push(w) - 1; 
 					stdout.push([]);
 				}
-			}else trace(CR.WARN+"Threads > " + maxThreads);
+			}else trace(WARN+"Threads > " + maxThreads);
 		}else id = queue.pop();
 	
 		return id;
@@ -46,11 +47,11 @@ class Boss{
 		var id = -1;
 		var arg = "";
 		if(cmd.good()){
-			if((args != null)&&(args.length > 0))arg = args.join(CR.SEP1);
+			if((args != null)&&(args.length > 0))arg = args.join(CC.SEP1);
 			var worker = new WorkerSys();
 			id = create(worker.run); 	
 			if(id != -1){
-				arg = cmd + CR.SEP3 + arg + CR.SEP3 + input;
+				arg = cmd + CC.SEP3 + arg + CC.SEP3 + input;
 				workers[id].sendMessage(main);
 				workers[id].sendMessage(id);
 				workers[id].sendMessage(arg);
@@ -87,7 +88,7 @@ class Boss{
 					}
 				}
 				max++;
-				if(max > 1000)trace(CR.WARN+"Messages > 1000");
+				if(max > 1000)trace(WARN+"Messages > 1000");
 			}
 		}
 

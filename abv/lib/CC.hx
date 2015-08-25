@@ -24,23 +24,32 @@ enum States{
 	CLICK;
 }
 
-@:dce
-class CR{
+enum LogLevels{
+	OFF;
+	FATAL;
+	LOG;
+	ERROR;
+	INFO;
+	WARN;
+	DEBUG;
+}
 
-//  Levels
-	public static inline var OFF 	= "OFF:";
-	public static inline var FATAL 	= "FATAL:";
-	public static inline var LOG 	= "LOG:";
-	public static inline var ERROR 	= "ERROR:";
-	public static inline var INFO 	= "INFO:";
-	public static inline var WARN 	= "WARN:";
-	public static inline var DEBUG 	= "DEBUG:";
+@:dce
+@:build(abv.macro.BM.buildConfig())
+class CC{
+// css
+	public static inline var AUTO 	= -1;
+// render context
+	public static inline var CTX_1D = 1;
+	public static inline var CTX_2D = 2;
+	public static inline var CTX_3D = 3;
+
 // Separators
 	public static inline var SEP1 		= "|";
 	public static inline var SEP3 		= "|||";
 
 // constants
-	public static inline var AUTO 		= -1;
+	public static inline var ERR 		= -1;
 	public static inline var PI 		= 3.141592653589793;
 	public static inline var LF 		= "\r\n";
 	public static inline var LF2 		= "\r\n\r\n";
@@ -55,40 +64,11 @@ class CR{
 
 	inline function new(){ }
 
-	public static inline function md5(s:String)
-	{
-		return Md5.encode(s);
-	}// md5()
+	public static inline function md5(s:String)return Md5.encode(s);
 
-	public static inline function dow(week:Array<String>=null)
-	{
-		var w = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-		if(week != null) w = week;
-		return w[Date.now().getDay()];
-	}
-	
-	public static inline function month(months:Array<String>=null)
-	{
-		var m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-		if(months != null) m = months;
-		return m[Date.now().getMonth()];
-	}
-	
-	public static inline function timezone()
-	{
-		var ms = 3600000;
-		var now = Date.now();
-		var y = now.getFullYear();
-		var m = now.getMonth();
-		var d = now.getDate();
-		var n = new Date(y, m, d, 0, 0, 0 );
-		var t =  n.getTime(); 
-		return int(24 * Math.ceil(t / 24 / ms ) - t/ms);  
-	}// timezone();
-	
 	public static inline function int(f:Float)return Std.int(f);
 
-	public static inline function json(s="")
+	public static inline function json(s:String)
 	{
 		var r:Dynamic = null;
 		if(good(s))
@@ -99,13 +79,12 @@ class CR{
 	public static inline function good(v:String,msg="")
 	{ 
 		var r = true;
-		function m(s){if(msg != ""){trace(DEBUG+msg+s);}}
 		
 		if(v == null){
-			m(" Null String"); 
+			if(msg != "")trace(DEBUG+"Null String: "+msg); 
 			r = false;
 		}else if(v == ""){
-			m(" Empty String");
+			if(msg != "")trace(DEBUG+"Empty String: "+msg); 
 			r = false;
 		}
 		
@@ -117,35 +96,36 @@ class CR{
 		return str.toLowerCase() == cmp.toLowerCase();
 	}// eq()
 
-	public static inline function dirname(path:Null<String>)
+	public static inline function dirname(path:String)
 	{
-		var SEP3 = "/";
+		var sep = "/";
 		var r = ".";
-		var a = path.trim().splitt(SEP3); 
+		var a = path.trim().splitt(sep); 
 		if(a.length > 1){
 			var last = a.pop();
 			if(!good(last))last = a.pop();
-			r = a.join(SEP3);
+			r = a.join(sep);
 		}
 		return r;
 	}// dirname()
 	
-	public static inline function basename(path:Null<String>,ext=true)
+	public static inline function basename(path:String,ext=true)
 	{
 		var r = "";
 		var sep = "/";
-		var a = path.trim().splitt(sep); 
-		r = a.pop(); 
-//		if(!good(r))r = a.pop();
+		var dir = dirname(path);
+		r = path.replace(dir,"");
+		r = r.replace(sep,"");
+
 		if(!ext){
-			var t = r.splitt(".");
+			var t = r.split(".");
 			r = t[0];
 		}
 		
 		return r;
 	}// basename()
 	
-	public static function extname(path:Null<String>)
+	public static function extname(path:String)
 	{
 		var r = "", sep = ".";
 		var name = basename(path); 
@@ -170,7 +150,7 @@ class CR{
 	public static inline function clear<T>(a:Array<T>)
 	{
 #if flash untyped a.length = 0; #else a.splice(0,a.length); #end
-    }// clear()
+    }// clear<T>()
 	
 	public static inline function getLog(line=0,filter="")
 	{
@@ -179,7 +159,7 @@ class CR{
 		if(line == MT.range(line,logData.length,1)){
 			if(good(logData[line]))r.push(logData[line]);
 		}else if(good(filter)){
-			for(l in logData)if(l.indexOf(filter) != -1)r.push(l); 
+			for(l in logData)if(l.indexOf(filter) != ERR)r.push(l); 
 		}else r = logData;
  
 		return r;
@@ -192,8 +172,7 @@ class CR{
 		var a = getLog();
 		a = a.slice(a.length - last);
 		for(m in a){ 
-			t = m.splitt(SEP3); 
-			ST.print(t[1],lvl2color(t[0]));
+			print(m);
 		}
 	}// printLog()
 
@@ -207,10 +186,8 @@ class CR{
 	{   
 		if(good(msg)){
 			var level = getLevel(msg);
-			if(good(level)){
-				msg = msg.replace(level,"");
-				color = lvl2color(level);
-			}
+			msg = msg.replace(level+"","");
+			color = lvl2color(level);
 			ST.print(msg,color);
 			log(msg.trim(),level);
 		}
@@ -218,18 +195,18 @@ class CR{
 
 	public static inline function getLevel(s:String)
 	{//AM.trace(s);
-		var r = "";
-		if(s.starts(OFF)) 			r = OFF;
-		else if(s.starts(FATAL)) 	r = FATAL;
-		else if(s.starts(LOG)) 		r = LOG;
-		else if(s.starts(ERROR)) 	r = ERROR;
-		else if(s.starts(INFO)) 	r = INFO;
-		else if(s.starts(WARN)) 	r = WARN;
-		else if(s.starts(DEBUG)) 	r = DEBUG;
+		var r = DEBUG;
+		if(s.starts(OFF+"")) 		r = OFF;
+		else if(s.starts(FATAL+"")) r = FATAL;
+		else if(s.starts(LOG+"")) 	r = LOG;
+		else if(s.starts(ERROR+"")) r = ERROR;
+		else if(s.starts(INFO+"")) 	r = INFO;
+		else if(s.starts(WARN+"")) 	r = WARN;
+
 		return r;
 	}// getLevel()
 
-	public static inline function lvl2int(level:String)
+	public static inline function lvl2int(level:LogLevels)
 	{
 		return
 			switch(level){
@@ -244,28 +221,27 @@ class CR{
 			}
 	}// lvl2int()
 	
-	public static inline function lvl2color(level:String)
+	public static inline function lvl2color(level:LogLevels)
 	{   
-		var r = "";
-		if(good(level)){
-			if(level == CR.OFF)r = "green";
-			else if(level == CR.FATAL)r = "magenta";
-			else if(level == CR.LOG)r = "cyan";
-			else if(level == CR.ERROR)r = "red";
-			else if(level == CR.WARN)r = "yellow";
-			else if(level == CR.INFO)r = "white";
-			else if(level == CR.DEBUG)r = "blue";
-		}
-		return r;
+		return
+			switch(level){
+				case OFF: 	 "green";
+				case FATAL:  "magenta";
+				case LOG: 	 "cyan";
+				case ERROR:  "red";
+				case INFO: 	 "yellow";
+				case WARN: 	 "white";
+				case DEBUG:  "blue";
+				default: 	 "";
+			}
 	}// lvl2color()
 
-	public static inline function log(msg:String,level="")
+	public static inline function log(msg:String,level:LogLevels)
 	{   
 		if(good(msg)){
-			if(!good(level))level = LOG;
-			logData.push(level+SEP3+msg);
+			logData.push(level+""+msg);
 		}
 	}// log()
 
-}// abv.lib.CR
+}// abv.lib.CC
 

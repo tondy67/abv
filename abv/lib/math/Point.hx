@@ -14,7 +14,7 @@ class Point{
 	var _length:Float;
 	
 	public inline function new(x=.0,y=.0,z=.0)
-	{
+	{// TODO: separate point/vector stuff
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -25,7 +25,13 @@ class Point{
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		
+	}
+	
+	public inline function reset()
+	{
+		x = 0;
+		y = 0;
+		z = 0;
 	}
 	
 	public inline function clone()
@@ -40,7 +46,8 @@ class Point{
 		z = p.z;
 		return this;
 	}
-    public inline function equal(p:Point)
+
+    public inline function eq(p:Point)
     {
         return (x == p.x) && (y == p.y);
     }
@@ -59,7 +66,7 @@ class Point{
     {
         return (x < p.x) && (y < p.y);
     }
-//  is lessthan or equal point
+//  is less than or equal point
     public inline function lte(p:Point)
     {
         return (x <= p.x) && (y <= p.y);
@@ -67,12 +74,12 @@ class Point{
 // subtract point    
     public inline function sub(p:Point)
     {
-        return new Point(x-p.x, y-p.y);
+       return new Point(x - p.x, y - p.y, z - p.z);
     }
-// add point
+
     public inline function add(p:Point)
     {
-        return new Point(x+p.x, y+p.y);
+       return new Point(x + p.x, y + p.y, z + p.z);
     }
     public static inline function interpolate(p0:Point, p1:Point, f=.5)
     {
@@ -85,11 +92,12 @@ class Point{
 		if(f < 1)f = 1; 
         return new Point((p1.x-p0.x)*f+p0.x,(p1.y-p0.y)*f+p0.y);
     }
-// absolute position of a point
+
     public inline function abs()
     {
         return new Point(Math.abs(x), Math.abs(y));
     }
+    
 	public inline function between(p0:Point,p1:Point)
 	{
 		var e = 2.220446049250313e-16;
@@ -107,9 +115,10 @@ class Point{
 	
     public inline function normalize(?thickness=1.)
     {
-        var m = thickness/Math.sqrt(x*x + y*y);
+        var m = thickness/length;
         x *= m;
         y *= m;
+        return this;
     }
 
     public static inline function distance(p0:Point, p1:Point)
@@ -130,7 +139,7 @@ class Point{
         return p0.x*p1.y - p0.y*p1.x;
     }
 
-    public inline function near(p:Point,?proximity:Float=.0) 
+    public inline function near(p:Point,proximity=.0) 
     {
         var x = Math.abs(x-p.x);
         var y = Math.abs(y-p.y);
@@ -146,6 +155,7 @@ class Point{
     {
         return new Point(length * Math.cos(angle),length * Math.sin(angle));
     }
+    
     public inline function angle(p:Point=null)
     {
         return p != null?Math.atan2(p.y - y, p.x - x):Math.atan2(y,x);
@@ -156,7 +166,9 @@ class Point{
 		if(m < 0)m = 0;
         x *= m;
         y *= m;
+        return this;
     }
+    
     public inline function opposite()
     {
         return new Point(-x, -y);
@@ -187,10 +199,13 @@ class Point{
 
 	public function toString()
 	{
-		return "("+x+","+y+")";
+		var r = "(" + x + "," + y;
+		if(z != 0) r+= "," + z;
+		r += ")";
+		return r;
 	}// toString()
 /////////////////////////////////////
-	function get_x()
+	inline function get_x()
 	{
 		return _x;
 	}// get_x()
@@ -201,31 +216,33 @@ class Point{
 		return f;
 	}// set_x()
 	
-	function get_y()
+	inline function get_y()
 	{
 		return _y;
 	}// get_y()
 	
-	function set_y(f:Float)
+	inline function set_y(f:Float)
 	{
 		_y = f;
 		return f;
 	}// set_y()
 
-	function get_z()
+	inline function get_z()
 	{
 		return _z;
 	}// get_z()
 	
-	function set_z(f:Float)
+	inline function set_z(f:Float)
 	{
 		_z = f;
 		return f;
 	}// set_z()
 
-	function get_length()
+	inline function get_length()
 	{
-		_length = Math.sqrt(_x * _x + _y * _y);
+		_length = 0;
+		if((x != 0)||(y != 0)||(z != 0))
+			_length = Math.sqrt(_x * _x + _y * _y + _z * _z);
 		return _length;
 	}// get_length()
 

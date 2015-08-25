@@ -6,7 +6,7 @@ package abv.lib.style;
 import abv.lib.comp.Component;
 
 
-using abv.lib.CR;
+using abv.lib.CC;
 
 typedef BoxShadow = {h:Null<Float>,v:Null<Float>,blur:Null<Float>,spread:Null<Float>,color:Null<Float>};
 typedef Margin = {top:Null<Float>,right:Null<Float>,bottom:Null<Float>,left:Null<Float>}
@@ -35,6 +35,12 @@ class Style extends StyleProps{
 
 	override function get_top(){return styles[state].top;};
 	override function set_top(v:Float){return styles[state].top = v;};
+
+	override function get_bottom(){return styles[state].bottom;};
+	override function set_bottom(v:Float){return styles[state].bottom = v;};
+
+	override function get_right(){return styles[state].right;};
+	override function set_right(v:Float){return styles[state].right = v;};
 
 	override function get_width(){return styles[state].width;};
 	override function set_width(v:Float){return styles[state].width = v;};
@@ -96,14 +102,14 @@ class Style extends StyleProps{
 		if(font == null)font = { name:null, size:12, style:null,src:null };
 	}// setFont()
 	
-	public function setMargin()
+	public function setMargin(v=.0)
 	{
-		if(margin == null)margin = { top:0, right:0, bottom:0, left:0 };
+		if(margin == null)margin = { top:v, right:v, bottom:v, left:v };
 	}// setMargin()
 	
-	public function setPadding()
+	public function setPadding(v=.0)
 	{
-		if(padding == null)padding = { top:0, right:0, bottom:0, left:0 };
+		if(padding == null)padding = { top:v, right:v, bottom:v, left:v };
 	}// setPadding()
 	
 	public function setBoxShadow()
@@ -111,12 +117,14 @@ class Style extends StyleProps{
 		if(boxShadow == null)boxShadow = { h:0, v:0, blur:null, spread:null, color:null };
 	}// setBoxShadow()
 	
-	public function apply(s:Style)
+	public function copy(s:Style)
 	{ 
-		if (s == null) return;
+		if (s == null){trace("no style");return;}
 		name = s.name;
 		if (s.left != null) left = s.left;  
 		if (s.top != null) top = s.top;  
+		if (s.right != null) right = s.right;  
+		if (s.bottom != null) bottom = s.bottom;  
 		if (s.width != null) width = s.width;  
 		if (s.height != null) height = s.height;  
 		if (s.color != null) color = s.color; 
@@ -163,23 +171,36 @@ class Style extends StyleProps{
 			if (s.boxShadow.color != null)  boxShadow.color = s.boxShadow.color;
 		}
 	
-	}// apply()
+	}// copy()
 
-	public static inline function applyStyle(obj:Component,style:Style)
+	public function clone()
+	{ 
+		var s = new Style();
+		s.copy(this);
+		return s;
+	}// clone()
+	
+	public static inline function apply(o:Component,s:Style)
 	{
-		if(style == null){trace("no style");return;}
-
-		if (style.left != null) obj.pos.x = style.left;
-		if (style.top != null) obj.pos.y = style.top;
-		if (style.width != null) obj.width = style.width;
-		if (style.height != null) obj.height = style.height;
-		if ((style.background != null) && (style.background.color != null)) 
-			obj.color = Std.int(style.background.color);
-	}	
+		if((o != null)&&(s != null)){
+			o.style.copy(s);
+			if(s.left != null) o.pos.x = s.left; else o.style.left = o.pos.x;
+			if(s.top != null) o.pos.y = s.top; else o.style.top = o.pos.y;
+			if(s.width != null) o.width = s.width; else o.style.width = o.width;
+			if(s.height != null) o.height = s.height; else o.style.height = o.height;
+			if(o.style.background == null) o.style.setBackground();
+			if(o.style.background.color != null) o.color = o.style.background.color.int();
+			else o.style.background.color = o.color;
+			if(o.style.margin == null) o.style.setMargin();
+			if(o.style.padding == null) o.style.setPadding();
+		}else{
+			trace('obj: $o \nstyle: $s');
+		}
+	}// apply()	
 
 	public function toString() 
 	{
-		var s = "Style(";
+		var s = 'Style(state: $state, ';
 		if(left != null)s += 'left: $left,';
 		if(top != null)s += 'top: $top,';
 		if(width != null)s += 'width: $width,';
@@ -210,6 +231,16 @@ class StyleProps{
 	var _top:Null<Float> = null;
 	function get_top(){return _top;};
 	function set_top(v:Float){return _top = v;};
+
+	public var right(get,set):Null<Float>;
+	var _right:Null<Float> = null;
+	function get_right(){return _right;};
+	function set_right(v:Float){return _right = v;};
+
+	public var bottom(get,set):Null<Float>;
+	var _bottom:Null<Float> = null;
+	function get_bottom(){return _bottom;};
+	function set_bottom(v:Float){return _bottom = v;};
 
 	public var width(get,set):Null<Float>;
 	var _width:Null<Float> = null;

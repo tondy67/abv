@@ -6,7 +6,7 @@ import js.Browser;
 import abv.cpu.Timer;
 
 using abv.lib.TP;
-using abv.lib.CR;
+using abv.lib.CC;
 
 class ST{
 
@@ -15,21 +15,21 @@ class ST{
 	public static inline function trace(v:Null<Dynamic>,?infos:Null<haxe.PosInfos>)
 	{   
 		var s = Std.string(v).trim();
-		var level = CR.getLevel(s);
+		var level = CC.getLevel(s);
 		var m = s;
-		if(CR.lvl2int(AM.verbose) >= CR.lvl2int(level)){ 
+		if(CC.lvl2int(AM.verbose) >= CC.lvl2int(level)){ 
 			if(m.starts("now:"))m = m.replace("now:",Timer.stamp+"");
 			if(!AM.silent){
-				if(level != "")m = m.replace(level,"");
+				m = m.replace(level+"","");
 				m += " ["+infos.fileName+":"+infos.lineNumber+"]";
-				if(level == CR.FATAL)Browser.console.error(m); 
-				else if(level == CR.LOG)Browser.console.log(m); 
-				else if(level == CR.ERROR)Browser.console.error(m); 
-				else if(level == CR.WARN)Browser.console.warn(m); 
-				else if(level == CR.INFO)Browser.console.info(m); 
-				else if(level == CR.DEBUG)Browser.console.debug(m); 
+				if(level == FATAL)Browser.console.error(m); 
+				else if(level == LOG)Browser.console.log(m); 
+				else if(level == ERROR)Browser.console.error(m); 
+				else if(level == WARN)Browser.console.warn(m); 
+				else if(level == INFO)Browser.console.info(m); 
+				else if(level == DEBUG)Browser.console.debug(m); 
 			}
-			CR.log(s);
+			CC.log(s,level);
 		}
 	}// trace()
 

@@ -9,7 +9,7 @@ import abv.net.ThreadServer;
 import abv.lib.math.MT;
 import abv.ds.*;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.TP;
 using abv.sys.ST;
 using abv.ds.DT;
@@ -76,9 +76,9 @@ class WebServer extends ThreadServer<Client, Message>{
 		c.request += s; 
 
 		if(c.request.length < c.length)	return;
-		else if(c.request.length == c.length)s = CR.LF; 
+		else if(c.request.length == c.length)s = CC.LF; 
 
-		if(s == CR.LF){ 
+		if(s == CC.LF){ 
 			var form:Map<String,String> = null;
 			if(c.ctx == null){
 				c.ctx = WT.parseRequest(c.request); 
@@ -88,7 +88,7 @@ class WebServer extends ThreadServer<Client, Message>{
 			var ctx = c.ctx; // for(k in ctx.keys())trace(k+":"+ctx[k]);
 			if(ctx["method"] == "POST"){ 
 				if(c.length > 0){ 
-					ctx["body"] = c.request.substr(c.request.indexOf(CR.LF2));
+					ctx["body"] = c.request.substr(c.request.indexOf(CC.LF2));
 					form = ctx[WT.CONTENT_TYPE] == WT.mimeType["post-url"] ? 
 						WT.parseQuery(ctx["body"]) : WT.parsePostData(ctx);
 				}else if(ctx.exists(WT.CONTENT_LENGTH)){
@@ -105,7 +105,7 @@ class WebServer extends ThreadServer<Client, Message>{
 					if(ctx.exists(WT.COOKIE)){
 						var cookies = WT.parseCookie(ctx[WT.COOKIE]); 
 						if(cookies.exists("sid")){
-							var a = cookies["sid"].splitt(CR.SEP1);
+							var a = cookies["sid"].splitt(CC.SEP1);
 							session = sessions.get(a.pop());
 						}
 					}
@@ -135,7 +135,7 @@ class WebServer extends ThreadServer<Client, Message>{
 				}
 				ctx["length"] = ctx["body"].length +"";
 				var now = Date.now().getTime();
-				log('${c.ip} [${WT.getDate(now,true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',CR.LOG);
+				log('${c.ip} [${WT.getDate(now,true)}] "${ctx["request"]}" ${ctx["status"]} ${ctx["length"]}',LOG);
 				ST.lock.release();
 			}
 
@@ -149,7 +149,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		ctx["path"] = WT.slash(ctx["path"]);
 		var path = WT.fsPath(ctx["path"]); 
 		var r = ""; 
-		var a = path.get(); 
+		var a = path.getDir(); 
 		if(a.good()){ 
 			for(f in indexes){
 				if(a.indexOf(f) != -1){
@@ -181,7 +181,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		ST.lock.acquire();
 		var id = Std.random(100000);
 		var ip = sock.peer().host + "";
-		log('client: $id: $ip',CR.DEBUG); 
+		log('client: $id: $ip',DEBUG); 
 		var r = {id: id, sock: sock, request: "", length: 0, ctx: null, ip: ip};
 		ST.lock.release();
 		return r;
@@ -190,7 +190,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	override function clientDisconnected(c: Client)
 	{
 		ST.lock.acquire();
-		log('client: ${c.id} disconnected',CR.DEBUG);
+		log('client: ${c.id} disconnected',DEBUG);
 		ST.lock.release();
 	}// clientDisconnected()
 
@@ -231,7 +231,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		ctx["body"] = WT.mkPage(body);
 	}// app();
 
-	public dynamic function log(msg="",level:String)
+	public dynamic function log(msg="",level:LogLevels)
 	{
 	}// log()
 
@@ -261,7 +261,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	function tell(msg="",level:String)
 	{
 		if(!single && (boss != null))
-			boss.sendMessage(tid+":"+level + CR.SEP3 + msg.trim());
+			boss.sendMessage(tid+":"+level + CC.SEP3 + msg.trim());
 	}// tell()
 			
 }// abv.net.web.WebServer

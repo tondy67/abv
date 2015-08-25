@@ -3,7 +3,7 @@ package abv.sys.js;
 import haxe.Resource;
 import js.html.*;
 
-@:build(abv.macro.BM.embedResources("res/config.json"))
+@:build(abv.macro.BM.embedResources())
 class FS{
 
 	static var textures = new Map<String,Image>();

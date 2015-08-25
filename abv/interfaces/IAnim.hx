@@ -1,17 +1,12 @@
-package abv.lib.anim;
-
-import abv.lib.comp.IObject;
-import abv.lib.math.Point;
-
+package abv.interfaces;
 /**
  * 
  **/
-@:dce
+import abv.lib.math.Point;
+
 interface IAnim extends IObject{
 
 	public var state(get,set):Int;
-// label, name, tile ...
-	public var text(get,set):String;
 // width
 	public var width(get,set):Float;
 // height
@@ -27,8 +22,7 @@ interface IAnim extends IObject{
 // scaling
 	public var scale(get,set):Float;
 	
-	public function moveTo(dest:Point):Void;
 	public function moveBy(from:Point,delta:Point):Void;
 
-}// abv.lib.anim.IAnim
+}// abv.interfaces.IAnim
 

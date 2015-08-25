@@ -5,7 +5,7 @@ package abv.cpu;
 import sys.io.Process;
 import abv.cpu.Worker;
 
-using abv.lib.CR;
+using abv.lib.CC;
 using abv.lib.TP;
 
 class WorkerSys extends Worker{
@@ -23,9 +23,9 @@ class WorkerSys extends Worker{
 	override function exec()
 	{ 
 		var s = "";
-		var t = arg.splitt(CR.SEP3);
+		var t = arg.splitt(CC.SEP3);
 		cmd = t[0];
-		args = t[1].splitt(CR.SEP1);
+		args = t[1].splitt(CC.SEP1);
 		input = t[2];
 		p = new Process(cmd,args); 
 		if(input.good()){

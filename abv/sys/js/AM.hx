@@ -1,11 +1,9 @@
 package abv.sys.js;
 
-import abv.lib.LG;
 import abv.bus.*;
-import abv.ui.*; 
+import abv.ui.Gui; 
 import abv.lib.anim.*;
 import abv.lib.comp.*;
-import abv.lib.box.View;
 import abv.lib.math.Point;
 import abv.AM;
 import abv.lib.style.Style;
@@ -24,43 +22,30 @@ import js.html.Element;
 import js.html.CanvasElement;
 
 using abv.lib.TP;
-using abv.lib.CR;
+using abv.lib.CC;
 
 class AM extends Object {
 
-	public static var verbose 	= CR.DEBUG;
+	public static var verbose 	= DEBUG;
 	public static var exitTime 	= .0;
 	public static var silent 	= false;
 	public static var logFile	= "";
 	public static var colors 	= true;
-	var cfg:Dynamic = null;
-//
-	var last:Float;
+	public static var sound 	= false;
 
+	var last:Float;
 	var term:Terminal2D;
-	
 	var gui:Gui;
-	
-	var fps = 32;
+	var fps = CC.UPS;
 	public static var trace = haxe.Log.trace; 
 	
-	public function new(configFile="")
+	public function new(id:String)
 	{
 		haxe.Log.trace = ST.trace;
 		super(id);
-		if(configFile.good()){
-			var s = FS.getText(configFile); 
-			if(s.good()){
-				cfg = s.json(); 
-				if(cfg != null){
-					if(cfg.app != null)trace(cfg.app);
-				}
-			}
-		}
 		msg = {accept:MD.NONE,action:new Map()};
 // customMessage register
-		MS.cmCode("cmView");
-		MS.cmCode("cmLang");
+		MS.cmCode("cmSound");
 
 		last = Timer.stamp();
 
@@ -103,25 +88,22 @@ class AM extends Object {
 
 	function onResize()
 	{ 
-		var w:Int = cfg.appWidth; 
-		var h:Int = cfg.appHeight; 
+		var w = CC.WIDTH; 
+		var h = CC.HEIGHT; 
 		resize(w,h);
 		Screen.resize(w,h); 
 
 	}// onResize()
 
-	public static inline function getText(path:String)
-	{
-		return FS.getText(path);
-	}// getText()
-	
 	function init() 
 	{
-		var w:Int = cfg.appWidth; 
-		var h:Int = cfg.appHeight; 
+		var w:Float = CC.WIDTH; 
+		var h:Float = CC.HEIGHT; 
 
 		gui = new Gui(w,h); 
+		gui.context = CC.CTX_1D;
 		Screen.addRoot(gui);
+		
 		
 		onResize();		
 
@@ -151,5 +133,11 @@ class AM extends Object {
  		var r = {width:width,height:height,dpi:dpi,lang:lang,os:os,home:home,run:run};
 		return r;
 	}// info()
+
+///
+	public static inline function getText(path:String)return FS.getText(path);
+
+	public static inline function playSound(path:String)if(sound) AU.playSound(path);
+	public static inline function playMusic(path:String)if(sound) AU.playMusic(path);
 
 }// abv.sys.js.AM

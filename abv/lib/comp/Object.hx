@@ -4,7 +4,9 @@ package abv.lib.comp;
  **/
 import abv.bus.*;
 import abv.lib.style.Style;
-using abv.lib.CR;
+import abv.interfaces.IComm;
+
+using abv.lib.CC;
 
 @:dce
 class Object implements IComm{
@@ -16,10 +18,10 @@ class Object implements IComm{
 	function get_id() { return _id; };
 //
 	public var sign(null,null):Int;
-	public var msg(default,null):MsgProp;
+	public var msg(default,null):MS.MsgProp;
 	
 
-	public function new(id:String)
+	public inline function new(id:String)
 	{
 		if(id.good()) _id = id; else throw "No ID";
 
