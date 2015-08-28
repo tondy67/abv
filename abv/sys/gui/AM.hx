@@ -97,12 +97,11 @@ class AM extends Object{
  **/
 	public static function info()
 	{
-		var lang = "",os = "",home = "",run = "cpp";
+		var lang = "",os = CC.OS,home = "",run = "cpp";
 // TODO: get width...
 		var width = 0, height = 0, dpi = 0;
 		
 		try lang = Sys.getEnv("LANG") catch(m:Dynamic){} 
-		try os = Sys.systemName() catch(m:Dynamic){} 
 		try home = Sys.getEnv("HOME") catch(m:Dynamic){}  
 
 #if neko 
@@ -111,9 +110,6 @@ class AM extends Object{
 		try home = Sys.getEnv("USERPROFILE") catch(m:Dynamic){}  
 #end
 		if(lang.good())lang = lang.substr(0,2);
-		if(os.starts("Linux"))os = "Linux";
-		else if(os.starts("Windows"))os = "Windows";
-		else if(os.starts("OSX"))os = "OSX";
 
  		var r = {width:width,height:height,dpi:dpi,lang:lang,os:os,home:home,run:run};
 		return r;

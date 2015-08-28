@@ -164,14 +164,9 @@ class AM extends Sprite implements IComm {
 		var height = Capabilities.screenResolutionY;
 		var dpi = Capabilities.screenDPI;
 		var lang = Capabilities.language.substr(0, 2);
-		var os = "";
+		var os = CC.OS;
 		var home = "";
 		var run = "flash";
-
-		os = Capabilities.os;
-		if(os.starts("Linux"))os = "Linux";
-		else if(os.starts("Windows"))os = "Windows";
-		else if(os.starts("OSX"))os = "OSX";
 
  		var r = {width:width,height:height,dpi:dpi,lang:lang,os:os,home:home,run:run};
 		return r;

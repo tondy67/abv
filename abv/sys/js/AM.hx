@@ -123,10 +123,7 @@ class AM extends Object {
 		var height = Browser.window.innerHeight;
 		var dpi = Browser.window.devicePixelRatio;
 		var lang = Browser.navigator.language.substr(0, 2); 
-		var os = Browser.navigator.platform;  
-		if(os.starts("Linux"))os = "Linux";
-		else if(os.starts("Windows"))os = "Windows";
-		else if(os.starts("OSX"))os = "OSX";
+		var os = CC.OS;  
 		var home = "";
 		var run = "js";
 

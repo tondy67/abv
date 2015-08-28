@@ -95,10 +95,9 @@ class AM {
  **/
 	public static function info()
 	{
-		var lang = "",os = "",home = "",run = "cpp";
+		var lang = "",os = CC.OS,home = "",run = "cpp";
 
 		try lang = Sys.getEnv("LANG") catch(m:Dynamic){} 
-		try os = Sys.systemName() catch(m:Dynamic){} 
 		try home = Sys.getEnv("HOME") catch(m:Dynamic){}  
 
 #if neko 
@@ -107,9 +106,6 @@ class AM {
 		try home = Sys.getEnv("USERPROFILE") catch(m:Dynamic){}  
 #end
 		if(lang.good())lang = lang.substr(0,2);
-		if(os.starts("Linux"))os = "Linux";
-		else if(os.starts("Windows"))os = "Windows";
-		else if(os.starts("OSX"))os = "OSX";
  
 		return {lang:lang,os:os,home:home,run:run};
 	}// info()

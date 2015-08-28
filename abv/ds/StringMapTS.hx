@@ -1,9 +1,11 @@
 package abv.ds;
 /**
- * Thread-safe StringMap with cookies
+ * Thread-safe StringMap
  **/
 import abv.cpu.Mutex;
 import haxe.ds.StringMap;
+
+using abv.lib.CC;
 
 abstract StringMapTS<V>(StringMap<V>){
 	
@@ -86,37 +88,25 @@ abstract StringMapTS<V>(StringMap<V>){
 	
 	public inline function sortK():Array<String> 
 	{
+		var a:Array<String> = [];
 		var lock:Mutex = Reflect.field(this, "lock");
 		lock.acquire();
-		var a = new Array<String>();
 		for (k in this.keys())a.push(k);
-		var cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-		if(a.length > 0)haxe.ds.ArraySort.sort(a, cmp);
+		a.sortAZ();
 		lock.release();
 		return a;
 	}// sortK()
 
 	public static inline function sortV(v:StringMapTS<String>):Array<String> 
 	{
+		var a:Array<String> = [];
 		var lock:Mutex = Reflect.field(v, "lock");
 		lock.acquire();
-		var a = new Array<String>();
 		for (k in v.keys())a.push(v.get(k));
-		var cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-		if(a.length > 0)haxe.ds.ArraySort.sort(a, cmp);
+		a.sortAZ();
 		lock.release();
 		return a;
 	}// sortV()
-	
-	public inline function indexOf(v:V):Null<String> 
-	{
-		var lock:Mutex = Reflect.field(this, "lock");
-		lock.acquire();
-		var r:Null<String> = null;
-		for (k in this.keys())if(this.get(k) == v){r = k;break;}
-		lock.release();
-		return r;
-	}// indexOf()
 	
 	public inline function copy():StringMapTS<V> 
 	{

@@ -6,8 +6,11 @@ package abv.sys.gui;
 import cpp.ConstCharStar;
 
 
-@:include("../../../../abv-tools/gui/src/abv.h")
-@:buildXml('<target id="haxe"><lib name="../../../abv-tools/libs/libABV.a"/></target>')
+//@:include("../../../../abv-tools/gui/src/abv.h")
+//@:buildXml('<target id="haxe"><lib name="../../../abv-tools/libs/libABV.a"/></target>')
+//@:include("C:\\dev\\SDL2\\include\\SDL.h")
+@:include("C:\\dev\\abv-tools\\gui\\src\\abv.h")
+@:buildXml('<target id="haxe"><lib name="C:\\dev\\abv-tools\\libs\\Windows\\ABV.lib"/></target>')
 extern class Abv{
 	
 ///

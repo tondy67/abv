@@ -146,7 +146,7 @@ class GUI{
 	
 	public static var _play_music = Lib.load("abv","play_music_hx",2);  
 	
-	public static var get_window_size = Lib.load("abv","get_window_size_hx",0);
+//	public static var get_window_size = Lib.load("abv","get_window_size_hx",0);
 	
 // -1 for args > 5  
 	public static var _render_text = Lib.load("abv","render_text_hx",-1);  

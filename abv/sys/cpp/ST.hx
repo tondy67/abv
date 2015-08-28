@@ -82,6 +82,7 @@ class ST{
 	public static inline function exists(path:Null<String>,msg="")
 	{ 
 		var r = true;
+		path = path.slash(); 		
 
 		if(path.good(msg) && !FileSystem.exists(path)){
 //			if(msg.good())trace(ERROR+msg + ": No such file or directory"); 
@@ -91,10 +92,30 @@ class ST{
 		return r;
 	}// exists()
 
+	public static function ln(path:String,link:String,opt="s")
+	{
+		path = path.slash(); 		
+		link = link.slash();
+
+		if(exists(path)){
+			if(CC.OS == WINDOWS) command("mklink",["/D",link,path]);
+			else command("ln",["-s",path,link]);
+		}
+	}// ln()
+	
+	public static inline function ls(path=".",opt="")
+	{ 
+		path = path.slash();
+		var r = opt.indexOf("R") != -1? getDir(path,true): getDir(path);
+
+		return r;
+	}// ls()
+	
 	public static inline function getDir(path:String,recursive=false,msg="")
 	{
 		var r:Array<String> = [];
 		
+		path = path.slash();
 		if(isDir(path,msg)){
 			if(recursive){
 				getDirR(path,r); 
@@ -126,17 +147,35 @@ class ST{
 	
 	public static inline function isDir(path:String,msg="")
 	{ 		
-		return exists(path,msg) && FileSystem.isDirectory(path);
+		return path.good()&& exists(path,msg) && FileSystem.isDirectory(path);
 	}// isDir()
+	
+	public static inline function cd(path:String)
+	{
+		path = path.slash();
+		if(isDir(path))Sys.setCwd(path);
+	}// cd()
+	
+	public static inline function pwd()
+	{
+		return Sys.getCwd();
+	}// pwd()
 	
 	public static inline function absPath(path:String)
 	{
+		path = path.slash();
 		return FileSystem.fullPath(path);
 	}// absPath()
 
+	public static inline function read()
+	{
+		return Sys.stdin().readLine();
+	}// read()
+
 	public static inline function open(path:String)
 	{
-		var r = "";
+		var r = ""; 
+		path = path.slash();
 		if(exists(path))r = isDir(path)?"is dir":File.getContent(path);
 		return r;
 	}// open()
@@ -152,32 +191,54 @@ class ST{
 
 	public static inline function save(path:String,s:String)
 	{
-		File.saveContent(path, s);
+		path = path.slash();
+		if(path.good())File.saveContent(path, s);
 	}// save()
 
-	public static inline function copy(src:String,dst:String)
+	public static inline function cp(src:String,dst:String,opt="")
 	{
-		if(src.good("copy: src")){
-			if(exists(src,'copy: $src'))File.copy(src, dst);
+		src = src.slash(); dst = dst.slash();
+		if(src.good() && exists(src) && dst.good() && !exists(dst)){
+				File.copy(src, dst);
 		}
-	}// copy()
+	}// cp()
 
-	public static inline function del(path:String)
+	public static inline function rm(path:String,opt="")
 	{
-		if(isDir(path,"del"))FileSystem.deleteDirectory(path);
-		else FileSystem.deleteFile(path);
-	}// del()
+		path = path.slash();
+		if(path.good() && exists(path)){ 
+			if(isDir(path)){
+				var op = opt.indexOf("r") != -1?"-rf":"";
+				if(CC.OS == WINDOWS){
+					if(op == "-rf")op = "/S /Q";
+					ST.command("rd",[op,path]);
+				}else ST.command("rm",[op,path]);
+			}else FileSystem.deleteFile(path);
+		}
+	}// rm()
 
 	public static inline function mkdir(path:String,opt="p")
 	{
-		if(path.good() && !isDir(path,path)) 
+		path = path.slash();
+		if(path.good() && !exists(path)) {
 			FileSystem.createDirectory(path);
+		}
 	}// mkdir()
+	
+	public static inline function mv(src:String,dst:String)
+	{
+		src = src.slash(); dst = dst.slash();
+		if(src.good() && exists(src) && dst.good()){
+			if(CC.OS == WINDOWS) ST.command("move",[src,dst]);
+			else ST.command("mv",[src,dst]);
+		}
+	}// mv()
 	
 	public static inline function command(cmd:String, args:Array<String>=null)
 	{ 
 		var r = 0;
 
+		cmd = cmd.slash();
 		if(cmd.good()){
 			if(args == null){
 				r = Sys.command(cmd);
@@ -195,6 +256,7 @@ class ST{
 	{ 
 		var r = "-1";
 
+		cmd = cmd.slash();
 		if(cmd.good()){
 			if(!background){
 					var p:Process = null;
@@ -227,7 +289,7 @@ class ST{
 
 	public static inline function stat(path:String)
 	{ 
-		if(!path.good())path= "";
+		path = path.slash(); 		
 
 		return FileSystem.stat(path);
 	}// stat()

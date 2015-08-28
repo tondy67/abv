@@ -5,6 +5,7 @@ package abv.io;
 import abv.AM;
 import abv.cpu.Timer;
 import abv.sys.ST;
+import abv.ds.MapString;
 
 using abv.lib.CC;
 using abv.lib.TP;
@@ -23,82 +24,29 @@ class SH{
 
 	inline function new(){ }
 
-	public static function ln(path:String,link:String,opt="s")
-	{
-		print('ln: $path $link $opt');
-		// mklink
-	}// ln()
-	
 	public static function hide(path:String)
 	{
-		print("hide");
-		// attrib +h file
+		path = path.slash(); 		
+		if(path.exists()){
+			if(CC.OS == WINDOWS) ST.command("attrib",["+h",path]);
+			else {};//ST.command("ln",["-s",path,link]);
+		}
 	}// hide()
 	
 	public static function unhide(path:String)
 	{
-		print("unhide");
-		// attrib -h file
+		path = path.slash(); 		
+		if(path.exists()){
+			if(CC.OS == WINDOWS) ST.command("attrib",["-h",path]);
+			else {};//ST.command("ln",["-s",path,link]);
+		}
 	}// unhide()
 	
-	public static inline function ls(path=".",opt="")
-	{
-		var r:Array<String>;
-
-		if (opt.indexOf("R") != -1) r = path.getDir(true);
-		else r = path.getDir();
-
-		return r;
-	}// ls()
-	
-	public static function cp(src:String,dst:String,opt="")
-	{
-		src.copy(dst);
-	}// cp()
-	
-	public static function rm(path="")
-	{
-		if(!path.good("rm")) return;
-		else if(!path.exists('rm: $path')) return;
-		else if(!path.dirname().absPath().starts(pwd()))
-			throw "rm: Not permitted outside current directory!";
-
-		if(path.isDir()){
-			var files = path.getDir(true);
-			for(f in files)f.del();
-		}else if(path.exists('rm: $path'))path.del();
-	}// rm()
-	
-	public static inline function mkdir(path:String,opt="p")
-	{
-		if(!path.isDir())ST.mkdir(path,opt);
-	}// mkdir()
-	
-	public static function mv(src:String,dst:String)
-	{
-		if(!src.good("mv: src") && !src.exists('mv: $src') && !dst.good("mv: dst")) return;
-// trace(ls(dst).length);	
-		if(src.isDir()){
-/*			if(ls(dst).length == 0)FileSystem.rename(src,dst);
-			else {
-				cp(src,dst,"r");
-			} */
-		}else {
-			
-		}
-	}// mv()
-	
-	public static inline function read()
-	{
-		return Sys.stdin().readLine();
-	}// read()
-
-	public static inline function echo(msg:String,color="",path="",append=false)
+	public static inline function echo(msg:String,color="")
 	{
 		if(!msg.good())msg = "";
 		if(!AM.silent){ 
-			if(path.good() && !path.isDir(path))path.save(msg + " ");
-			else ST.print(msg,color); 
+			ST.print(msg,color); 
 		}else output += msg;
 	}//echo()
 	
@@ -133,12 +81,13 @@ class SH{
 	}//exit()
 
 	public static inline function env(what="")
-	{// TODO: MapString
-		var r = new Map<String,String>();
-		if(what.good('env $what')){
-			r.set(what,Sys.getEnv(what));
+	{
+		var r = "";
+		if(what.good()){
+			r = Sys.getEnv(what);
 		}else{
-			r = Sys.environment();
+			var m = Sys.environment();
+			for(k in m.keys())r += k + "=" + m.get(k) + "\n";
 		}
 		return r;
 	}//env()
@@ -147,6 +96,7 @@ class SH{
 	{
 		var r:String = "";
 		var s = 'cat: $path';
+		path = path.slash(); 		
 		if(path.exists(s) && !path.isDir(s)){
 			try r = path.open()
 			catch(m:Dynamic){trace(WARN+s + " "+m);}
@@ -174,18 +124,9 @@ class SH{
 		return r;
 	}// time()
 
-	public static inline function pwd()
-	{
-		return Sys.getCwd();
-	}// pwd()
-	
-	public static inline function cd(path:String)
-	{
-		if(path.isDir('cd: $path'))Sys.setCwd(path);
-	}// cd()
-	
 	public static inline function zip(path:String,file:String,opt="r")
 	{
+		path = path.slash(); 		
 		if(path.good('zip: $path'))echo('zip: $path $opt');
 	}// zip()
 	
@@ -201,37 +142,43 @@ class SH{
 		ip.variables.set("ctx",ctx);
 		ip.variables.set("args",args);
 //
-		ip.variables.set("TP",TP);
+		ip.variables.set("T",T);
 		ip.variables.set("Math",Math);
 		ip.variables.set("json",CC.json);
 		ip.variables.set("good",good);
 		ip.variables.set("fields",DT.fields);
+		ip.variables.set("MapString",MapString);
 //
-		ip.variables.set("ls",ls);
-		ip.variables.set("mkdir",mkdir);
-		ip.variables.set("rm",rm);
-		ip.variables.set("pwd",pwd);
-		ip.variables.set("cd",cd);
-		ip.variables.set("mv",mv);
-		ip.variables.set("cp",cp);
+		ip.variables.set("ls",ST.ls);
+		ip.variables.set("mkdir",ST.mkdir);
+		ip.variables.set("rm",ST.rm);
+		ip.variables.set("pwd",ST.pwd);
+		ip.variables.set("cd",ST.cd);
+		ip.variables.set("mv",ST.mv);
+		ip.variables.set("cp",ST.cp);
 		ip.variables.set("echo",echo);
 		ip.variables.set("print",print);
 		ip.variables.set("clear",clear);
-		ip.variables.set("read",read);
+		ip.variables.set("read",ST.read);
 		ip.variables.set("export",export);
 		ip.variables.set("cat",cat);
 		ip.variables.set("date",date);
 		ip.variables.set("time",time);
 		ip.variables.set("uname",uname);
-		ip.variables.set("ln",ln);
+		ip.variables.set("ln",ST.ln);
 		ip.variables.set("zip",zip);
 		ip.variables.set("sleep",sleep);
 		ip.variables.set("exec",ST.exec);
 		ip.variables.set("bg",ST.bg);
 		ip.variables.set("stat",ST.stat);
-		ip.variables.set("T",T);
 		ip.variables.set("command",ST.command);
-		ip.variables.set("exit",exit);
+		ip.variables.set("exit",exit); 
+		ip.variables.set("exists",ST.exists); 
+		ip.variables.set("save",ST.save); 
+		ip.variables.set("dirname",CC.dirname); 
+		ip.variables.set("basename",CC.basename); 
+		ip.variables.set("extname",CC.extname); 
+		ip.variables.set("env",env); 
 		
 		var t = ip.execute(program); 
 //		var f = ip.variables.get("update"); 
@@ -285,4 +232,6 @@ class TextProcessing
 	public inline function str2map(s:String,sep1=CC.SEP1,sep3=CC.SEP3){return TP.str2map(s,sep1,sep3);}
 	public inline function urlEncode(s:String){return TP.urlEncode(s);}
 	public inline function urlDecode(s:String){return TP.urlDecode(s);}   
-}// abv.io.TextProcessing
+}// abv.io.SH.TextProcessing
+
+

@@ -34,6 +34,13 @@ enum LogLevels{
 	DEBUG;
 }
 
+enum OsName{
+	BSD;
+	LINUX;
+	MAC;
+	WINDOWS;
+}
+
 @:dce
 @:build(abv.macro.BM.buildConfig())
 class CC{
@@ -61,7 +68,7 @@ class CC{
 	static var logMax 					= 1 << 16;
 //
 	static var start = Timer.stamp();
-
+	
 	inline function new(){ }
 
 	public static inline function md5(s:String)return Md5.encode(s);
@@ -98,13 +105,16 @@ class CC{
 
 	public static inline function dirname(path:String)
 	{
-		var sep = "/";
-		var r = ".";
-		var a = path.trim().splitt(sep); 
-		if(a.length > 1){
-			var last = a.pop();
-			if(!good(last))last = a.pop();
-			r = a.join(sep);
+		var r = "";
+		if(good(path)){
+			var sep = "/";
+			r = path.trim();
+			var a = r.splitt(sep); 
+			if(a.length > 1){
+				var last = a.pop();
+				if(!good(last)) a.pop();
+				r = a.join(sep) + "/";
+			}
 		}
 		return r;
 	}// dirname()
@@ -112,26 +122,29 @@ class CC{
 	public static inline function basename(path:String,ext=true)
 	{
 		var r = "";
-		var sep = "/";
-		var dir = dirname(path);
-		r = path.replace(dir,"");
-		r = r.replace(sep,"");
+		if(good(path)){
+			r = path.replace(dirname(path),"");
 
-		if(!ext){
-			var t = r.split(".");
-			r = t[0];
+			if(!ext){
+				var sep = ".";
+				var a = r.splitt(sep);
+				a.pop();
+				r = a.join(sep);
+			}
 		}
-		
 		return r;
 	}// basename()
 	
 	public static function extname(path:String)
 	{
-		var r = "", sep = ".";
-		var name = basename(path); 
-		if(good(name) && !name.starts(".")){  
-			var a = name.splitt(sep); 
-			if(a.length > 1)r = a.pop(); 
+		var r = ""; 
+		if(good(path)){
+			var sep = ".";
+			var name = basename(path); 
+			if(good(name)){  
+				var a = name.splitt(sep); 
+				if(a.length > 1)r = a.pop(); 
+			}
 		}
 		return r;
 	}// extname()
@@ -151,6 +164,16 @@ class CC{
 	{
 #if flash untyped a.length = 0; #else a.splice(0,a.length); #end
     }// clear<T>()
+	
+	public static inline function slash(s:String)
+	{
+		var r = "";
+		if(good(s)){
+			if(OS == WINDOWS) r = s.replace("/","\\");
+			else r = s.replace("\\","/");
+		}
+		return r;
+	}// slash()
 	
 	public static inline function getLog(line=0,filter="")
 	{
@@ -242,6 +265,28 @@ class CC{
 			logData.push(level+""+msg);
 		}
 	}// log()
+
+// operating system
+	public static var OS(get,never):OsName;
+	static var _OS:OsName = null;
+	static function get_OS()
+	{
+		if(_OS == null){
+			var os = "";
+#if flash 
+			os = flash.system.Capabilities.os;
+#elseif js 	
+			os = js.Browser.navigator.platform; 
+#else 
+			os = Sys.systemName(); 
+#end
+			if(os.starts("Linux"))_OS = LINUX;
+			else if(os.starts("Windows"))_OS = WINDOWS;
+			else if(os.starts("Mac"))_OS = MAC;
+			else if(os.starts("BSD"))_OS = BSD;
+		}
+		return _OS;
+	}// get_OS()
 
 }// abv.lib.CC
 
