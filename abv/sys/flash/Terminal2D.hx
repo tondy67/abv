@@ -216,7 +216,7 @@ class Terminal2D extends Terminal{
 
 	function getTile(bm:BitmapData,rect:Rectangle,scale = 1.)
 	{ 
-		var sbm:BitmapData = null;
+		var sbm:BitmapData = null; 
 		if(bm == null) return sbm; 
 		if(rect == null){
 			rect = new Rectangle(0,0,bm.width,bm.height);

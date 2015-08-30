@@ -91,7 +91,7 @@ class FS{
 	static function onComplete(e:Event)
 	{ 
 		var bdir = CC.dirname(e.target.loaderURL);
-		var id = StringTools.replace(e.target.url,bdir + "/", ""); 
+		var id = StringTools.replace(e.target.url,bdir, ""); 
 		var bd = e.target.loader.content.bitmapData; 
 		if (id.good() && (bd != null)) { 
 			textures.set(id,bd);  //trace(textures);

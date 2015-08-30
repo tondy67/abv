@@ -5,12 +5,28 @@ package abv.sys.gui;
  **/
 import cpp.ConstCharStar;
 
+@:include("../../../../abv-tools/gui/src/abv.h")
+@:buildXml('<target id="haxe">
+ <section if="linux">
+	<lib name="../../../abv-tools/libs/Linux/x64/libABV.a" if="HXCPP_M64"/>
+	<lib name="../../../abv-tools/libs/Linux/x86/libABV.a" unless="HXCPP_M64"/>
+ </section>
+ <section if="windows">
+	<lib name="../../../abv-tools/libs/Windows/ABV.lib"/>
+	<lib name="shell32.lib"/>
+	<lib name="gdi32.lib"/>
+	<lib name="winmm.lib"/>
+	<lib name="imm32.lib"/>
+	<lib name="ole32.lib"/>
+	<lib name="oleaut32.lib"/>
+	<lib name="version.lib"/>
+	<lib name="uuid.lib"/>
+	<lib name="dinput8.lib"/>
+	<flag value="/NODEFAULTLIB:MSVCRT" />
+	<flag value="/FORCE" />
+ </section>
+</target>')
 
-//@:include("../../../../abv-tools/gui/src/abv.h")
-//@:buildXml('<target id="haxe"><lib name="../../../abv-tools/libs/libABV.a"/></target>')
-//@:include("C:\\dev\\SDL2\\include\\SDL.h")
-@:include("C:\\dev\\abv-tools\\gui\\src\\abv.h")
-@:buildXml('<target id="haxe"><lib name="C:\\dev\\abv-tools\\libs\\Windows\\ABV.lib"/></target>')
 extern class Abv{
 	
 ///

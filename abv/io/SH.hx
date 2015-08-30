@@ -21,6 +21,8 @@ class SH{
 	static var platform = "";
 	public static var output = ""; 
 	static var T = new TextProcessing();
+	static var _arch = 0;
+	static var _uname = ["a"=>"","r"=>"","m"=>""];
 
 	inline function new(){ }
 
@@ -118,11 +120,50 @@ class SH{
 		return Timer.stamp();
 	}// time()
 
-	public static inline function uname()
+	public static inline function uname(opt="")
 	{
-		var r = Sys.systemName();
+		var r = "";
+		var win = CC.OS == WINDOWS;
+		var op = switch(opt){
+			case "a": "-a";
+			case "r": "-r";
+			case "m": "-m";
+			default: "";
+		}
+		if(op != ""){
+			if(_uname[opt].good()){
+				r = _uname[opt];
+			}else{
+				if(win) r = ST.exec("systeminfo",["/FO","list"]);
+				else r = ST.exec("uname",[op]);
+				_uname[opt] = r;
+			}
+		}else r = Sys.systemName(); 
+
 		return r;
-	}// time()
+	}// uname()
+
+	public static inline function arch()
+	{
+		if(_arch == 0){
+			_arch = 32;
+			if(uname("m").indexOf("64") != -1) _arch = 64;
+		}
+		return _arch;
+	}// arch()
+
+	public static inline function archX()
+	{
+		return arch() == 64?"x64":"x86";
+	}// archX()
+
+	public static inline function which(cmd:String)
+	{
+		var r = "";
+			if(CC.OS == WINDOWS) r = ST.exec("where",["/R","c:\\Program Files",cmd]);
+			else r = ST.exec("which",[cmd]);
+		return r;
+	}// which()
 
 	public static inline function zip(path:String,file:String,opt="r")
 	{
@@ -179,6 +220,9 @@ class SH{
 		ip.variables.set("basename",CC.basename); 
 		ip.variables.set("extname",CC.extname); 
 		ip.variables.set("env",env); 
+		ip.variables.set("arch",arch); 
+		ip.variables.set("archX",archX); 
+		ip.variables.set("which",which); 
 		
 		var t = ip.execute(program); 
 //		var f = ip.variables.get("update"); 

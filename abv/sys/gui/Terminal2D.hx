@@ -55,7 +55,7 @@ class Terminal2D extends Terminal{
 	}// new()
 
 	public override function update()
-	{
+	{// TODO: fix  fps & events
 		GUI.update();
 	}// update()
 	
