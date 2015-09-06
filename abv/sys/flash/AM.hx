@@ -21,7 +21,7 @@ import flash.Lib;
 import flash.system.Capabilities;
 
 using abv.lib.CC;
-using abv.lib.TP;
+using abv.ds.TP;
 
 class AM extends Sprite implements IComm {
 
@@ -34,7 +34,7 @@ class AM extends Sprite implements IComm {
 // unique id
 	public var id(get, never):String;
 	var _id:String = "";
-	function get_id() { return _id; };
+	function get_id() return _id;
 //
 	public var sign(null,null):Int;
 	public var msg(default,null):MS.MsgProp;

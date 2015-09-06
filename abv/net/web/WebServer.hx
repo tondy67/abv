@@ -10,8 +10,8 @@ import abv.lib.math.MT;
 import abv.ds.*;
 
 using abv.lib.CC;
-using abv.lib.TP;
-using abv.sys.ST;
+using abv.ds.TP;
+using abv.ST;
 using abv.ds.DT;
 
 typedef Client = {
@@ -19,7 +19,7 @@ typedef Client = {
 	sock:Socket, 
 	request:String, 
 	length:Int, 
-	ctx:Map<String,String>, 
+	ctx:AMap<String,String>, 
 	ip: String}
 
 typedef Message = {body: String}
@@ -47,11 +47,11 @@ class WebServer extends ThreadServer<Client, Message>{
 // expire in seconds
 	var sessionExpire = 300;
 // urls map 
-	public var urls(default,null):Map<String,String>;
+	public var urls(default,null):AMap<String,String>;
 
 	var sessions(default,null) = new Wallet();
 
-	public function config(cfg:Map<String,String>)
+	public function config(cfg:AMap<String,String>)
 	{
 		if(cfg.exists("host"))host = cfg["host"];
 		if(cfg.exists("port"))
@@ -79,7 +79,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		else if(c.request.length == c.length)s = CC.LF; 
 
 		if(s == CC.LF){ 
-			var form:Map<String,String> = null;
+			var form:AMap<String,String> = null;
 			if(c.ctx == null){
 				c.ctx = WT.parseRequest(c.request); 
 				c.ctx["root"] = root;
@@ -99,7 +99,7 @@ class WebServer extends ThreadServer<Client, Message>{
 			
 			if(ctx["status"] == "200"){
 				ST.lock.acquire();
-				var session:Map<String,String> = null;
+				var session:AMap<String,String> = null;
 // session
 				if(useCookies){
 					if(ctx.exists(WT.COOKIE)){
@@ -109,7 +109,7 @@ class WebServer extends ThreadServer<Client, Message>{
 							session = sessions.get(a.pop());
 						}
 					}
-					if(session.empty()){
+					if(session.length == 0){
 						var sid = sessions.add(sessionExpire); 
 						session = sessions.get(sid); 
 						WT.setCookie(ctx,"sid",sid);
@@ -117,7 +117,7 @@ class WebServer extends ThreadServer<Client, Message>{
 				}
 //trace(session);	
 				var path = WT.fsPath(ctx["path"]); 
-				if(ctx.pair(WT.IF_NONE_MATCH,WT.etag(ctx))){ 
+				if(ctx.isPair(WT.IF_NONE_MATCH,WT.etag(ctx))){ 
 					ctx["status"] = "304";
 				}else if(!root.good()){
 					app(ctx,session,form);
@@ -126,7 +126,7 @@ class WebServer extends ThreadServer<Client, Message>{
 				}else if(ctx["path"].eq("/hako.css")){
 					mkCss(ctx);
 				}else if(ctx["path"].starts(urls["pa"])){  
-					if(ctx.pair(WT.AUTHORIZATION,"Basic "+auth))app(ctx,session,form);
+					if(ctx.isPair(WT.AUTHORIZATION,"Basic "+auth))app(ctx,session,form);
 					else ctx["status"] = "401";
 				}else if(path.exists()){
 						if(path.isDir())mkDir(ctx); else mkFile(ctx,session);
@@ -144,7 +144,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		}
 	}// clientMessage()
 	
-	function mkDir(ctx:Map<String,String>)
+	function mkDir(ctx:AMap<String,String>)
 	{
 		ctx["path"] = WT.slash(ctx["path"]);
 		var path = WT.fsPath(ctx["path"]); 
@@ -164,7 +164,7 @@ class WebServer extends ThreadServer<Client, Message>{
 		}else ctx["body"] = WT.mkPage('<p><a href="/">Home</a></p>'+WT.dirIndex(path));
 	}// mkDir()
 	
-	function mkFile(ctx:Map<String,String>,session:Map<String,String>=null)
+	function mkFile(ctx:AMap<String,String>,session:AMap<String,String>=null)
 	{ 
 		if(ctx["path"].ends(".hxs"))app(ctx,session);else WT.mkFile(ctx);
 	}// mkFile()
@@ -215,7 +215,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	}// readClientMessage()
 
 ///
-	function mkCss(ctx:Map<String,String>)
+	function mkCss(ctx:AMap<String,String>)
 	{ 
 		ctx["mime"] = "css";
 //		ctx["body"] = ST.open("bin/hako.css");
@@ -224,7 +224,7 @@ class WebServer extends ThreadServer<Client, Message>{
 	}// mkCss()
 
 ///
-	public dynamic function app(ctx:Map<String,String>,session:Map<String,String>=null,form:Map<String,String>=null)
+	public dynamic function app(ctx:AMap<String,String>,session:AMap<String,String>=null,form:AMap<String,String>=null)
 	{
 		ctx["mime"] = "";
 		var body = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/exit">Exit</a></p>';

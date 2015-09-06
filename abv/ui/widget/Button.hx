@@ -19,6 +19,7 @@ class Button extends Text implements IStates{
 	public function new(id:String,label="Button",x=.0,y=.0,width=120.,height=40.)
 	{
 		super(id);
+		_kind = "Button";
 		_pos.set(x,y);
 		_width = width; _height = height;
 

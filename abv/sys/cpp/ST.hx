@@ -10,7 +10,7 @@ import abv.cpu.Boss;
 import abv.cpu.Mutex;
 import abv.cpu.Timer;
 
-using abv.lib.TP;
+using abv.ds.TP;
 using abv.lib.CC;
 
 @:dce
@@ -98,7 +98,7 @@ class ST{
 		link = link.slash();
 
 		if(exists(path)){
-			if(CC.OS == WINDOWS) command("mklink",["/D",link,path]);
+			if(CC.OS == WINDOWS)command("cmd",["/c","mklink","/D",link,path]);
 			else command("ln",["-s",path,link]);
 		}
 	}// ln()
@@ -152,8 +152,8 @@ class ST{
 	
 	public static inline function cd(path:String)
 	{
-		path = path.slash();
-		if(isDir(path))Sys.setCwd(path);
+		path = path.slash(); 
+		if(isDir(path))Sys.setCwd(path); 
 	}// cd()
 	
 	public static inline function pwd()
@@ -210,8 +210,8 @@ class ST{
 			if(isDir(path)){
 				var op = opt.indexOf("r") != -1?"-rf":"";
 				if(CC.OS == WINDOWS){
-					if(op == "-rf")op = "/S /Q";
-					ST.command("rd",[op,path]);
+					if(op == "-rf")op = "/S";
+					ST.command("cmd",["/c","rd",op,"/Q",path]);
 				}else ST.command("rm",[op,path]);
 			}else FileSystem.deleteFile(path);
 		}
@@ -245,7 +245,7 @@ class ST{
 			}else{
 				var a = new Array<String>();
 				for(l in args)if(l.good())a.push(l.trim());
-				r = Sys.command(cmd,a);
+				r = Sys.command(cmd,a); 
 			}
 		}
 		

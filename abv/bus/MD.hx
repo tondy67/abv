@@ -55,11 +55,11 @@ class MD {
 // Subscribers
 	public var to(get,never):String;
 	var _to:String = "";
-	function get_to(){return _to;}
+	function get_to() return _to;
 
 	public var msg(get,never):Int;
 	var _msg:Int = 0;
-	function get_msg(){return _msg;}
+	function get_msg() return _msg;
 
 @:allow(abv.bus.MS)	
 	public var sign(default,null):Int;

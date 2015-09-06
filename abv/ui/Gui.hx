@@ -7,7 +7,7 @@ import abv.ui.widget.Button;
 import abv.ui.LG;
 
 using abv.lib.CC;
-using abv.lib.TP;
+using abv.ds.TP;
 
 class Gui extends Root{
 

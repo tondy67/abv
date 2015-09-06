@@ -11,6 +11,7 @@ class VBox extends Box{
 	public function new(id:String,x=.0,y=.0,width=150.,height=200.)
 	{
 		super(id,x,y,width,height);
+		_kind = "VBox";
 		placement.set(0,1);
 	}// new()
 

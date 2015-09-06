@@ -15,7 +15,7 @@ class Object implements IComm{
 // unique id
 	public var id(get,never):String;
 	var _id = "";
-	function get_id() { return _id; };
+	function get_id()  return _id;
 //
 	public var sign(null,null):Int;
 	public var msg(default,null):MS.MsgProp;

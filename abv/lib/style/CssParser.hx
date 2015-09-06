@@ -6,7 +6,7 @@ import Type;
 
 using abv.lib.CC;
 using abv.lib.math.MT;
-using abv.lib.TP;
+using abv.ds.TP;
 using abv.lib.style.Color;
 
 @:dce

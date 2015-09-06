@@ -1,9 +1,10 @@
 package abv.lib.math;
-
-using abv.lib.CC;
 /**
  * MathTools
  **/
+
+using abv.lib.CC;
+
 @:dce
 class MT{
 
@@ -54,6 +55,17 @@ class MT{
 		else r = f;
 		return r;
 	}// val()
+
+	public static inline function cmpInt(a:Int,b:Int)
+	{
+		return a == b ? 0 : a < b ? -1:1;
+	}
+
+	public static inline function cmpFloat(a:Float,b:Float)
+	{
+		return Math.abs(a-b) > CC.E ? a < b ? -1:1 : 0;
+	}
+
 
 }// abv.lib.math.MT
 

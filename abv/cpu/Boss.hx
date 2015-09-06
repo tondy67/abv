@@ -5,7 +5,7 @@ package abv.cpu;
 import abv.cpu.WorkerSys;
 import abv.cpu.Timer;
 import sys.io.Process;
-import abv.sys.ST;
+import abv.ST;
 import abv.cpu.Thread;
 
 using abv.lib.CC;

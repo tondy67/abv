@@ -6,6 +6,7 @@ import abv.lib.comp.Component;
 import abv.lib.comp.Object;
 import abv.ui.Root;
 import abv.lib.math.Point;
+import abv.ds.AMap;
 
 using abv.lib.math.MT;
 using abv.lib.CC;
@@ -13,10 +14,9 @@ using abv.lib.CC;
 @:dce
 class Container extends Component{
 
-	var children:Array<Component> = [];
-	var childrenMap = new Map<String,Component>();
+	var children = new AMap<String,Component>();
 	public var numChildren(get,never):Int;
-	function get_numChildren() { return children.length; };
+	function get_numChildren()  return children.length;
 	var placement = new Point();
 //
 	override function set_visible(b:Bool){
@@ -40,8 +40,8 @@ class Container extends Component{
 		var r = true;
 		if (obj == null)r = false;
 		else if(!obj.id.good())r = false;
-		else if(!childrenMap.exists(obj.id)) r = false;
-		else if(childrenMap[obj.id] == null) r = false;
+		else if(!children.exists(obj.id)) r = false;
+		else if(children[obj.id] == null) r = false;
 		return r;
 	}
 	
@@ -49,13 +49,12 @@ class Container extends Component{
 	{
 		if(obj == null)trace(ERROR+"Null Object");
 		else if(!obj.id.good())trace(ERROR+"No ID");
-		else if(childrenMap.exists(obj.id))trace(ERROR+"Object: "+obj.id+" exist!");
+		else if(children.exists(obj.id))trace(ERROR+"Object: "+obj.id+" exist!");
 		else{
-			obj.parent = this; //trace(id+":"+root);
+			obj.parent = this; 
 			obj.root = root; 
 			obj.visible = visible;
-			children.push(obj);
-			childrenMap.set(obj.id,obj);
+			children.set(obj.id,obj);
 		}
 	}// addChild()
 
@@ -65,9 +64,7 @@ class Container extends Component{
 		else if(!obj.id.good())return;
 		else if(index < 0)index = 0;
 		else if(index > numChildren-1)index = numChildren - 1;
-		var cur = children.indexOf(obj);
-		if(cur != -1)delChild(obj);
-		children.insert(index,obj);
+		children.setIndex(obj.id,obj,index);
 	}// addChildAt()
 	
 	public inline function getChildAt(i:Int) 
@@ -80,8 +77,8 @@ class Container extends Component{
 	public function getChildByID(id:String) 
 	{
 		var obj:Component = null;
-		if((id == null)||(id == ""))return obj;
-		if(childrenMap.exists(id))obj = childrenMap[id];
+		
+		if(id.good() && children.exists(id))obj = children[id];
 		return obj;
 	}// getChildByID()
 
@@ -90,11 +87,17 @@ class Container extends Component{
 		return children.indexOf(obj);
 	}// getChildIndex()
 	
+	public function delChildren()
+	{
+		var tmp = children.copy();
+		for(c in tmp)delChild(c);
+		tmp.clear();
+	}// delChildren()
+
 	public function delChild(obj:Component)
 	{
 		if (obj != null){
-			childrenMap.remove(obj.id);
-			children.remove(obj); 
+			children.remove(obj.id);
 			obj.free();
 			obj = null;
 		}
@@ -136,7 +139,7 @@ class Container extends Component{
 		}else if(obj.parent == null){
 			trace(ERROR+obj.id+": No parent!");
 			return;
-		}else if(!childrenMap.exists(obj.id)){
+		}else if(!children.exists(obj.id)){
 			trace(ERROR+obj.id+": Intruder!");
 			return;
 		}
@@ -165,7 +168,7 @@ class Container extends Component{
 			if(placement.x == 1){ 
 				if(pp.left == CC.AUTO) c++;else x = pp.left.auto();
 
-				for(i in 0...children.length){
+				for(i in 0...numChildren){
 					m = children[i].style.margin;
 					p = children[i].style.padding;
 					if(m.left == CC.AUTO) c++;else x += m.left.auto();
@@ -200,7 +203,7 @@ class Container extends Component{
 			if(placement.y == 1){ 
 				if(pp.top == CC.AUTO) c++;else y = pp.top.auto();
 
-				for(i in 0...children.length){
+				for(i in 0...numChildren){
 					m = children[i].style.margin;
 					p = children[i].style.padding;
 					if(m.top == CC.AUTO) c++;else y += m.top.auto();

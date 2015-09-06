@@ -17,7 +17,7 @@ import abv.interfaces.*;
 import haxe.Json;
 
 using abv.lib.CC;
-using abv.lib.TP;
+using abv.ds.TP;
 
 @:dce
 @:allow(abv.io.Screen)
@@ -88,11 +88,11 @@ class Root extends Box{
 			var html = Xml.parse(skin).firstElement(); 
 			var body = html.elementsNamed("body").next(); 
 			for(node in body.elements())processNode(node);
-		}catch(d:Dynamic){trace(ERROR + name +": "+d);}
+		}catch(d:Dynamic)trace(ERROR + name +": "+d);
 
 		for(obj in getChildren()){	
 			try obj.parent.placeChild(obj)
-			catch(d:Dynamic){trace(ERROR+obj.parent.id+"->"+obj.id+": "+d);}
+			catch(d:Dynamic)trace(ERROR+obj.parent.id+"->"+obj.id+": "+d);
 		}
 	}// build()
 
@@ -152,7 +152,7 @@ class Root extends Box{
 		if(styles.exists(cid)) sel.add(cid);
 		for (s in sel) {
 			try obj.style.copy(styles[s])
-			catch(d:Dynamic) {trace(ERROR+s +": "+d);}
+			catch(d:Dynamic) trace(ERROR+s +": "+d);
 		}
 		var pc:String;
 		for (k in Style.State.keys()) { 
@@ -166,7 +166,7 @@ class Root extends Box{
 				obj.style.set(Style.State[k]); 
 				for (s in sel) { 
 					try obj.style.copy(styles[s])
-					catch(d:Dynamic) {trace(ERROR+s +": "+d);}
+					catch(d:Dynamic) trace(ERROR+s +": "+d);
 				}
 			}
 		}
@@ -185,7 +185,7 @@ class Root extends Box{
 			switch(att){
 				case "action": 
 					try act = Json.parse(av)
-					catch(d:Dynamic){trace(ERROR+attr["id"] +"(action): "+d);}; 
+					catch(d:Dynamic)trace(ERROR+attr["id"] +"(action): "+d); 
 					if(act.length == 0)continue;
 					for(a in act){
 						p = a.split(","); 
@@ -196,7 +196,7 @@ class Root extends Box{
 					}
 				case "states": 
 					try st = Json.parse(av)
-					catch(d:Dynamic){trace(ERROR+attr["id"] +"(states): "+d);}; 
+					catch(d:Dynamic)trace(ERROR+attr["id"] +"(states): "+d); 
 					if(st.length == 0)continue; 
 					cast(obj, IStates).states = st;
 					obj.text = cast(obj, IStates).states[obj.state].text;

@@ -7,9 +7,10 @@ import haxe.io.Bytes;
 import abv.net.web.Icons;
 import abv.net.web.WebServer;
 import abv.lib.DateGMT;
+import abv.ds.AMap;
 
-using abv.lib.TP;
-using abv.sys.ST;
+using abv.ds.TP;
+using abv.ST;
 using abv.lib.CC;
  
 
@@ -185,9 +186,9 @@ class WT{
 		return TP.str2map(s.urlDecode(),"=",sep);	
 	}// parseCookie()
 
-	public static inline function parsePostData(ctx:Map<String,String>)
+	public static inline function parsePostData(ctx:AMap<String,String>)
 	{
-		var r = new Map<String,String>();
+		var r = new AMap<String,String>();
 		var a = [""],t = [""],p = [""];
 		var n = "",f = "",c = "",m = "";
 		var b = "--" + ctx["boundary"];
@@ -225,11 +226,27 @@ class WT{
 	
 	public static inline function parseRequest(s:String)
 	{ // TODO: websockets, chunked 
-		var r = [
-			"root"=>"","ip"=>"","status" => "400", "protocol" => "","version" => "",
-			"host" => "", "port" => "",	"request" => "", "path" => "","cookies" => "",
-			"query" => "", "body" => "", "title" => "", "length" => "0",
-			"etag" => "", "mime" => "", CONTENT_TYPE => "", "boundary" => ""];
+		var r = new AMap<String,String>();
+		
+		r.set("root","");
+		r.set("ip","");
+		r.set("status" , "400"); 
+		r.set("protocol" , "");
+		r.set("version" , "");
+		r.set("host" , ""); 
+		r.set("port" , "");	
+		r.set("request" , ""); 
+		r.set("path" , "");
+		r.set("cookies" , "");
+		r.set("query" , ""); 
+		r.set("body" , ""); 
+		r.set("title" , ""); 
+		r.set("length" , "0");
+		r.set("etag" , ""); 
+		r.set("mime" , ""); 
+		r.set(CONTENT_TYPE , ""); 
+		r.set("boundary" , ""); 
+
 		var lines = s.trim().splitt("\n");
 
 		if(lines[0].good()){
@@ -274,7 +291,7 @@ class WT{
 		return r;
 	}// parseRequest()
 	
-	public static inline function response(ctx:Map<String,String>)
+	public static inline function response(ctx:AMap<String,String>)
 	{
 		var now = Date.now().getTime();
 		var date = getDate(now);
@@ -319,7 +336,7 @@ class WT{
 		return Bytes.ofString(r);
 	}// response()
 	
-	public static inline function redirect(ctx:Map<String,String>,url="/")
+	public static inline function redirect(ctx:AMap<String,String>,url="/")
 	{ 
 		ctx["status"] = "303";
 		var p = parseURI(url); 
@@ -328,12 +345,12 @@ class WT{
 		if(p["request"].good())ctx["request"] = p["request"];
 	}// redirect()
 
-	public static inline function setCookie(ctx:Map<String,String>,key:String,val="")
+	public static inline function setCookie(ctx:AMap<String,String>,key:String,val="")
 	{ 
 		if(key.good())ctx["cookies"] += '$key=$val\n';
 	}// setCookie()
 
-	public static inline function referer(ctx:Map<String,String>,url="")
+	public static inline function referer(ctx:AMap<String,String>,url="")
 	{
 		return ctx.exists(REFERER) && (ctx[REFERER] == url);
 	}// referer()
@@ -344,7 +361,7 @@ class WT{
 		return '<meta http-equiv="refresh" content="$time$u">';
 	}// refresh()
 
-	public static inline function etag(ctx:Map<String,String>)
+	public static inline function etag(ctx:AMap<String,String>)
 	{
 		var r = "";
 		var ext = ctx["path"].extname(); 
@@ -353,7 +370,7 @@ class WT{
 		return r;
 	}// etag()
 	
-	public static inline function mkFile(ctx:Map<String,String>)
+	public static inline function mkFile(ctx:AMap<String,String>)
 	{
 		var f = "";
 		var path = ctx["path"].substr(1); 

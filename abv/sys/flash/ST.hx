@@ -5,7 +5,7 @@ package abv.sys.flash;
 import haxe.Log;
 import abv.lib.style.Color;
 
-using abv.lib.TP;
+using abv.ds.TP;
 using abv.lib.CC;
 
 class ST{

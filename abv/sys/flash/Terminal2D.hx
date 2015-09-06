@@ -7,6 +7,7 @@ import abv.io.*;
 import abv.lib.comp.Component;
 import abv.lib.math.Rectangle;
 import abv.io.Screen;
+import abv.ui.Shape;
 
 import flash.display.Sprite;
 import flash.display.BitmapData;
@@ -21,9 +22,9 @@ using abv.lib.style.Color;
 @:dce
 class Terminal2D extends Terminal{
 
-	var shapes:Map<String,Sprite>;
+	var shapes = new Map<String,Sprite>();
 	var sp:Sprite;
-	public var monitor:Sprite;
+	public var monitor = new Sprite();
 	public var ui:Input;
 	var bmd = new Map<String,BitmapData>();
 	
@@ -31,14 +32,12 @@ class Terminal2D extends Terminal{
 	{
 		super("Terminal2D");
 		ui = new Input(); 
-		monitor = new Sprite(); //trace(msg);
-		shapes = new Map();
 	}// new()
 
 	function tid(e:MouseEvent)
 	{ 
 		var oid:Null<String> = "";
-		try oid = e.target.name catch(d:Dynamic){trace(d);}; 
+		try oid = e.target.name catch(d:Dynamic) trace(d); 
 		return oid;
 	}// tid()
 	
@@ -59,15 +58,15 @@ class Terminal2D extends Terminal{
 		if(oid.good())MS.exec(new MD(sign,oid,cmd,[monitor.mouseX,monitor.mouseY],"",[ui.delta]));
 //LG.log(to+":"+MS.msgName(cmd));
 	}// onMsg()	
-	function onMouseOver(e:MouseEvent){onMsg(tid(e),MD.MOUSE_OVER);}
-	function onMouseOut(e:MouseEvent){onMsg(tid(e),MD.MOUSE_OUT);}
+	function onMouseOver(e:MouseEvent)onMsg(tid(e),MD.MOUSE_OVER);
+	function onMouseOut(e:MouseEvent)onMsg(tid(e),MD.MOUSE_OUT);
 	function onMouseMove(e:MouseEvent){
 		if(ui.click){
 			onMsg(tid(e),MD.MOUSE_MOVE);
 		};
 	}
-	function onMouseWheel(e:MouseEvent){ui.wheel = e.delta;}
-	function onMouseUp(e:MouseEvent){ui.click = false;}
+	function onMouseWheel(e:MouseEvent)ui.wheel = e.delta;
+	function onMouseUp(e:MouseEvent)ui.click = false;
 	function onMouseDown(e:MouseEvent)
 	{ 
 		var oid = "";
@@ -99,7 +98,7 @@ class Terminal2D extends Terminal{
 
 	function onKeyDown(e:KeyboardEvent)
 	{ 
-		ui.keys[e.keyCode] = true;
+		ui.keys[e.keyCode] = true; 
 		MS.exec(new MD(sign,"",MD.KEY_DOWN,[e.keyCode]));
 	}// onKeyDown()
 	
@@ -116,101 +115,74 @@ class Terminal2D extends Terminal{
 		monitor.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 	}// init()
 	
-	public override function drawStart()
+	public override function drawStart(shape:Shape)
 	{
-		var o = ro.o;
-		if(shapes.exists(o.id)){
-			sp = shapes[o.id];
+		if(shapes.exists(shape.id)){
+			sp = shapes[shape.id];
 		}else{
 			sp = new Sprite();
-			sp.name = o.id; 
-			shapes.set(o.id, sp);
+			sp.name = shape.id; 
+			shapes.set(shape.id, sp);
 			monitor.addChild(sp);
 		}; 
 		sp.removeChildren();
 		sp.graphics.clear();
-		sp.visible = o.visible; 
+		sp.visible = shape.visible; 
 	}// drawStart()
 
-	public override function drawShape()
+	public override function drawShape(shape:Shape)
 	{ 
-		var radius = .0;
-		var border = .0;
-		var c = ro.o.color.clr();
-		var bd:BitmapData = null;
-		var x = ro.x, y = ro.y, w = ro.o.width , h = ro.o.height ;
-		var style = ro.o.style;
-		var scale = ro.o.scale;
-		var tile:Rectangle = null;
-		var src = "";
+		var fColor = shape.color.clr();
+		var bColor = shape.border.color.clr();
+
+		if(bColor.alpha > 0)sp.graphics.lineStyle(shape.border.width,bColor.rgb ,bColor.alpha);
 		
-		if(style != null){
-			if(style.border != null){ 
-				radius = style.border.radius;
-				border = style.border.width;
-				if(border > 0){
-					c = style.border.color.clr(); 
-					sp.graphics.lineStyle(border,c.rgb ,c.alpha);
-				}
-			}
-
-			if(style.background != null){
-				if(style.background.image.good()){
-					if(style.background.position != null)
-						tile = new Rectangle(-style.background.position.x,-style.background.position.y,w,h);
-					src = style.background.image; 
-					if(bmd.exists(src+tile)){
-						bd = bmd[src+tile]; 
-					}else{ 
-						bd = getTile(FS.getTexture(src),tile,scale);
-						if(bd != null)bmd.set(src+tile,bd); 
-					}
-				}
-				c = style.background.color.clr(); 
-			}
+		if(fColor.alpha > 0) { 
+			sp.graphics.beginFill(fColor.rgb ,fColor.alpha); 
+			sp.graphics.drawRoundRect(shape.x, shape.y, 
+				shape.w * shape.scale, shape.h * shape.scale, 
+				shape.border.radius);
 		}
-	
-		if (c.alpha > 0) { 
-			sp.graphics.beginFill(c.rgb ,c.alpha); 
-			sp.graphics.drawRoundRect(x, y, w * scale, h * scale, radius);
-		}
-		if (bd != null) {
-			var m:Matrix = new Matrix();
-			m.translate(x, y);
-			sp.graphics.beginBitmapFill(bd,m,false); 
-			sp.graphics.drawRoundRect(x, y, w * scale, h * scale, radius);
-		}
-
-		sp.graphics.endFill();
 	}// drawShape()
 
-	public override function drawText()
-	{ //trace(ro);
-		var c = ro.o.color.clr();
-		var src = "";
-		var size = 14.;
-		var style = ro.o.style;
-		if(style != null){
-			if(style.color.good())c = style.color.clr();
-			if(style.font != null){
-				if(style.font.src.good())src = style.font.src;
-				if(style.font.size != null)size = style.font.size;
-			}
+	public override function drawImage(shape:Shape)
+	{
+		var bd:BitmapData = null;
+		var src = shape.image.src;
+		var tile = shape.image.tile;
+		var id = src+tile;
+		if(bmd.exists(id)){
+			bd = bmd[id]; 
+		}else{ 
+			bd = getTile(FS.getTexture(src),tile,shape.scale);
+			if(bd != null)bmd.set(id,bd); 
 		}
-//trace(style.font);
+		if(bd != null){
+			var m:Matrix = new Matrix();
+			m.translate(shape.x, shape.y);
+			sp.graphics.beginBitmapFill(bd,m,false); 
+			sp.graphics.drawRoundRect(shape.x, shape.y, 
+				shape.w * shape.scale, shape.h * shape.scale, 
+				shape.border.radius);
+		}
+	}// drawImage()
+
+	public override function drawText(shape:Shape)
+	{ 
+		var c = shape.text.color.clr();
 		var tf = new TextField();
-		var font = FS.getFont(src);
-		var ft = new TextFormat(font.fontName, size, c.rgb);
+		var font = FS.getFont(shape.text.font);
+		var ft = new TextFormat(font.fontName, shape.text.size, c.rgb);
 		tf.defaultTextFormat = ft;
-		tf.width = ro.o.width;
-		tf.height = ro.o.height;
+		tf.width = shape.w;
+		tf.height = shape.h;
 		tf.selectable = tf.mouseEnabled = false;
 		tf.multiline = true; 
 		tf.wordWrap = true;
 //tf.scrollV++;  
-		tf.text = ro.o.text;
-		tf.x = ro.x + 1;
-		tf.y = ro.y + 1;
+		tf.text = shape.text.src;
+		tf.x = shape.x + 1;
+		tf.y = shape.y + 1;
 		sp.addChild(tf);	
 	}// drawText()
 
@@ -240,9 +212,8 @@ class Terminal2D extends Terminal{
 
 	public override function clear(l:List<Component>)
 	{ 
+		super.clear(l);
 		for(el in l){ 
-			queue.remove(el.id);
-			forms.remove(el.id);
 			if(shapes.exists(el.id)){
 				monitor.removeChild(shapes[el.id]);
 				shapes.remove(el.id);
@@ -253,6 +224,7 @@ class Terminal2D extends Terminal{
 
 	public override function drawEnd()
 	{
+		sp.graphics.endFill();
 	}// drawEnd()
 
 	

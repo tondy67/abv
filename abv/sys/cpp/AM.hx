@@ -1,9 +1,10 @@
 package abv.sys.cpp;
 
 import abv.cpu.Timer;
-import abv.sys.ST;
+import abv.ST;
+import abv.ds.AMap;
 
-using abv.lib.TP;
+using abv.ds.TP;
 using abv.lib.CC;
 
 @:dce
@@ -23,18 +24,21 @@ class AM {
 		return _args;
 	}
 	
-	public static var env(get,never):Map<String,String>;
-	static var _env:Map<String,String> = null;
+	public static var env(get,never):AMap<String,String>;
+	static var _env:AMap<String,String> = null;
 	static function get_env()
 	{
-		if(_env == null) _env = Sys.environment();
+		if(_env == null){
+			var t = Sys.environment();
+			for(k in t.keys())_env.set(k,t[k]);
+		}
 		return _env;
 	}
 
     var updateTime:Float 	= 0;
 	var last = Timer.stamp();
 	public static var err = 0;
-	var cfg:Map<String,String>;
+	var cfg:AMap<String,String>;
 	public static var trace = haxe.Log.trace; 
 	
 	public function new(_config="")
@@ -56,7 +60,7 @@ class AM {
 
 	function config(s:String) 
 	{
-		var r = new Map<String,String>();
+		var r = new AMap<String,String>();
 		
 		return r;
 	}// config()

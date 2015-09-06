@@ -11,6 +11,7 @@ class Image extends Component{
 	public function new(id:String)
 	{
 		super(id);
+		_kind = "Image";
 	}// new()
 
 }// abv.ui.widget.Image

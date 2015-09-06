@@ -1,13 +1,13 @@
 package abv.ds;
 
 #if flash
-typedef FS = abv.sys.flash.FS;
-#elseif js
-	#if gui
-typedef FS = abv.sys.js.FS;
-	#end
-#elseif gui
-typedef FS = abv.sys.gui.FS;
+	typedef FS = abv.sys.flash.FS;
+#elseif (js && gui)
+	typedef FS = abv.sys.jsgui.FS;
+#elseif (java && gui)
+	typedef FS = abv.sys.javagui.FS;
+#elseif (cpp && gui)
+	typedef FS = abv.sys.cppgui.FS;
 #else
 #end
 

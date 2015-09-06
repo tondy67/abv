@@ -19,6 +19,7 @@ class Box extends Container {
 	public inline function new(id:String,x=.0,y=.0,width=200.,height=200.)
 	{
 		super(id);
+		_kind = "Box";
 		_pos.set(x,y);
 		_width = width; _height = height;
 //

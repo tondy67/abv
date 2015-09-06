@@ -2,6 +2,9 @@ package abv.lib.math;
 /**
  *	Point represents a point in 3D cartesian coordinate space.
  **/
+ 
+using abv.lib.CC;
+
 @:dce
 class Point{
 	public var x(get,set):Float;
@@ -100,9 +103,8 @@ class Point{
     
 	public inline function between(p0:Point,p1:Point)
 	{
-		var e = 2.220446049250313e-16;
 		var c = (y - p0.y) * (p1.x - p0.x) - (x - p0.x) * (p1.y - p0.y);
-		if(Math.abs(c) > e) return false; 
+		if(Math.abs(c) > CC.E) return false; 
 
 		var d = (x - p0.x) * (p1.x - p0.x) + (y - p0.y)*(p1.y - p0.y);
 		if (d < 0)return false;

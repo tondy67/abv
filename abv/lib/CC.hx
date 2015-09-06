@@ -8,9 +8,9 @@ import haxe.crypto.Md5;
 import abv.AM;
 import abv.cpu.Timer;
 import abv.lib.math.MT;
-import abv.sys.ST;
+import abv.ST;
 
-using abv.lib.TP;
+using abv.ds.TP;
 
 enum States{
 	DISABLED;
@@ -52,20 +52,21 @@ class CC{
 	public static inline var CTX_3D = 3;
 
 // Separators
-	public static inline var SEP1 		= "|";
-	public static inline var SEP3 		= "|||";
+	public static inline var SEP1 	= "|";
+	public static inline var SEP3 	= "|||";
 
 // constants
-	public static inline var ERR 		= -1;
-	public static inline var PI 		= 3.141592653589793;
-	public static inline var LF 		= "\r\n";
-	public static inline var LF2 		= "\r\n\r\n";
+	public static inline var ERR 	= -1;
+	public static inline var PI 	= 3.141592653589793;
+	public static inline var LF 	= "\r\n";
+	public static inline var LF2 	= "\r\n\r\n";
+	public static inline var E 		= 2.220446049250313e-16;
 // degree, radian
-	public static inline var DEG 		= 0.01745329251;
-	public static inline var RAD 		= 57.295779513;
+	public static inline var DEG 	= 0.01745329251;
+	public static inline var RAD 	= 57.295779513;
 // log 
-	static var logData:Array<String>	= [];
-	static var logMax 					= 1 << 16;
+	static var logData:Array<String>= [];
+	static var logMax 				= 1 << 16;
 //
 	static var start = Timer.stamp();
 	
@@ -79,7 +80,7 @@ class CC{
 	{
 		var r:Dynamic = null;
 		if(good(s))
-			try r = haxe.Json.parse(s) catch (m:Dynamic){trace(ERROR+m);} 
+			try r = haxe.Json.parse(s) catch (m:Dynamic)trace(ERROR+m); 
 		return r;
 	}// json()
 	
@@ -149,17 +150,6 @@ class CC{
 		return r;
 	}// extname()
 
-	public static inline function sort<T>(a:Array<T>, cmp:T->T->Int)
-	{
-		if((a != null)&&(cmp != null))haxe.ds.ArraySort.sort(a, cmp);
-	}// sort<T>()
-	
-	public static function sortAZ(a:Array<String>)
-	{
-		var cmp = function(a:String,b:String){return a==b?0:a<b?-1:1;}
-		if((a != null)&&(a.length > 0))haxe.ds.ArraySort.sort(a, cmp);
-	}// sortAZ()
-	
 	public static inline function clear<T>(a:Array<T>)
 	{
 #if flash untyped a.length = 0; #else a.splice(0,a.length); #end

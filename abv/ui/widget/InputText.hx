@@ -9,6 +9,7 @@ class InputText extends Text{
 	public function new(id:String,label="Text",pos:Point=null,width=300.,height=150.)
 	{
 		super(id,label,pos,width,height);
+		_kind = "InputText";
 	}// new()
 
 	public function toString()

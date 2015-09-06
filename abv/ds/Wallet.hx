@@ -4,18 +4,18 @@ package abv.ds;
  **/
 import haxe.crypto.Md5;
 
-typedef SessionData = {start:Float, expire:Float, data:Map<String,String>}
+typedef SessionData = {start:Float, expire:Float, data:AMap<String,String>}
 
 @:dce
 class Wallet{
-
-	var sessions:Map<String,SessionData> = new Map();
+// TODO: create vars, save state
+	var sessions = new AMap<String,SessionData>();
 	
 	public inline function new(){}
 
 	public inline function get(sid:String)
 	{
-		var r = new Map<String,String>();
+		var r = new AMap<String,String>();
 		if(sessions.exists(sid)){
 			var exp = sessions[sid].expire;
 			var last = sessions[sid].start + exp*1000; 
@@ -25,7 +25,7 @@ class Wallet{
  		return r;
 	}// get()
 	
-	public inline function set(sid:String,data:Map<String,String>)
+	public inline function set(sid:String,data:AMap<String,String>)
 	{
 		var r = false;
 		if(sessions.exists(sid)){
@@ -39,7 +39,7 @@ class Wallet{
 	{
 		var r = false;
 		if(sessions.exists(sid)){
-			sessions[sid] = null;
+			sessions.set(sid,null);
 			r = sessions.remove(sid);
 		}
 		return r;
@@ -49,8 +49,9 @@ class Wallet{
 	{
 		var now = Date.now().getTime();
 		var sid = Md5.encode(Std.random(1000000) + now + "");
+		var dt = new AMap(); dt.set("sid",sid);
 		if(sessions.exists(sid))sid = "";
-		else sessions.set(sid,{start:now,expire:expire,data:["sid"=>sid]});
+		else sessions.set(sid,{start:now,expire:expire,data:dt});
  		return sid;
 	}// add()
 

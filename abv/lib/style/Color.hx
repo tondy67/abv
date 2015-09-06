@@ -3,13 +3,13 @@ package abv.lib.style;
 
 using abv.lib.CC;
 using abv.lib.math.MT;
-using abv.lib.TP;
+using abv.ds.TP;
 /**
  * Color
  **/
 @:dce
 class Color{
-
+// TODO: Abstract Float ?!
 	public static inline var WHITE:Int 		= 0xFFFFFF;
 	public static inline var SILVER:Int 	= 0xC0C0C0;
 	public static inline var GRAY:Int 		= 0x808080;
@@ -44,7 +44,7 @@ class Color{
 	public static inline function srgba(f:Float)
 	{
 		var c = trgba(f);
-		return 'rgba(${c.r},${c.g},${c.b},${c.a})';
+		return 'rgba(${c.r},${c.g},${c.b},${c.a/255})';
 	}// srgba()
 
 	public static inline function trgba(f:Float)

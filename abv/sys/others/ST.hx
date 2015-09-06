@@ -1,6 +1,6 @@
 package abv.sys.others;
 
-import abv.lib.CR;
+import abv.lib.CC;
 /**
  * SystemTools
  **/
@@ -36,7 +36,7 @@ class ST{
 		trace(msg);
 	}// print()
 
-	static inline function log(msg=""){CR.log(err);}
+	static inline function log(msg=""){CC.log(err);}
 	
 }// abv.sys.others.ST
 

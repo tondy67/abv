@@ -86,7 +86,7 @@ class FS{
 		}
 		
 		return bd;
-	}// getBitmapData()	
+	}// getTexture()	
 
 	static function onComplete(e:Event)
 	{ 

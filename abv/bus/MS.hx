@@ -2,6 +2,7 @@ package abv.bus;
 
 import abv.cpu.Timer;
 import abv.interfaces.*;
+import abv.ds.AMap;
 
 using abv.lib.CC;
 
@@ -14,24 +15,14 @@ typedef MsgProp = { accept:Int, action:Map<Int,MD> }
 class MS{
 
 //
-	static var msgMap:Map<String,Int> = ["NONE" => MD.NONE,"MSG" => MD.MSG,
-		"KEY_UP" => MD.KEY_UP,"KEY_DOWN" => MD.KEY_DOWN,"CLICK" => MD.CLICK,
-		"DOUBLE_CLICK" => MD.DOUBLE_CLICK,"MOUSE_UP" => MD.MOUSE_UP,   
-		"MOUSE_DOWN" => MD.MOUSE_DOWN,"MOUSE_MOVE" => MD.MOUSE_MOVE,
-		"MOUSE_WHEEL" => MD.MOUSE_WHEEL,"MOUSE_OVER" => MD.MOUSE_OVER,   
-		"MOUSE_OUT" => MD.MOUSE_OUT,"NEW" => MD.NEW,"OPEN" => MD.OPEN,   
-		"SAVE" => MD.SAVE,"STATE" => MD.STATE,"CLOSE" => MD.CLOSE,
-		"DESTROY" => MD.DESTROY,"RESIZE" => MD.RESIZE,"DRAW" => MD.DRAW,
-		"START" => MD.START, "STOP" => MD.STOP,"PAUSE" => MD.PAUSE,  
-		"MOVE" => MD.MOVE,"TWEEN" => MD.TWEEN,"EXIT" => MD.EXIT
-	];
+	static var msgMap = setMsgMap();
 // custom messages
 	static var cmMap:Array<String> = [];
 // inbox
-	static var inbox = ["*" => new List<MD>()];
-	static var subscribers = new Map<Int,IComm>();
-	static var subscribersID = new Map<String,IComm>();
-	static var slots = new Map<Int,List<IComm>>();
+	static var inbox = setInbox();
+	static var subscribers = new AMap<Int,IComm>();
+	static var subscribersID = new AMap<String,IComm>();
+	static var slots = new AMap<Int,List<IComm>>();
 	static var trash = new List<MD>();
 	
 	inline function new(){ }
@@ -41,7 +32,8 @@ class MS{
 		var r = "";
 		if(cmMap[c].good())r = cmMap[c];
 		return r;
-	}
+	}// cmName()
+	
 	public static inline function cmCode(s:String)
 	{
 		var r = -1;
@@ -52,17 +44,12 @@ class MS{
 			r = cmMap.indexOf(s);
 		}
 		return r;
-	}
-	public static inline function msgName(m:Int)
-	{
-		var r = "";
-		for(k in msgMap.keys())if(msgMap[k] == m){r = k;break;}
-		return r;
-	}
-	public static inline function msgCode(n:String)
-	{
-		return msgMap[n];
-	}
+	}// cmCode()
+	
+	public static inline function msgName(m:Int)return msgMap.find(m);
+
+	public static inline function msgCode(n:String)return msgMap[n];
+
 	public static inline function subscribe(obj:IComm)
 	{ 
 #if debug var m = "";
@@ -77,7 +64,7 @@ class MS{
 		subscribersID.set(obj.id,obj);  
 
 		return sign;
-	}// register()
+	}// subscribe()
 
 	public static inline function unsubscribe(sign:Int)
 	{
@@ -86,28 +73,25 @@ class MS{
 		subscribers.remove(sign);
 	}// unsubscribe()
 	
-	public static inline function send(md:MD)
-	{
-		setBox(md);
-	}// send()
+	public static inline function send(md:MD)setBox(md);
 
-	public static inline function exec(md:MD)
-	{
-		setBox(md, true); 
-	}// exec()
+	public static inline function exec(md:MD)setBox(md, true); 
 
 	static inline function emptyTrash(md:MD)
 	{
 		trash.add(md);
 		if(trash.length < 1000)return;
-		for(m in trash){	m.free();m = null;}
+		for(m in trash){
+			m.free();
+			m = null;
+		}
 		trash.clear();
 	}// emptyTrash()
 	
 	static inline function getSlot(msg:Int)
 	{
 		var l = new List<IComm>();
-		if(slots.exists(msg)) l = slots[msg];
+		if(slots.exists(msg)) l = slots[msg]; 
 		return l;
 	}// getSlot()
 	
@@ -123,8 +107,8 @@ class MS{
 	}// setSlot()
 	
 	static inline function objExec(o:IComm,md:MD)
-	{
-		try o.exec(md) catch (d:Dynamic){trace(ERROR+o.id+": "+d);}
+	{  
+		try o.exec(md) catch (d:Dynamic)trace(ERROR+o.id+": "+d);
 		md.free(); 
 		md = null;
 	}// objExec()
@@ -133,7 +117,7 @@ class MS{
 	{ 
 		if(isSender(md)){ 
 			var to = md.to;
-			if(to == ""){
+			if(to == ""){ 
 				for(o in getSlot(md.msg)){ 
 					objExec(o,md);
 				}
@@ -174,7 +158,7 @@ class MS{
 	
 	static inline function checkBox(id:String)
 	{
-		if(!inbox.exists(id))inbox.set(id,new List<MD>());
+		inbox.add(id,new List<MD>());
 	}// checkBox()
 	
 /**
@@ -196,7 +180,45 @@ class MS{
 		}
 		return r;
 	}// recv()
-
+	
+	static inline function setMsgMap()
+	{
+		var m = new AMap<String,Int>();
+		m.set("NONE" , MD.NONE);
+		m.set("MSG" , MD.MSG);
+		m.set("KEY_UP" , MD.KEY_UP);
+		m.set("KEY_DOWN" , MD.KEY_DOWN);
+		m.set("CLICK" , MD.CLICK);
+		m.set("DOUBLE_CLICK" , MD.DOUBLE_CLICK);
+		m.set("MOUSE_UP" , MD.MOUSE_UP);
+		m.set("MOUSE_DOWN" , MD.MOUSE_DOWN);
+		m.set("MOUSE_MOVE" , MD.MOUSE_MOVE);
+		m.set("MOUSE_WHEEL" , MD.MOUSE_WHEEL);
+		m.set("MOUSE_OVER" , MD.MOUSE_OVER);  
+		m.set("MOUSE_OUT" , MD.MOUSE_OUT);
+		m.set("NEW" , MD.NEW);
+		m.set("OPEN" , MD.OPEN);   
+		m.set("SAVE" , MD.SAVE);
+		m.set("STATE" , MD.STATE);
+		m.set("CLOSE" , MD.CLOSE);
+		m.set("DESTROY" , MD.DESTROY);
+		m.set("RESIZE" , MD.RESIZE);
+		m.set("DRAW" , MD.DRAW);
+		m.set("START" , MD.START);
+		m.set("STOP" , MD.STOP);
+		m.set("PAUSE" , MD.PAUSE);  
+		m.set("MOVE" , MD.MOVE);
+		m.set("TWEEN" , MD.TWEEN);
+		m.set("EXIT" , MD.EXIT);
+		return m;
+	}
+	static inline function setInbox()
+	{
+		var m = new AMap();
+		m.set("*",new List<MD>());
+		return m;
+	}//
+	
 	public static function info() 
 	{ 
 		var s = "Msg(inbox: ";

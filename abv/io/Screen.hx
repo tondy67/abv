@@ -29,42 +29,27 @@ class Screen {
 	
 	public static inline function render(obj:Component=null)
 	{ 
-		var r = new List<Component>();
+		var r = new List<Component>(); 
 		if(obj == null){
 			for(root in roots){ 
 				r = root.getChildren(); 
-				draw(r,root.context);
+				draw(r);
 			}
 		}else{  
 			if(obj.parent != null)r = obj.parent.getChildren();
 			else if(Std.is(obj,Container))r = cast(obj,Container).getChildren();
-			draw(r, obj.root.context);
+			draw(r); 
 		}
 	}// render()
 
-	static function draw(rl:List<Component>,ctx:Int) 
+	static function draw(rl:List<Component>) 
 	{ 
 		if(rl.length == 0)return;
 
-		var ro = new List<DoData>();
-		var x:Float, y:Float; 
-		var p:Container;
+		for(el in rl)el.toScreen();
 
-		for(el in rl){
-			x = el.pos.x; y = el.pos.y; 
-			p = el.parent; 
+		for(to in terminals)to.render(rl); 
 
-			while (p != null) { 
-				x += p.pos.x; 
-				y += p.pos.y; 
-				p = p.parent; 
-			};
-			ro.add({o:el,x:x,y:y,ctx:ctx});  
-		}
-
-		for(to in terminals){
-			to.render(ro); 
-		}
 	}// draw()
 
 	public static inline function clear(obj:Component=null)

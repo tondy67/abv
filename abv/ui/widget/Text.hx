@@ -12,6 +12,7 @@ class Text extends Component{
 	public function new(id:String,label="Text",pos:Point=null,width=300.,height=150.)
 	{
 		super(id);
+		_kind = "Text";
 		if (pos != null) _pos.copy(pos);
 		_width = width; _height = height;
 		text = label;
