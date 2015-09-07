@@ -248,7 +248,7 @@ class APanel extends JPanel {
     {
         super.paintComponent(g);
         
-		var x:Int, y:Int, w:Int, h:Int, r:Int;
+		var x:Int, y:Int, w:Int, h:Int, r:Int, scale:Int;
 
         for(shape in shapes){ 
 			x = shape.x.int();
@@ -256,6 +256,7 @@ class APanel extends JPanel {
 			w = shape.w.int();
 			h = shape.h.int();
 			r = shape.border.radius.int();
+			scale = shape.scale.int();
 			var c = shape.color.trgba(); 
 			if(shape.border.width > 0){
 				var t = shape.border.width.int(); 
@@ -274,18 +275,26 @@ class APanel extends JPanel {
 			if(src.good()){
 				var tile = shape.image.tile;
 				var img:BufferedImage = null;
+				
 				if(images.exists(src)){
-					img = images[src]; //trace(src);
+					img = images[src]; 
 				}else{
 					try img = ImageIO.read(new File(src))
 					catch(d:Dynamic){trace(ERROR+ "no img: " + d);}
 					if(img != null)images.set(src,img);
 				}
-				if(img != null){ //trace(x+":"+y+":"+(x+w)+":"+(y+h));
-				if(tile == null)g.drawImage(img, x, y,null);
-				else g.drawImage(img, x, y, x+w, y+h,
-						tile.x.int(), tile.y.int(), tile.x.int()+tile.w.int(), 
-						tile.y.int()+tile.h.int(),null);
+				
+				if(img != null){ 
+					if(tile == null){
+						g.drawImage(img, x, y,null);
+					}else{
+						var tx = tile.x.int();
+						var ty = tile.y.int();
+						var tw = tile.w.int();
+						var th = tile.h.int();
+						g.drawImage(img, x, y, x + (tw * scale),y + (th * scale),
+							tx, ty, tx + tw, ty + th,null);
+					}
 				}
 			}
 

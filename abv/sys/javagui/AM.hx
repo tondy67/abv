@@ -76,7 +76,7 @@ class AM extends Object {
 	}// dispatch()
 	
 
-//	function resize(w:Int,h:Int){ };
+	function resize(w:Int,h:Int){ };
 	
 	function onResize()
 	{ 

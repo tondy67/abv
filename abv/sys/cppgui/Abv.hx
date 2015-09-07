@@ -10,6 +10,11 @@ import cpp.ConstCharStar;
  <section if="linux">
 	<lib name="../../../abv-tools/libs/Linux/x64/libABV.a" if="HXCPP_M64"/>
 	<lib name="../../../abv-tools/libs/Linux/x86/libABV.a" unless="HXCPP_M64"/>
+	<lib name="m" />
+	<lib name="dl" />
+	<lib name="pthread" />
+	<lib name="rt" />
+	<lib name="GL" />
  </section>
  <section if="windows">
 	<lib name="../../../abv-tools/libs/Windows/ABV.lib" />
