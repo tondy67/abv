@@ -21,6 +21,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.javax.imageio.ImageIO;
 
 using abv.lib.CC;
 using abv.lib.math.MT;
@@ -149,6 +152,11 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 //	trace(o.id+":"+ panel.getComponentCount());
 	}// drawShape()
 
+	public override function drawImage(shape:Shape)
+	{
+		panels[shape.root].redraw(shape);
+	}
+	
 	public override function drawText(shape:Shape)
 	{ 
 		panels[shape.root].redraw(shape);
@@ -233,32 +241,58 @@ class APanel extends JPanel {
 	var color:JavaColor = JavaColor.BLUE;
 
 	var shapes = new List<Shape>();
-
+	var images = new AMap<String,BufferedImage>();
+	
 @:overload
     public override function paintComponent( g:Graphics) 
     {
         super.paintComponent(g);
         
+		var x:Int, y:Int, w:Int, h:Int, r:Int;
+
         for(shape in shapes){ 
+			x = shape.x.int();
+			y = shape.y.int();
+			w = shape.w.int();
+			h = shape.h.int();
+			r = shape.border.radius.int();
 			var c = shape.color.trgba(); 
 			if(shape.border.width > 0){
-				var t = shape.border.width; 
+				var t = shape.border.width.int(); 
 				c = shape.border.color.trgba(); 
-				g.setColor(new JavaColor(c.r,c.g,c.b,c.a)); 
-				g.fillRoundRect((shape.x-t).int(),(shape.y-t).int(),
-					(shape.w+2*t).int(),(shape.h+2*t).int(),
-					(shape.border.radius+t).int(),(shape.border.radius+t).int());
+				g.setColor(new JavaColor(c.r, c.g, c.b, c.a)); 
+				g.fillRoundRect(x-t, y-t, w+2*t, h+2*t, r+t, r+t);
 			}
+
 			if(shape.color > 0){
 				c = shape.color.trgba(); 
-				g.setColor(new JavaColor(c.r,c.g,c.b,c.a)); 
-				g.fillRoundRect(shape.x.int(),shape.y.int(),shape.w.int(),shape.h.int(),
-					shape.border.radius.int(),shape.border.radius.int());
+				g.setColor(new JavaColor(c.r, c.g, c.b, c.a)); 
+				g.fillRoundRect(x, y, w, h, r, r);
 			}
+
+			var src = shape.image.src;
+			if(src.good()){
+				var tile = shape.image.tile;
+				var img:BufferedImage = null;
+				if(images.exists(src)){
+					img = images[src]; //trace(src);
+				}else{
+					try img = ImageIO.read(new File(src))
+					catch(d:Dynamic){trace(ERROR+ "no img: " + d);}
+					if(img != null)images.set(src,img);
+				}
+				if(img != null){ //trace(x+":"+y+":"+(x+w)+":"+(y+h));
+				if(tile == null)g.drawImage(img, x, y,null);
+				else g.drawImage(img, x, y, x+w, y+h,
+						tile.x.int(), tile.y.int(), tile.x.int()+tile.w.int(), 
+						tile.y.int()+tile.h.int(),null);
+				}
+			}
+
 			if(shape.text.src.good()){
 				c = shape.text.color.trgba(); 
-				g.setColor(new JavaColor(c.r,c.g,c.b,c.a)); 
-				g.drawString(shape.text.src,shape.x.int()+4,shape.y.int()+20);
+				g.setColor(new JavaColor(c.r, c.g, c.b, c.a)); 
+				g.drawString(shape.text.src,x+4,y+20);
 			}
 		}
 
@@ -274,7 +308,7 @@ class APanel extends JPanel {
 		shapes.clear();
 	}//
 	
-}// abv.sys.javagui.Terminal2D.Board
+}// abv.sys.javagui.Terminal2D.APanel
 
 class Board extends JFrame {
 	
@@ -292,7 +326,7 @@ class Board extends JFrame {
 		
 	}
 
-}
+}// abv.sys.javagui.Terminal2D.Board
 
 
 

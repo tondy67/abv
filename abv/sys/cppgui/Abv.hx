@@ -5,8 +5,7 @@ package abv.sys.cppgui;
  **/
 import cpp.ConstCharStar;
 
-//@:include("../../../../abv-tools/gui/src/abv.h")
-@:include("C:\\dev\\abv-tools\\gui\\src\\abv.h")
+@:include("../../../../abv-tools/gui/src/abv.h")
 @:buildXml('<target id="haxe">
  <section if="linux">
 	<lib name="../../../abv-tools/libs/Linux/x64/libABV.a" if="HXCPP_M64"/>

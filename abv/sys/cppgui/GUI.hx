@@ -88,7 +88,7 @@ class GUI{
 		var b = shape.border.color.trgba();
 		
 		r = _render_quad(shape.x.int(),shape.y.int(),shape.w.int(),shape.h.int(),
-			c.r,c.g,c.b,c.a, shape.border.width,b.r,b.g,b.b,b.a);
+			c.r,c.g,c.b,c.a, shape.border.width.int(),b.r,b.g,b.b,b.a);
 
 		return r;
 	}// renderQuad()
