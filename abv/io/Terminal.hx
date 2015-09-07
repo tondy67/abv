@@ -29,7 +29,7 @@ class Terminal extends Object{
 	public inline function new(id:String)
 	{
 		super(id);
-		msg = {accept:MD.ALL,action:new Map()}
+		msg = {accept:MD.ALL,action:new AMap()}
 	}// new()
 	
 	function getObjectsUnderPoint(x:Float,y:Float)

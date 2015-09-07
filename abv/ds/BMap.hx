@@ -22,6 +22,13 @@ class BMap<K,V>{
 		return r;
 	}// exists()
 	
+	public inline function good(key:Null<K>)
+	{
+		var r = false;
+		if(exists(key) && (get(key) != null))r = true;
+		return r;
+	}// exists()
+	
 	public inline function get(key:Null<K>)
 	{ 
 		var r:Null<V> = null;

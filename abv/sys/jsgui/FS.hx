@@ -1,13 +1,15 @@
 package abv.sys.jsgui;
 
+import abv.ds.AMap;
+
 import haxe.Resource;
 import js.html.*;
 
 @:build(abv.macro.BM.embedResources())
 class FS{
 
-	static var textures = new Map<String,Image>();
-	static var texts = new Map<String,String>();
+	static var textures = new AMap<String,Image>();
+	static var texts = new AMap<String,String>();
 
 	inline function new(){ }
 	

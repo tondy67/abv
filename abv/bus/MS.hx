@@ -6,7 +6,7 @@ import abv.ds.AMap;
 
 using abv.lib.CC;
 
-typedef MsgProp = { accept:Int, action:Map<Int,MD> }
+typedef MsgProp = { accept:Int, action:AMap<Int,MD> }
 
 /**
  * Message System

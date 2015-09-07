@@ -2,6 +2,8 @@ package abv.sys.flash;
 
 import abv.lib.math.Rectangle;
 import abv.lib.math.MT;
+import abv.ds.AMap;
+
 import haxe.Resource;
 import flash.text.Font;
 import flash.display.BitmapData;
@@ -16,8 +18,8 @@ using abv.lib.CC;
 @:build(abv.macro.BM.embedResources())
 class FS{
 
-	static var textures = new Map<String,BitmapData>();
-	static var texts = new Map<String,String>();
+	static var textures = new AMap<String,BitmapData>();
+	static var texts = new AMap<String,String>();
 	
 	inline function new(){ }
 

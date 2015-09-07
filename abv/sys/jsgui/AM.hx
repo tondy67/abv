@@ -13,6 +13,7 @@ import abv.io.Terminal2D;
 import abv.io.*;
 import abv.cpu.Timer;
 import abv.ST;
+import abv.ds.AMap;
 
 import js.Lib;
 import js.html.Event;
@@ -44,7 +45,7 @@ class AM extends Object {
 		super(id);
 		haxe.Log.trace = ST.trace;
 
-		msg = {accept:MD.NONE,action:new Map()};
+		msg = {accept:MD.NONE,action:new AMap()};
 // customMessage register
 		MS.cmCode("cmSound");
 

@@ -13,6 +13,7 @@ import abv.io.Terminal2D;
 import abv.io.*;
 import abv.cpu.Timer;
 import abv.ui.Gui;
+import abv.ds.AMap;
 
 import flash.display.*;
 import flash.events.*;
@@ -50,7 +51,7 @@ class AM extends Sprite implements IComm {
 		addEventListener (Event.ADDED_TO_STAGE, addedToStage);
 
 		_id = id;
-		msg = {accept:MD.NONE,action:new Map()};
+		msg = {accept:MD.NONE,action:new AMap()};
 		sign = MS.subscribe(this);
 // customMessage register
 		MS.cmCode("cmSound");

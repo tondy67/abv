@@ -8,6 +8,7 @@ import abv.lib.comp.Component;
 import abv.lib.math.Rectangle;
 import abv.io.Screen;
 import abv.ui.Shape;
+import abv.ds.AMap;
 
 import flash.display.Sprite;
 import flash.display.BitmapData;
@@ -22,11 +23,11 @@ using abv.lib.style.Color;
 @:dce
 class Terminal2D extends Terminal{
 
-	var shapes = new Map<String,Sprite>();
+	var shapes = new AMap<String,Sprite>();
 	var sp:Sprite;
 	public var monitor = new Sprite();
 	public var ui:Input;
-	var bmd = new Map<String,BitmapData>();
+	var bmd = new AMap<String,BitmapData>();
 	
 	public function new()
 	{

@@ -2,6 +2,8 @@ package abv.sys.javagui;
 
 import abv.lib.math.Rectangle;
 import abv.lib.math.MT;
+import abv.ds.AMap;
+
 import haxe.Resource;
 
 using abv.lib.CC;
@@ -10,7 +12,7 @@ using abv.lib.CC;
 class FS{
 
 //	static var textures = new Map<String,BitmapData>();
-	static var texts = new Map<String,String>();
+	static var texts = new AMap<String,String>();
 	
 	inline function new(){ }
 

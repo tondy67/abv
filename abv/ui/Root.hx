@@ -13,6 +13,7 @@ import abv.lib.style.Style;
 import abv.bus.*;
 import abv.io.Screen;
 import abv.interfaces.*;
+import abv.ds.AMap;
 
 import haxe.Json;
 
@@ -23,8 +24,8 @@ using abv.ds.TP;
 @:allow(abv.io.Screen)
 class Root extends Box{
 	
-	var wdg = new Map<String,Component>() ;
-	var styles:Map<String,Style>;
+	var wdg = new AMap<String,Component>() ;
+	var styles:AMap<String,Style>;
 	public var context = CC.CTX_2D;
 	
 	public inline function new(id:String,width=100.,height=100.)
@@ -98,7 +99,7 @@ class Root extends Box{
 
 	function processNode(node:Xml)
 	{
-		var att = new Map<String,String>(); 
+		var att = new AMap<String,String>(); 
 		for(a in node.attributes()) att.set(a,node.get(a)); 
  
 		var elm = "" + node.nodeName; 
@@ -140,7 +141,7 @@ class Root extends Box{
 		for(child in node.elements())processNode(child);
 	}// processNode()
 	
-	function applyStyle(elm:String,att:Map<String,String>,obj:Component)
+	function applyStyle(elm:String,att:AMap<String,String>,obj:Component)
 	{
 		var cl = "." + att["class"];
 		var nid = "#" + att["id"]; 
@@ -172,7 +173,7 @@ class Root extends Box{
 		}
 	}// applyStyle()
 	
-	function applyAttributes(attr:Map<String,String>,obj:Component)
+	function applyAttributes(attr:AMap<String,String>,obj:Component)
 	{
 		var av:String;
 		var p:Array<String>;
@@ -188,8 +189,7 @@ class Root extends Box{
 					catch(d:Dynamic)trace(ERROR+attr["id"] +"(action): "+d); 
 					if(act.length == 0)continue;
 					for(a in act){
-						p = a.split(","); 
-						for(i in 0...p.length)p[i] = p[i].trim();
+						p = a.splitt(","); 
 						cm = 0;
 						if(p[3] != null)cm = MS.cmCode(p[3]);
 						obj.setAction(MS.msgCode(p[0]),p[1],MS.msgCode(p[2]),cm);

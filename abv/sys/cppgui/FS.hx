@@ -1,5 +1,7 @@
 package abv.sys.cppgui;
 
+import abv.ds.AMap;
+
 import haxe.Resource;
 
 using abv.ST;
@@ -7,7 +9,7 @@ using abv.ST;
 @:build(abv.macro.BM.embedResources())
 class FS{
 
-	static var texts = new Map<String,String>();
+	static var texts = new AMap<String,String>();
 
 	inline function new(){ }
 

@@ -34,6 +34,12 @@ class Box extends Container {
 			case MD.STATE: 
 				visible = !visible; 
 				draw(this);
+			case MD.OPEN: 
+				visible = true; 
+				draw(this);
+			case MD.CLOSE: 
+				visible = false; 
+				draw(this);
 		}
 	}// dispatch
 

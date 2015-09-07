@@ -2,6 +2,8 @@ package abv.lib.style;
 
 
 import abv.lib.style.Style;
+import abv.ds.AMap;
+
 import Type;
 
 using abv.lib.CC;
@@ -12,12 +14,15 @@ using abv.lib.style.Color;
 @:dce
 class CssParser {
 
-	public static var styleType:Map<String,Int> = ["Class"=>1,"ID"=>2,"Elm"=>3];
-	var styles = new Map<String,Style>();
+	public static var styleType = new AMap<String,Int>();
+	var styles = new AMap<String,Style>();
 	var  path = "";
 	
 	public function new()
 	{
+		styleType.set("Class",1);
+		styleType.set("ID",2);
+		styleType.set("Elm",3);
 	}
 	
 	public function parse(css:String,path="")
@@ -47,7 +52,7 @@ class CssParser {
 					field = L4[0].trim(); 
 					val = L4[1].trim();
 					if(!styles.exists(name))styles.set(name,new Style(name));
-					setField(name,field,val); 
+					try setField(name,field,val) catch(d:Dynamic){trace(ERROR + "" + d);} 
 				}
 			}
 		}

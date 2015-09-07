@@ -13,6 +13,8 @@ abstract AMap<K,V>(BMap<K,V>){
 	public inline function new() this = new BMap<K,V>();
 	
 	public inline function exists(key:K) return this.exists(key);
+
+	public inline function good(key:K) return this.good(key);
 	
 // TODO: debug warning for IntMap key != index ?!?
 @:arrayAccess 

@@ -5,6 +5,7 @@ package abv.lib.comp;
 import abv.bus.*;
 import abv.lib.style.Style;
 import abv.interfaces.IComm;
+import abv.ds.AMap;
 
 using abv.lib.CC;
 
@@ -25,7 +26,7 @@ class Object implements IComm{
 	{
 		if(id.good()) _id = id; else throw "No ID";
 
-		msg = {accept:MD.NONE,action:new Map()};
+		msg = {accept:MD.NONE,action:new AMap()};
 		sign = MS.subscribe(this);
 	}// new()
 
@@ -39,8 +40,7 @@ class Object implements IComm{
 		var m = md.msg & msg.accept; 
 		
 		dispatch(md); 
-		if(msg.action.exists(m) &&  (msg.action[m] != null))
-			MS.exec(msg.action[m].clone());
+		if(msg.action.good(m)) MS.exec(msg.action[m].clone()); 
 	}// exec()
 	
 	

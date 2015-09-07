@@ -45,11 +45,12 @@ class Button extends Text implements IStates{
 				}
 			case MD.CLICK: 
 				state++;
+
 				if(state > states.length-1)state = 0;
 				text = states[state].text; 
 				draw(this);
-				//onState(cur);
-				if(msg.action.exists(MD.STATE)&&(msg.action[MD.STATE] != null)){
+
+				if(msg.action.good(MD.STATE)){
 					var m = msg.action[MD.STATE].clone();
 					m.f[1] = state;
 					MS.exec(m); 

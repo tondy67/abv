@@ -3,6 +3,8 @@ package abv.lib.anim;
  * Transitions
  * Easing functions thankfully taken from http://www.robertpenner.com/easing
  **/
+import abv.ds.AMap;
+
 @:dce
 class TS{
 	public static inline var LINEAR 				= "linear";
@@ -22,7 +24,7 @@ class TS{
 	public static inline var EASE_OUT_BOUNCE 		= "easeOutBounce";
 	public static inline var EASE_IN_OUT_BOUNCE 	= "easeInOutBounce";
 	public static inline var EASE_OUT_IN_BOUNCE 	= "easeOutInBounce";
- 	static var transitions:Map<String,Float->Float> = null;
+ 	static var transitions:AMap<String,Float->Float> = null;
  	
 	inline function new(){	}
 
@@ -40,25 +42,26 @@ class TS{
 	
 	static function registerDefaults()
 	{
-		transitions = [
-			LINEAR 				=> linear ,
-			EASE_IN 			=> easeIn ,
-			EASE_OUT 			=> easeOut ,
-			EASE_IN_OUT 		=> easeInOut ,
-			EASE_OUT_IN 		=> easeOutIn ,
-			EASE_IN_BACK 		=> easeInBack ,
-			EASE_OUT_BACK 		=> easeOutBack ,
-			EASE_IN_OUT_BACK 	=> easeInOutBack ,
-			EASE_OUT_IN_BACK 	=> easeOutInBack ,
-			EASE_IN_ELASTIC 	=> easeInElastic ,
-			EASE_OUT_ELASTIC 	=> easeOutElastic ,
-			EASE_IN_OUT_ELASTIC => easeInOutElastic ,
-			EASE_OUT_IN_ELASTIC => easeOutInElastic ,
-			EASE_IN_BOUNCE 		=> easeInBounce ,
-			EASE_OUT_BOUNCE 	=> easeOutBounce ,
-			EASE_IN_OUT_BOUNCE 	=> easeInOutBounce ,
-			EASE_OUT_IN_BOUNCE 	=> easeOutInBounce 
-		];
+		transitions = new AMap();
+
+		transitions.set(LINEAR 			, linear );
+		transitions.set(EASE_IN 		, easeIn );
+		transitions.set(EASE_OUT 		, easeOut );
+		transitions.set(EASE_IN_OUT 		, easeInOut );
+		transitions.set(EASE_OUT_IN 		, easeOutIn );
+		transitions.set(EASE_IN_BACK 		, easeInBack );
+		transitions.set(EASE_OUT_BACK 		, easeOutBack );
+		transitions.set(EASE_IN_OUT_BACK 	, easeInOutBack );
+		transitions.set(EASE_OUT_IN_BACK 	, easeOutInBack );
+		transitions.set(EASE_IN_ELASTIC 	, easeInElastic );
+		transitions.set(EASE_OUT_ELASTIC 	, easeOutElastic );
+		transitions.set(EASE_IN_OUT_ELASTIC , easeInOutElastic );
+		transitions.set(EASE_OUT_IN_ELASTIC , easeOutInElastic );
+		transitions.set(EASE_IN_BOUNCE 		, easeInBounce );
+		transitions.set(EASE_OUT_BOUNCE 	, easeOutBounce );
+		transitions.set(EASE_IN_OUT_BOUNCE 	, easeInOutBounce );
+		transitions.set(EASE_OUT_IN_BOUNCE 	, easeOutInBounce); 
+
 	}// registerDefaults() 
 
 // transition functions
