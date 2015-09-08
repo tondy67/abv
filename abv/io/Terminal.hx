@@ -57,18 +57,23 @@ class Terminal extends Object{
 			trace(FATAL + "no root: " + list.first().id);
 			return;
 		}
-//if(root == "Gui")trace(roots);		
-		if(!roots.exists(root)){ //trace(root);
+	
+		if(!roots.exists(root)){
 			roots.set(root,list);
 		}
 
 		clearScreen(root); 
 		
-		for(ro in list)drawObject(ro);
+		renderList(list);
 
 		renderScreen(); 
 		update();
 	}// render()
+
+	public function renderList(list:List<Component>)
+	{
+		for(ro in list)drawObject(ro);
+	}// renderList
 
 	public function drawObject(o:Component)
 	{

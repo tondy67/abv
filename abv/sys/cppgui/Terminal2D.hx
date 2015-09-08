@@ -130,9 +130,23 @@ class Terminal2D extends Terminal{
 		MS.exec(new MD(sign,"",MD.KEY_DOWN,[key]));
 	}// onKeyDown()
 	
+	public override function renderList(list:List<Component>)
+	{
+		var l = new List<Component>();
+		var root = list.first().root.id;
+		
+		for(k in roots.keys()){
+			if(k == root){
+				for(el in list) l.add(el);
+			}else{
+				for(el in roots[k]) l.add(el);
+			}
+		}
+		for(ro in l)drawObject(ro);
+	}// renderList
+
 	public override function clearScreen(root:String)
 	{ 
-		var w = 1024, h = 600;
 		GUI.clearScreen(); 
 	}// clearScreen()
 
@@ -147,7 +161,6 @@ class Terminal2D extends Terminal{
 
 	public override function drawShape(shape:Shape)
 	{ 
-//if(o.id == "food_0")trace(c+":"+border);
 		GUI.renderQuad(shape); 
 	}// drawShape()
 
@@ -158,8 +171,8 @@ class Terminal2D extends Terminal{
 	
 	public override function drawText(shape:Shape)
 	{ 
-		if(shape.text.font.good())
-			GUI.renderText(shape.text.font,shape.text.src,shape.x, shape.y, 
+		if(shape.text.font.src.good())
+			GUI.renderText(shape.text.font.src,shape.text.src,shape.x, shape.y, 
 			shape.text.color, shape.w.int());
 	}// drawText()
 

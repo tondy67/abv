@@ -88,10 +88,10 @@ class Root extends Box{
 		try{
 			var html = Xml.parse(skin).firstElement(); 
 			var body = html.elementsNamed("body").next(); 
-			for(node in body.elements())processNode(node);
+			for(node in body.elements()) processNode(node); 
 		}catch(d:Dynamic)trace(ERROR + name +": "+d);
 
-		for(obj in getChildren()){	
+		for(obj in getChildren()){ 
 			try obj.parent.placeChild(obj)
 			catch(d:Dynamic)trace(ERROR+obj.parent.id+"->"+obj.id+": "+d);
 		}
@@ -135,11 +135,13 @@ class Root extends Box{
 		
 		obj.style.state = NORMAL;
 		Style.apply(obj,obj.style);
-//if(obj.root.id == "Gui")trace(obj.id+":"+obj.style.margin);	
 		
 		if(obj.parent == obj.root)Style.apply(obj.parent,obj.parent.style);
 
-		for(child in node.elements()) processNode(child);
+		for(child in node.elements()){
+			try processNode(child)
+			catch(d:Dynamic)trace(ERROR + "" + child +": "+d);
+		}
 	}// processNode()
 	
 	function applyStyle(elm:String,att:AMap<String,String>,obj:Component)
@@ -189,7 +191,7 @@ class Root extends Box{
 				case "action": 
 					try act = Json.parse(av)
 					catch(d:Dynamic)trace(ERROR+attr["id"] +"(action): "+d); 
-					if(act.length == 0)continue;
+					if(act.length == 0)continue; 
 					for(a in act){
 						p = a.splitt(","); 
 						cm = 0;
