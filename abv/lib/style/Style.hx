@@ -4,32 +4,18 @@ package abv.lib.style;
  * RGB.A
  **/
 import abv.lib.comp.Component;
-
+import abv.ds.AMap;
 
 using abv.lib.CC;
 
-typedef BoxShadow = {h:Null<Float>,v:Null<Float>,blur:Null<Float>,spread:Null<Float>,color:Null<Float>};
-typedef Margin = {top:Null<Float>,right:Null<Float>,bottom:Null<Float>,left:Null<Float>}
-typedef Padding = {top:Null<Float>,right:Null<Float>,bottom:Null<Float>,left:Null<Float>}
-typedef Font = {name:Null<String>,size:Null<Float>,style:Null<Int>,src:Null<String>}
-typedef Background = {color:Null<Float>,image:Null<String>,repeat:Null<Int>,position:Null<BgPosition>}
-typedef Border = {width:Null<Float>,color:Null<Float>,radius:Null<Float>}
-typedef BgPosition = {x:Int,y:Int}
-	
 @:dce
 class Style extends StyleProps{
 
-	public static var State = [
-		"active" 	=> ACTIVE, 
-		"visited" 	=> VISITED, 
-		"hover" 	=> HOVER, 
-		"focus" 	=> FOCUS,
-		"link" 		=> LINK
-	];
-	
 	public var state:States = NORMAL;
-	var styles = [NORMAL => new StyleProps()];
-
+	var styles = new AMap<States,StyleProps>(); 
+	public var states(get,never):Array<States>;
+	function get_states(){return styles.getK();}
+	
 	override function get_left(){return styles[state].left;};
 	override function set_left(v:Float){return styles[state].left = v;};
 
@@ -73,9 +59,10 @@ class Style extends StyleProps{
 	{ 
 		super();
 		this.name = name;
+		styles.set(NORMAL , new StyleProps());
 	}// new()
 
-	public function set(sel:States = null)
+	public function reset(sel:States = null)
 	{
 		state = sel == null? NORMAL:sel;
 		styles.set(state, new StyleProps());
@@ -89,38 +76,49 @@ class Style extends StyleProps{
 
 	public function setBackground()
 	{
-		if(background == null)background = { color:0, image:null, repeat:null, position:null };
+		if(background == null){
+			background = new Background();
+			background.color = 0;
+		}
 	}// setBackground()
 	
 	public function setBorder()
 	{
-		if(border == null)border = { width:0, color:0, radius:0 };
+		if(border == null)border = new Border();
 	}// setBorder()
 	
 	public function setFont()
 	{
-		if(font == null)font = { name:null, size:12, style:null,src:null };
+		if(font == null){
+			font = new Font();
+			font.size = 12;
+		}
 	}// setFont()
 	
 	public function setMargin(v=.0)
 	{
-		if(margin == null)margin = { top:v, right:v, bottom:v, left:v };
+		if(margin == null)margin = new Margin(v);
 	}// setMargin()
 	
 	public function setPadding(v=.0)
 	{
-		if(padding == null)padding = { top:v, right:v, bottom:v, left:v };
+		if(padding == null)padding = new Padding(v);
 	}// setPadding()
 	
 	public function setBoxShadow()
 	{
-		if(boxShadow == null)boxShadow = { h:0, v:0, blur:null, spread:null, color:null };
+		if(boxShadow == null){
+			boxShadow = new BoxShadow();
+			boxShadow.h = 0;
+			boxShadow.v = 0;
+		}
 	}// setBoxShadow()
 	
-	public function copy(s:Style)
+	public function copy(s:StyleProps)
 	{ 
 		if (s == null){trace("no style");return;}
-		name = s.name;
+		name = s.name; 
+
 		if (s.left != null) left = s.left;  
 		if (s.top != null) top = s.top;  
 		if (s.right != null) right = s.right;  
@@ -176,7 +174,10 @@ class Style extends StyleProps{
 	public function clone()
 	{ 
 		var s = new Style();
-		s.copy(this);
+		for(k in states){
+			s.reset(k);
+			s.copy(get(k));
+		}
 		return s;
 	}// clone()
 	

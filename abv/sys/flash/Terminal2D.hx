@@ -172,8 +172,8 @@ class Terminal2D extends Terminal{
 	{ 
 		var c = shape.text.color.clr();
 		var tf = new TextField();
-		var font = FS.getFont(shape.text.font);
-		var ft = new TextFormat(font.fontName, shape.text.size, c.rgb);
+		var font = FS.getFont(shape.text.font.src);
+		var ft = new TextFormat(font.fontName, shape.text.font.size, c.rgb);
 		tf.defaultTextFormat = ft;
 		tf.width = shape.w;
 		tf.height = shape.h;

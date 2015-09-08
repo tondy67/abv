@@ -86,7 +86,7 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 	function onMouseWheel(e:MouseEvent)ui.wheel = 0;
 	function onMouseUp(e:MouseEvent)ui.click = false;
 	function onMouseDown(e:MouseEvent)
-	{ trace("mouse down");
+	{ //trace("mouse down");
 		var oid = "";
 		var a = getObjectsUnderPoint(e.clientX,e.clientY);
  
@@ -105,7 +105,7 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 	}// onMouseDown
 	
 	function onClick(e:MouseEvent)
-	{ trace(e.target);
+	{ //trace(e.target);
 		var oid:String  = cast(e.target,DOMElement).id; 
 trace(oid);
 		if(oid.good())onMsg(oid,MD.CLICK); 
@@ -251,9 +251,9 @@ trace(oid);
 			var name = "DefaultFont";
 
 			ctx.fillStyle = shape.text.color.srgba();
-			ctx.font = shape.text.size + "pt " + name; 
+			ctx.font = shape.text.font.size + "pt " + name; 
 			var text = shape.text.src; 
-			fillText(text,shape.x+2,shape.y+20,shape.w,shape.text.size+2);
+			fillText(text,shape.x+2,shape.y+20,shape.w,shape.text.font.size+2);
 		}
 	}// drawText()
 

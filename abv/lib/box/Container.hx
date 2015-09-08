@@ -166,7 +166,9 @@ class Container extends Component{
  **/
 		if(x == 0){ 
 			if(placement.x == 1){ 
+for(i in 0...numChildren)trace(children[i].id+": "+children[i].style);
 				if(pp.left == CC.AUTO) c++;else x = pp.left.auto();
+try{
 
 				for(i in 0...numChildren){
 					m = children[i].style.margin;
@@ -177,6 +179,7 @@ class Container extends Component{
 					if(p.right == CC.AUTO) c++;else x += p.right.auto();
 					x += style.width; 
 				}
+}catch(d:Dynamic){for(i in 0...numChildren)trace(ERROR+""+children[i].id+": "+children[i].style);};
 
 				if(pp.right == CC.AUTO) c++;else x += pp.right.auto();
 
@@ -197,9 +200,13 @@ class Container extends Component{
 				x = (pw - pp.left - m.left - p.left - w - p.right - m.right - pp.right - 3)/2; 
 			}
 		}
-
+		
+		
 		if(y == 0){
 			c = 0; auto = 0;
+			m = obj.style.margin; 
+			pp = obj.parent.style.padding;
+			ph = obj.parent.height;
 			if(placement.y == 1){ 
 				if(pp.top == CC.AUTO) c++;else y = pp.top.auto();
 

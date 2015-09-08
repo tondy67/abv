@@ -175,7 +175,7 @@ class CssParser {
 		var t = s.split(" "); 
 		var x:Null<Int> = Std.parseInt(t[0]);
 		var y:Null<Int> = Std.parseInt(t[1]); 
-		if((x != null) && (y != null) )p = {x:x,y:y};
+		if((x != null) && (y != null) )p = new BgPosition(x,y);
 		
 		return p;		
 	}// getPosition()

@@ -135,10 +135,11 @@ class Root extends Box{
 		
 		obj.style.state = NORMAL;
 		Style.apply(obj,obj.style);
+//if(obj.root.id == "Gui")trace(obj.id+":"+obj.style.margin);	
+		
 		if(obj.parent == obj.root)Style.apply(obj.parent,obj.parent.style);
-//trace(obj.id+":"+obj.parent.style);	
 
-		for(child in node.elements())processNode(child);
+		for(child in node.elements()) processNode(child);
 	}// processNode()
 	
 	function applyStyle(elm:String,att:AMap<String,String>,obj:Component)
@@ -155,16 +156,17 @@ class Root extends Box{
 			try obj.style.copy(styles[s])
 			catch(d:Dynamic) trace(ERROR+s +": "+d);
 		}
-		var pc:String;
-		for (k in Style.State.keys()) { 
+
+		var state:String;
+		for (k in Type.allEnums(States)) { 
+			state = ":" + TP.lower(k+""); 
 			sel.clear();
-			pc = ":" + k;
-			if(styles.exists(elm+pc)) sel.add(elm+pc);
-			if(styles.exists(cl+pc)) sel.add(cl+pc);
-			if(styles.exists(nid+pc)) sel.add(nid+pc);
-			if(styles.exists(cid + pc)) sel.add(cid + pc); 
+			if(styles.exists(elm+state)) sel.add(elm+state);
+			if(styles.exists(cl+state)) sel.add(cl+state);
+			if(styles.exists(nid+state)) sel.add(nid+state);
+			if(styles.exists(cid + state)) sel.add(cid + state); 
 			if(sel.length > 0) { 
-				obj.style.set(Style.State[k]); 
+				obj.style.reset(k); 
 				for (s in sel) { 
 					try obj.style.copy(styles[s])
 					catch(d:Dynamic) trace(ERROR+s +": "+d);

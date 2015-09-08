@@ -6,13 +6,13 @@ import abv.lib.math.Rectangle;
 import abv.lib.comp.Component;
 import abv.ui.box.*;
 import abv.ui.widget.*;
+import abv.lib.style.*;
 
 using abv.lib.CC;
 using abv.lib.style.Color;
 
-typedef ShapeBorder = {width:Float,color:Float,radius:Float};
 typedef ShapeImage = {src:String,tile:Rectangle};
-typedef ShapeText =  {src:String,font:String,size:Int,color:Float};
+typedef ShapeText =  {src:String,font:Font,color:Float};
 
 @:dce
 class Shape{
@@ -24,7 +24,7 @@ class Shape{
 	public var h(default,null) = .0;
 	public var scale(default,null) = .0;
 	public var color(default,null) = .0;
-	public var border(default,null):ShapeBorder;
+	public var border(default,null) = new Border(0);
 	public var image(default,null):ShapeImage;
 	public var text(default,null):ShapeText;
 	public var visible(default,null) = false;
@@ -36,9 +36,11 @@ class Shape{
 	
 	public inline function new(o:Component=null)
 	{ 
-		border = {width:.0,color:.0,radius:.0};
 		image = {src:"",tile:null};
-		text = {src:"",font:"",size:14,color:.0};
+		text = {src:"",font:new Font(),color:0};
+		text.font.size = 14;
+		text.font.src = "";
+
 		if(o != null)copy(o);
 	}// new()
 
@@ -55,14 +57,10 @@ class Shape{
 		root = o.root.id;
 		parent = o.parent.id;
 		style = o.style.name;
-		
 		kind = o.kind;
-
-		setColor(o.color);
-
-		if(o.style.border != null){ 
-			setBorder(o.style.border.width,o.style.border.color,o.style.border.radius);
-		}
+		color = o.color;
+		
+		if(o.style.border != null)border = o.style.border;
 
 		if(o.style.background != null){
 			if(o.style.background.image.good()){
@@ -71,40 +69,17 @@ class Shape{
 					tile = new Rectangle(-o.style.background.position.x,
 						-o.style.background.position.y,w,h);
 				}
-				setImage(o.style.background.image,tile);
+
+				image.src = o.style.background.image;
+				image.tile = tile;
 			}
-			setColor(o.style.background.color);
+			color = o.style.background.color;
 		}
 		
-		var font = "";
-		var size = 14;
-
-		if(o.style.font != null){
-			if(o.style.font.src.good())font = o.style.font.src;
-			if(o.style.font.size != null)size = o.style.font.size.int();
-		}
-		setText(o.text,font,size, o.style.color);	
+		text.src = o.text;
+		if(o.style.font != null)text.font = o.style.font;
+		if(o.style.color != null)text.color = o.style.color;	
 	}// copy()
 
-	public function setColor(color=.0)
-	{
-		this.color = color;
-	}// setColor()
-
-	public function setBorder(width=.0,color=.0,radius=.0)
-	{
-		border = {width:width,color:color,radius:radius};
-	}// setBorder()
-
-	public function setImage(src:String,tile:Rectangle=null)
-	{
-		image = {src:src,tile:tile};
-	}// setImage()
-	
-	public function setText(src:String,font:String,size:Int, color:Float)
-	{
-		text = {src:src,font:font,size:size,color:color};
-	}// setText()
-	
 }// abv.ui.Shape
 
