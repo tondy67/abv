@@ -7,6 +7,7 @@ import abv.lib.style.Style;
 import abv.interfaces.IComm;
 import abv.ds.AMap;
 
+
 using abv.lib.CC;
 
 @:dce
@@ -14,20 +15,20 @@ class Object implements IComm{
 
 	public static var traceInherited = true;
 // unique id
-	public var id(get,never):String;
-	var _id = "";
-	function get_id()  return _id;
+@:allow(abv.ui.Shape)
+	public var id(null,null):Int;
 //
-	public var sign(null,null):Int;
+	public var name(get,never):String;
+	function get_name() {return MS.getName(id);}
+//
 	public var msg(default,null):MS.MsgProp;
 	
 
 	public inline function new(id:String)
 	{
-		if(id.good()) _id = id; else throw "No ID";
+		if(id.good()) this.id = MS.subscribe(this,id); else throw "No ID";
 
 		msg = {accept:MD.NONE,action:new AMap()};
-		sign = MS.subscribe(this);
 	}// new()
 
 	public function update() { };
@@ -43,13 +44,15 @@ class Object implements IComm{
 		if(msg.action.good(m)) MS.exec(msg.action[m].clone()); 
 	}// exec()
 	
-	
-	public function free(){ } 
+
+	public function dispose()
+	{ 
+		MS.unsubscribe(id);
+	}// dispose() 
 
 	public function toString() 
 	{
-		var s = traceInherited?"\n":"";
-		return '$s Object(id: $id)';
+		return 'Object(id: $name)';
     }// toString() 
 
 }// abv.lib.comp.Object

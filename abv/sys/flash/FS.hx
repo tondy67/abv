@@ -1,6 +1,6 @@
 package abv.sys.flash;
 
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.lib.math.MT;
 import abv.ds.AMap;
 
@@ -19,7 +19,10 @@ using abv.lib.CC;
 class FS{
 
 	static var textures = new AMap<String,BitmapData>();
+	static var bmd = new AMap<String,BitmapData>();
 	static var texts = new AMap<String,String>();
+	static var err = false;
+	static var names = new List<String>();
 	
 	inline function new(){ }
 
@@ -77,7 +80,10 @@ class FS{
 //trace(id+":"+textures);
 		if(!id.good()){
 			trace("no id?");
-		}else if (textures.exists(id)) { 
+			return bd;
+		}
+		names.add(id);
+		if (textures.exists(id)) { 
 			bd = textures[id]; 
 		}else {
 			var loader = new Loader();
@@ -96,14 +102,55 @@ class FS{
 		var id = StringTools.replace(e.target.url,bdir, ""); 
 		var bd = e.target.loader.content.bitmapData; 
 		if (id.good() && (bd != null)) { 
-			textures.set(id,bd);  //trace(textures);
+			textures.set(id,bd);  
 		}
+		names.clear();
 	}// onComplete()
 
 	static function onError(e:IOErrorEvent)
 	{
-		trace("error: " + e.target.url);
+		if(!err){
+			err = true;
+			trace("can't load: " + names);
+			names.clear();
+		}
 	}// onError()
 
+	static function getTile(bm:BitmapData,rect:Rect,scale = 1.)
+	{ 
+		var sbm:BitmapData = null; 
+		if(bm == null) return sbm; 
+		if(rect == null){
+			rect = new Rect(0,0,bm.width,bm.height);
+		}
+		var bd = new BitmapData(MT.closestPow2(rect.w.i()), MT.closestPow2(rect.h.i()), true, 0);
+		var pos = new flash.geom.Point();
+		var r = new flash.geom.Rectangle(rect.x,rect.y,rect.w,rect.h);
+		bd.copyPixels(bm, r, pos, null, null, true);
+		
+		if(scale == 1){
+			sbm = bd;
+		}else{
+			var m = new flash.geom.Matrix();
+			m.scale(scale, scale);
+			var w = (bd.width * scale).i(), h = (bd.height * scale).i();
+			sbm = new BitmapData(w, h, true, 0x000000);
+			sbm.draw(bd, m, null, null, null, true);
+		}		
+		return sbm;
+	}// getTile()
+
+	public static function getImage(src:String,tile:Rect,scale = 1.)
+	{
+		var bd:BitmapData = null;
+		var id = src+tile;
+		if(bmd.exists(id)){
+			bd = bmd[id]; 
+		}else{ 
+			bd = getTile(getTexture(src),tile,scale);
+			if(bd != null)bmd.set(id,bd); 
+		}
+		return bd;
+	}// getImage()
 
 }// abv.sys.flash.FS

@@ -8,18 +8,9 @@ import sys.io.File;
 import sys.FileSystem;
 import haxe.Json;
 import haxe.io.Bytes;
+import abv.lib.Enums;
 
 using StringTools;
-
-enum Types{
-	INT;
-	FLOAT;
-	STRING;
-	ARRAY_INT;
-	ARRAY_FLOAT;
-	ARRAY_STRING;
-	UNKNOWN;
-}
 
 class BM {
 	
@@ -27,6 +18,53 @@ class BM {
 	static var langFile = "lang.json";
 	static var err1 = "Missing config value: ";
 	static var cfg:Dynamic = null;
+	static var output = false;
+	
+	macro public static function buildR():Array<Field>
+	{
+		var fields = Context.getBuildFields();
+#if !android return fields; #end
+		var pos = Context.currentPos();
+		var access = [AStatic,APublic,AInline];
+		var kind = FVar(macro: Int,macro 0);
+		var L1:Array<String>, L2:Array<String>, L3:Array<String>, L4:Array<String>;
+		var names:Array<String> = [], vals:Array<Int> = [];
+		if(cfg == null) cfg = getConfig(configFile);
+
+		var s = "";  
+		var pack = cfg.pack + "";
+		pack = pack.replace(".","/"); 
+//		var file = "bin/android/gen/"+pack+"/R.java"; 
+var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.java"; 
+		if(!isFile(file)){
+			trace("FATALno file: "+file);
+			return fields;
+		}
+		try s = File.getContent(file) catch(m:Dynamic){trace(m);}
+		if(s == ""){
+			trace("FATALempty file: "+file);
+			return fields;
+		}
+		
+		var L1 = s.split("public static final class");
+		L1.shift();
+		for(l1 in L1){
+			L2 = l1.split("{");
+			L3 = L2[1].replace("public static final int","").split(";");
+			L3.pop();
+			for(l3 in L3){
+				L4 = l3.split("=");
+				names.push(L4[0].trim().toUpperCase());
+				vals.push(Std.parseInt(L4[1].trim()));
+			}
+		}
+		for(i in 0...names.length){
+			kind = FVar(macro:Int,macro $v{vals[i]});
+			fields.push({name: names[i], access: access, kind: kind, pos: pos, doc: null, meta: []});
+		}
+
+		return fields;
+	}// buildR()
 	
 	macro public static function embedResources():Array<Field>
 	{
@@ -34,23 +72,33 @@ class BM {
 		
 		Context.addResource(configFile,File.getBytes(configFile));
 
-		if(cfg == null) cfg = getJson(configFile);
-		if(cfg != null){
-			var resDir:String = cfg.resDir == null?"res/":cfg.res;
-			var a:Array<String> = cfg.resources; 
-			if(a[0] == "*") a = getDir(resDir);
-			for(r in a){
-				var f = resDir + r;
-				if(isFile(f)){
-					switch(getFileType(f)){
-						case "txt": embedText(f);
-						case "img": embedImage(f);
-						case "font": embedFont(f);
-					}					
-				}
+		if(cfg == null) cfg = getConfig(configFile);
+
+		var resDir:String = cfg.resDir == null?"res/":cfg.res;
+		var a:Array<String> = cfg.resources; 
+		if(a[0] == "*") a = getDir(resDir);
+		var trg = "default";
+#if android trg = "android"; #elseif ios trg = "ios"; #end
+		for(w in a){
+			if(w == "gui"){
+				a.remove(w);
+				a.push("ui/"+trg+"/gui.html");
+				a.push("ui/"+trg+"/gui.css");
+				break;
 			}
 		}
 		
+		for(r in a){
+			var f = resDir + r;
+			if(isFile(f)){
+				switch(getFileType(f)){
+					case "txt": embedText(f); 
+					case "img": embedImage(f);
+					case "font": embedFont(f);
+				}					
+			}
+		}
+
 		return fields;
 	}// embedResources()
 
@@ -58,36 +106,27 @@ class BM {
 	{
 		var fields = Context.getBuildFields();
 		var pos = Context.currentPos();
-		var check = ["name","width","height","ups","res"];
 		var name = basename(Sys.getCwd());
 		var access = [AStatic,APublic];
 		var kind = FVar(macro: String,macro "");
+		var context = 2;
 		
-		if(cfg == null){
-			if(isFile(configFile)) cfg = getJson(configFile); 
-			else cfg = {name:name};
-			
-			if(!Reflect.hasField(cfg,"name"))Reflect.setField(cfg,"name",name);
-			if(!Reflect.hasField(cfg,"width"))Reflect.setField(cfg,"width",0);
-			if(!Reflect.hasField(cfg,"height"))Reflect.setField(cfg,"height",0);
-			if(!Reflect.hasField(cfg,"ups"))Reflect.setField(cfg,"ups",0);
-			if(!Reflect.hasField(cfg,"res"))Reflect.setField(cfg,"res","");
-		}
+		if(cfg == null) cfg = getConfig(configFile); 
 
 		var d:Dynamic = null;
 		var props = Reflect.fields(cfg); 
 		
-		if(props.indexOf("context") == -1){
-			Reflect.setField(cfg,"context",2); 
-			props.push("context");
+		if(props.indexOf("context") != -1){
+			context = Reflect.field(cfg,"context");  
+			props.remove("context");  
 		}
 
-		Reflect.setField(cfg,"build",Date.now().toString()); 
-		props.push("build");
-				
+		if(props.indexOf("macro") != -1)output = true;
+
 		for(f in props){ 
-			name = f.toUpperCase();
-			d = Reflect.field(cfg,f);
+			name = f.toUpperCase(); 
+			d = Reflect.field(cfg,f); 
+#if debug 	if(output)Sys.println("abv.lib.CC."+name+": "+d); #end
 			switch(getType(d)){
 				case ARRAY_STRING:
 					access = [AStatic,APublic]; 
@@ -115,6 +154,17 @@ class BM {
 			}
 		}
 
+		if(true){
+			access = [AStatic,APublic]; 
+			d = switch(context){
+				case 1: CTX_1D;
+				case 3: CTX_3D;
+				default: CTX_2D;
+			}
+			kind = FVar(macro: RenderContext,macro $v{d});
+			fields.push({name: "CONTEXT", access: access, kind: kind, pos: pos, doc: null, meta: []});
+		}
+
         return fields;
 	}// buildConfig()
 
@@ -123,8 +173,7 @@ class BM {
 		var fields = Context.getBuildFields(); //trace("\n"+fields[1].kind);
 		var pos = Context.currentPos();
 		
-		if(cfg == null) cfg = getJson(configFile);
-		if(cfg == null) cfg = {res:""};
+		if(cfg == null) cfg = getConfig(configFile);
 		
 		var access = [AStatic,APublic];
 		var props:Array<String> = [];
@@ -139,7 +188,7 @@ class BM {
 			props = Reflect.fields(lg); 
 		}
 
-		for(f in props){
+		for(f in props){ 
 			d = Reflect.field(lg,f);
 			if(getType(d) != ARRAY_STRING) continue;
 			if(f == "langs"){
@@ -179,6 +228,27 @@ class BM {
 			}
 		return r;
 	}// getType()
+	
+	static function getConfig(file:String)
+	{
+		var r:Dynamic = null;
+		var name = basename(Sys.getCwd());
+
+		if(isFile(file)) r = getJson(file);
+		
+		if(r == null)r = {name:name};
+			
+		if(!Reflect.hasField(r,"pack"))Reflect.setField(r,"pack","");
+		if(!Reflect.hasField(r,"name"))Reflect.setField(r,"name",name);
+		if(!Reflect.hasField(r,"main"))Reflect.setField(r,"main","");
+		if(!Reflect.hasField(r,"width"))Reflect.setField(r,"width",0);
+		if(!Reflect.hasField(r,"height"))Reflect.setField(r,"height",0);
+		if(!Reflect.hasField(r,"ups"))Reflect.setField(r,"ups",0);
+		if(!Reflect.hasField(r,"res"))Reflect.setField(r,"res","");
+		if(!Reflect.hasField(r,"build"))Reflect.setField(r,"build",Date.now().toString()); 
+		
+		return r;
+	}// getConfig()
 	
 	static function getJson(file:String)
 	{
@@ -270,6 +340,28 @@ class BM {
 	}// getFileType()
 	
 
+	macro public static function buildBoot():Array<Field>
+	{
+		var fields = Context.getBuildFields();
+		var pos = Context.currentPos();
+		var access = [AStatic,APublic];
+		if(cfg == null) cfg = getConfig(configFile);
+		var app = "new " + cfg.pack+"."+cfg.main + " ()";
+#if !(android || ios || engine)
+		var expr = Context.parse("{var app = "+app+";}",pos); 
+#else	
+		var expr = macro {}; 
+#end
+		var kind = FFun({ args : [], expr : expr, params : [], ret : null });
+		fields.push({name: "main", access: access, kind: kind, pos: pos, doc: null, meta: []});
+#if (android || ios || engine)
+		kind = FVar(null,Context.parse(app,pos));
+		fields.push({name: "app", access: access, kind: kind, pos: pos, doc: null, meta: []});
+#end
+
+		return fields;
+	}// buildBoot()
+	
 	
   	
 }// abv.macro.BM

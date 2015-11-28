@@ -2,6 +2,8 @@ package abv.sys.cpp;
 /**
  * SystemTools
  **/
+import haxe.io.Path;
+
 import abv.AM;
 import sys.io.Process;
 import sys.FileSystem;
@@ -9,6 +11,7 @@ import sys.io.File;
 import abv.cpu.Boss;
 import abv.cpu.Mutex;
 import abv.cpu.Timer;
+import abv.ds.AMap;
 
 using abv.ds.TP;
 using abv.lib.CC;
@@ -35,6 +38,13 @@ class ST{
 		}
 	}// trace()
 
+	public static inline function slash(path:String)
+	{
+		var r = "";
+		if(path.good()) r = Path.addTrailingSlash(path);
+		return r;
+	}// slash()
+	
 	public static inline function print(msg:String,color="")
 	{   
 		if(msg.good() && !AM.silent){
@@ -79,10 +89,10 @@ class ST{
 		return Sys.getEnv("TERM") == "xterm" || Sys.getEnv("ANSICON") != null;
 	}// hasColor()
 
-	public static inline function exists(path:Null<String>,msg="")
+	public static inline function exists(path:String,msg="")
 	{ 
 		var r = true;
-		path = path.slash(); 		
+		path = slash(path); 		
 
 		if(path.good(msg) && !FileSystem.exists(path)){
 //			if(msg.good())trace(ERROR+msg + ": No such file or directory"); 
@@ -94,8 +104,8 @@ class ST{
 
 	public static function ln(path:String,link:String,opt="s")
 	{
-		path = path.slash(); 		
-		link = link.slash();
+		path = slash(path); 		
+		link = slash(link);
 
 		if(exists(path)){
 			if(CC.OS == WINDOWS)command("cmd",["/c","mklink","/D",link,path]);
@@ -105,30 +115,55 @@ class ST{
 	
 	public static inline function ls(path=".",opt="")
 	{ 
-		path = path.slash();
+		path = slash(path);
 		var r = opt.indexOf("R") != -1? getDir(path,true): getDir(path);
 
 		return r;
 	}// ls()
 	
+	public static inline function copyDir(src:String,dst:String,recursive=false)
+	{
+		if(isDir(src)){
+			var cur = "";
+			var d = isDir(dst) ? dst.rmLast("/") + "/" + src.basename():dst; 
+			var a = getDir(src,recursive); 
+			for(f in a){ 
+				if(isDir(f)){
+					cur = d + f.replace(src,"");
+					mkdir(cur); 
+				}else{
+					cur = d + f.dirname().replace(src,""); 
+					mkdir(cur); 
+					try File.copy(f,cur+f.basename())catch(d:Dynamic){trace(d);};
+				}
+			}
+		}
+	}// copyDir()
+	
 	public static inline function getDir(path:String,recursive=false,msg="")
 	{
 		var r:Array<String> = [];
-		
-		path = path.slash();
+		var plain = false;
+
+		path = slash(path); //trace(path);
+
 		if(isDir(path,msg)){
 			if(recursive){
 				getDirR(path,r); 
-				if(r.length == 0)r = FileSystem.readDirectory(path);
-			}else{
-				r = FileSystem.readDirectory(path);
+				if(r.length == 0)plain = true;
+			}else plain = true;
+			
+			if(plain){
+				var a = FileSystem.readDirectory(path);
+				r.push(path);
+				for(f in a)r.push(path.rmLast("/") + "/" +f);
 			}
 		}
 		
 		return r;
 	}// getDir()
 		
-	static inline function getDirR(path:String,dirs:Array<String>)
+	static inline function getDirR(path:String,items:Array<String>)
 	{
 		var t:Array<String>;
 		var cur = "";
@@ -136,23 +171,21 @@ class ST{
 			t = FileSystem.readDirectory(path);
 			for(f in t){
 				cur = path + "/" + f;
-				if(isDir(cur)){
-					dirs.push(cur);
-					getDirR(cur,dirs);
-				}
+				items.push(cur);
+				if(isDir(cur)) getDirR(cur,items);
 			}
 		}
 	}// getDirR()
 	
 	
 	public static inline function isDir(path:String,msg="")
-	{ 		
-		return path.good()&& exists(path,msg) && FileSystem.isDirectory(path);
+	{ 	
+		return exists(path,msg) && FileSystem.isDirectory(path);
 	}// isDir()
 	
 	public static inline function cd(path:String)
 	{
-		path = path.slash(); 
+		path = slash(path); 
 		if(isDir(path))Sys.setCwd(path); 
 	}// cd()
 	
@@ -163,7 +196,7 @@ class ST{
 	
 	public static inline function absPath(path:String)
 	{
-		path = path.slash();
+		path = slash(path);
 		return FileSystem.fullPath(path);
 	}// absPath()
 
@@ -175,7 +208,7 @@ class ST{
 	public static inline function open(path:String)
 	{
 		var r = ""; 
-		path = path.slash();
+		path = slash(path);
 		if(exists(path))r = isDir(path)?"is dir":File.getContent(path);
 		return r;
 	}// open()
@@ -191,35 +224,38 @@ class ST{
 
 	public static inline function save(path:String,s:String)
 	{
-		path = path.slash();
+		path = slash(path);
 		if(path.good())File.saveContent(path, s);
 	}// save()
 
 	public static inline function cp(src:String,dst:String,opt="")
 	{
-		src = src.slash(); dst = dst.slash();
-		if(src.good() && exists(src) && dst.good() && !exists(dst)){
-				File.copy(src, dst);
+		src = slash(src); dst = slash(dst);
+		if(src.good() && exists(src) && dst.good()){
+			if(isDir(src)){
+				var f = (opt.indexOf("r") != -1)||(opt.indexOf("a") != -1)?true:false;
+				copyDir(src,dst,f);	
+			}else File.copy(src, dst);
 		}
 	}// cp()
 
 	public static inline function rm(path:String,opt="")
 	{
-		path = path.slash();
+		path = slash(path);
 		if(path.good() && exists(path)){ 
 			if(isDir(path)){
 				var op = opt.indexOf("r") != -1?"-rf":"";
 				if(CC.OS == WINDOWS){
 					if(op == "-rf")op = "/S";
-					ST.command("cmd",["/c","rd",op,"/Q",path]);
-				}else ST.command("rm",[op,path]);
+					command("cmd",["/c","rd",op,"/Q",path]);
+				}else command("rm",[op,path]);
 			}else FileSystem.deleteFile(path);
 		}
 	}// rm()
 
 	public static inline function mkdir(path:String,opt="p")
 	{
-		path = path.slash();
+		path = slash(path);
 		if(path.good() && !exists(path)) {
 			FileSystem.createDirectory(path);
 		}
@@ -227,10 +263,9 @@ class ST{
 	
 	public static inline function mv(src:String,dst:String)
 	{
-		src = src.slash(); dst = dst.slash();
+		src = slash(src); dst = slash(dst);
 		if(src.good() && exists(src) && dst.good()){
-			if(CC.OS == WINDOWS) ST.command("move",[src,dst]);
-			else ST.command("mv",[src,dst]);
+			FileSystem.rename(src,dst);
 		}
 	}// mv()
 	
@@ -238,7 +273,7 @@ class ST{
 	{ 
 		var r = 0;
 
-		cmd = cmd.slash();
+		cmd = slash(cmd);
 		if(cmd.good()){
 			if(args == null){
 				r = Sys.command(cmd);
@@ -256,7 +291,7 @@ class ST{
 	{ 
 		var r = "-1";
 
-		cmd = cmd.slash();
+		cmd = slash(cmd);
 		if(cmd.good()){
 			if(!background){
 					var p:Process = null;
@@ -289,11 +324,18 @@ class ST{
 
 	public static inline function stat(path:String)
 	{ 
-		path = path.slash(); 		
+		path = slash(path); 		
 
 		return FileSystem.stat(path);
 	}// stat()
 
+	public static inline function env(what="")
+	{ 
+		var r = new AMap<String,String>(); 		
+		var m = Sys.environment() ;//getEnv();
+		for(k in m.keys())r.set(k,m[k]);
+		return r;
+	}// env()
 
 }// abv.sys.cpp.ST
 

@@ -226,26 +226,26 @@ class WT{
 	
 	public static inline function parseRequest(s:String)
 	{ // TODO: websockets, chunked 
-		var r = new AMap<String,String>();
-		
-		r.set("root","");
-		r.set("ip","");
-		r.set("status" , "400"); 
-		r.set("protocol" , "");
-		r.set("version" , "");
-		r.set("host" , ""); 
-		r.set("port" , "");	
-		r.set("request" , ""); 
-		r.set("path" , "");
-		r.set("cookies" , "");
-		r.set("query" , ""); 
-		r.set("body" , ""); 
-		r.set("title" , ""); 
-		r.set("length" , "0");
-		r.set("etag" , ""); 
-		r.set("mime" , ""); 
-		r.set(CONTENT_TYPE , ""); 
-		r.set("boundary" , ""); 
+		var r = AMap.fromJson('{
+			"root":"",
+			"ip":"",
+			"status" : "400", 
+			"protocol" : "",
+			"version" : "",
+			"host" : "", 
+			"port" : "",	
+			"request" : "", 
+			"path" : "",
+			"cookies" : "",
+			"query" : "", 
+			"body" : "", 
+			"title" : "", 
+			"length" : "0",
+			"etag" : "", 
+			"mime" : "",
+			"Content-Type" : "", 
+			"boundary" : "" 
+		}');
 
 		var lines = s.trim().splitt("\n");
 
@@ -375,12 +375,15 @@ class WT{
 		var f = "";
 		var path = ctx["path"].substr(1); 
 		var ext = path.extname();
+
 		if(ctx["path"] == "/favicon.ico") f = WT.getIcon("favicon");
 		else if(ctx["path"].starts(Icons.p))f =  WT.getIcon(path.basename(false));
 		else f = path.open();
+
 		if(ext.good())ctx["mime"] = ext;
 		else if(f.indexOf("\x00\x00\x00") == -1)ctx["mime"] = "txt";
 		else ctx["mime"] = "bin";
+
 		ctx["body"] = f; 
 	}// mkFile()
 	

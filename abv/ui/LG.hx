@@ -4,6 +4,7 @@ package abv.ui;
  **/
 import abv.lib.box.Container;
 import abv.interfaces.IStates;
+import abv.bus.MS;
 
 using abv.lib.CC;
 using abv.ds.TP;
@@ -22,19 +23,19 @@ class LG{
 		var ix = CC.ERR, s = "";
 
 		var l = o.getChildren(); 
-		for(el in l){ 
-			ix = id.indexOf(el.id);
+		for(it in l){ 
+			ix = id.indexOf(it.name);
 			if(ix != CC.ERR){ 
-				if(Std.is(el,IStates)){
-					var st = cast(el,IStates).states; 
+				if(Std.is(it,IStates)){
+					var st = cast(it,IStates).states; 
 					for(i in 0...st.length){
 						s = words[ix][lg *st.length + i]; 
 						if(s.good())st[i].text = s;
 					}
-					el.text = st[el.state].text; 
+					it.text = st[it.state].text; 
 				}else{
 					s = words[ix][lg];
-					if(s.good()) el.text = s;
+					if(s.good()) it.text = s;
 				}
 			}
 		}

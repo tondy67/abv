@@ -14,7 +14,7 @@ class Gui extends Root{
 	public inline function new(w:Float,h:Float)
 	{
 		super("Gui",w,h);
-		context = CC.CTX_1D;
+		context = CTX_1D;
 		MS.cmCode("cmLang"); 		
 	}// new()
 
@@ -24,7 +24,7 @@ class Gui extends Root{
 			case MD.MSG: 
 				var cm = md.f[0];
 				if(cm ==  MS.cmCode("cmLang")){
-					setLang(md.f[1].int());
+					setLang(md.f[1].i());
 				}
 		}
 	}// dispatch()

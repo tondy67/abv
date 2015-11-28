@@ -5,7 +5,7 @@ import abv.*;
 import abv.lib.style.*;
 import abv.io.*;
 import abv.lib.comp.Component;
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.io.Screen;
 import abv.ui.Shape;
 import abv.ds.AMap;
@@ -33,22 +33,18 @@ using abv.lib.style.Color;
 class Terminal2D extends Terminal implements KeyListener implements MouseListener{
 
 	var board = new Board();
-	var panels = new AMap<String,APanel>();
+	var panels = new AMap<Int,APanel>();
 	var rootPanel:JPanel;
 
-	public var ui:Input;
-	
-	public function new()
+	public function new(id:String)
 	{
-		super("Terminal2D");
-		ui = new Input(); 
+		super(id);
+	}// new()
 
+	public override function init() 
+	{ 
 		board.setLayout(null);
 		
-//		panel = new APanel(); // java like init here
-//		panel.setOpaque(false);
-//		panel.setBounds(0,0,CC.WIDTH,CC.HEIGHT);
-
 		rootPanel = new JPanel();
 		rootPanel.setBounds(0,0,CC.WIDTH,CC.HEIGHT);
 		rootPanel.addKeyListener(this);
@@ -59,15 +55,9 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 		board.add(rootPanel); // 
 
 		rootPanel.requestFocus();
-
-	}// new()
-
-	function onMsg(oid:String,cmd:Int)
-	{ 
-		if(oid.good())MS.exec(new MD(sign,oid,cmd,[],"",[ui.delta]));
-//LG.log(to+":"+MS.msgName(cmd));
-	}// onMsg()	
-	function onMouseMove(x=0,y=0)
+	}// init()
+	 
+	function onMouseMove_(x:Int,y:Int)
 	{ 
 		var l = getObjectsUnderPoint(x,y); 
 		if(l.length > 0){ 
@@ -83,13 +73,13 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 //				hovered = "";
 			}
 		}
-	}// onMouseMove()
+	}// onMouseMove_()
 	
-	function onMouseWheel()ui.wheel = 0;
-	function onMouseUp(x=0,y=0)ui.click = false;
-	function onMouseDown(x=0,y=0)
+	function onMouseWheel_()ui.wheel = 0;
+	function onMouseUp_(x=0,y=0)ui.click = false;
+	function onMouseDown_(x=0,y=0)
 	{ 
-		var oid = "";
+		var oid = -1;
 		var a = getObjectsUnderPoint(x,y); 
 
 		for(o in a){  
@@ -103,31 +93,29 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 //		ui.start.set(e.clientX,e.clientY);  
 		ui.move.copy(ui.start);
 //
-		if(oid.good()){ //trace(oid);
+		if(oid > 0){ //trace(oid);
 			onMsg(oid,MD.CLICK); 
 		}
-	}// onMouseDown
+	}// onMouseDown_
 	
-	function onClick()
+	function onClick_()
 	{ 
-		var oid:String  = "";//cast(e.toElement,Element).id;
-		if(oid.good())onMsg(oid,MD.CLICK); 
+		var oid = -1;//cast(e.toElement,Element).id;
+		if(oid > 0)onMsg(oid,MD.CLICK); 
 //LG.log(oid);
-	}// onClick
+	}// onClick_
 	
-	function onKeyUp(key:Int)
+	function onKeyUp_(key:Int)
 	{
-		ui.keys[key] = false;
-		MS.exec(new MD(sign,"",MD.KEY_UP,[key])); 
-	}// onKeyUp()
+		keyUp(key);
+	}// onKeyUp_()
 	
-	function onKeyDown(key:Int)
+	function onKeyDown_(key:Int)
 	{ 
-		ui.keys[key] = true;
-		MS.exec(new MD(sign,"",MD.KEY_DOWN,[key]));
-	}// onKeyDown()
+		keyDown(key);
+	}// onKeyDown_()
 	
-	public override function clearScreen(root:String)
+	public override function clearScreen(root:Int)
 	{
 		if(!panels.exists(root)){ //trace(root);
 			panels.set(root,new APanel());
@@ -141,37 +129,61 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 //		board.repaint();
 	}// clearScreen()
 
-	public override function drawStart(shape:Shape)
+	public override function drawStart()
 	{
 //trace("drawStart");
 	}// drawStart()
 
-	public override function drawShape(shape:Shape)
-	{ 
-		panels[shape.root].redraw(shape);
-//	trace(o.id+":"+ panel.getComponentCount());
+	public override function drawPoint()
+	{
+	}// drawPoint()
+
+	public override function drawLine()
+	{
+	}// drawLine()
+
+	public override function drawTriangle()
+	{
+	}// drawTriangle()
+
+	public override function drawCircle()
+	{
+	}// drawCircle()
+
+	public override function drawEllipse()
+	{
+	}// drawEllipse()
+
+	public override function drawShape()
+	{
 	}// drawShape()
 
-	public override function drawImage(shape:Shape)
+	public override function drawRect()
+	{ 
+		panels[shape.root].draw(shape);
+//	trace(o.id+":"+ panel.getComponentCount());
+	}// drawRect()
+
+	public override function drawImage()
 	{
-		panels[shape.root].redraw(shape);
+		panels[shape.root].draw(shape);
 	}
 	
-	public override function drawText(shape:Shape)
+	public override function drawText()
 	{ 
-		panels[shape.root].redraw(shape);
+		panels[shape.root].draw(shape);
 	}// drawText()
 
-/*	function getTile(bm:BitmapData,rect:Rectangle,scale = 1.)
+/*	function getTile(bm:BitmapData,rect:Rect,scale = 1.)
 	{ 
 		var sbm:BitmapData = null; 
 		if(bm == null) return sbm; 
 		if(rect == null){
-			rect = new Rectangle(0,0,bm.width,bm.height);
+			rect = new Rect(0,0,bm.width,bm.height);
 		}
-		var bd = new BitmapData(MT.closestPow2(rect.w.int()), MT.closestPow2(rect.h.int()), true, 0);
+		var bd = new BitmapData(MT.closestPow2(rect.w.i()), MT.closestPow2(rect.h.i()), true, 0);
 		var pos = new flash.geom.Point();
-		var r = new flash.geom.Rectangle(rect.x,rect.y,rect.w,rect.h);
+		var r = new flash.geom.Rect(rect.x,rect.y,rect.w,rect.h);
 		bd.copyPixels(bm, r, pos, null, null, true);
 		
 		if(scale == 1){
@@ -179,7 +191,7 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 		}else{
 			var m = new flash.geom.Matrix();
 			m.scale(scale, scale);
-			var w = (bd.width * scale).int(), h = (bd.height * scale).int();
+			var w = (bd.width * scale).i(), h = (bd.height * scale).i();
 			sbm = new BitmapData(w, h, true, 0x000000);
 			sbm.draw(bd, m, null, null, null, true);
 		}		
@@ -204,12 +216,12 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 
     public function keyPressed(e:KeyEvent) 
     {
-		onKeyDown(e.getKeyCode());
+		onKeyDown_(e.getKeyCode());
     }	
 
     public function keyReleased(e:KeyEvent) 
     {
-		onKeyUp(e.getKeyCode());
+		onKeyUp_(e.getKeyCode());
     }	
 // MouseListener happy
 	public function mouseClicked(e:MouseEvent) { }
@@ -220,12 +232,12 @@ class Terminal2D extends Terminal implements KeyListener implements MouseListene
 	
 	public function mousePressed(e:MouseEvent)
 	{ 
-		onMouseDown(e.getX(),e.getY());
+		onMouseDown_(e.getX(),e.getY());
 	}
 	
 	public function mouseReleased(e:MouseEvent)
 	{ 
-		onMouseUp(e.getX(),e.getY());
+		onMouseUp_(e.getX(),e.getY());
 	}
 	
 }// abv.sys.javagui.Terminal2D
@@ -251,22 +263,22 @@ class APanel extends JPanel {
 		var x:Int, y:Int, w:Int, h:Int, r:Int, scale:Int;
 
         for(shape in shapes){ 
-			x = shape.x.int();
-			y = shape.y.int();
-			w = shape.w.int();
-			h = shape.h.int();
-			r = shape.border.radius.int();
-			scale = shape.scale.int();
-			var c = shape.color.trgba(); 
+			x = shape.x.i();
+			y = shape.y.i();
+			w = shape.w.i();
+			h = shape.h.i();
+			r = shape.border.radius.i();
+			scale = shape.scale.i();
+			var c = shape.color; 
 			if(shape.border.width > 0){
-				var t = shape.border.width.int(); 
-				c = shape.border.color.trgba(); 
+				var t = shape.border.width.i(); 
+				c = shape.border.color; 
 				g.setColor(new JavaColor(c.r, c.g, c.b, c.a)); 
 				g.fillRoundRect(x-t, y-t, w+2*t, h+2*t, r+t, r+t);
 			}
 
-			if(shape.color > 0){
-				c = shape.color.trgba(); 
+			if(shape.color.alpha > 0){
+				c = shape.color; 
 				g.setColor(new JavaColor(c.r, c.g, c.b, c.a)); 
 				g.fillRoundRect(x, y, w, h, r, r);
 			}
@@ -288,10 +300,10 @@ class APanel extends JPanel {
 					if(tile == null){
 						g.drawImage(img, x, y,null);
 					}else{
-						var tx = tile.x.int();
-						var ty = tile.y.int();
-						var tw = tile.w.int();
-						var th = tile.h.int();
+						var tx = tile.x.i();
+						var ty = tile.y.i();
+						var tw = tile.w.i();
+						var th = tile.h.i();
 						g.drawImage(img, x, y, x + (tw * scale),y + (th * scale),
 							tx, ty, tx + tw, ty + th,null);
 					}
@@ -299,7 +311,7 @@ class APanel extends JPanel {
 			}
 
 			if(shape.text.src.good()){
-				c = shape.text.color.trgba(); 
+				c = shape.text.color; 
 				g.setColor(new JavaColor(c.r, c.g, c.b, c.a)); 
 				g.drawString(shape.text.src,x+4,y+20);
 			}
@@ -307,7 +319,7 @@ class APanel extends JPanel {
 
         Toolkit.getDefaultToolkit().sync(); 
     }
-	public function redraw(shape:Shape)
+	public function draw(shape:Shape)
 	{
 		shapes.add(shape);
 	}

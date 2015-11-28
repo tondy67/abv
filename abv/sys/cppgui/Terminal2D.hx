@@ -8,7 +8,7 @@ import abv.cpu.Timer;
 import abv.io.Screen;
 import abv.ui.box.*;
 import abv.ui.widget.*;
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.lib.comp.Component;
 import abv.ui.Shape;
 import abv.ds.AMap;
@@ -30,30 +30,27 @@ class Terminal2D extends Terminal{
 	var plays = false;
 	var quit = false;
 ///
-	var elms = new AMap<String,Shape>();
+	var elms = new AMap<Int,Shape>();
 	var elm:Shape;
-	var shapes:AMap<String,Shape>;
+	var shapes:AMap<Int,Shape>;
 //
-	var ui:Input;
-	var hovered = "";
-
-	
-	public function new()
+	public function new(id:String)
 	{
-		super("Terminal2D");
-		ui = new Input(); 
-///
+		super(id);
+	}// new()
+
+	public override function init() 
+	{ 
 		GUI.init(CC.NAME, CC.WIDTH, CC.HEIGHT);
 //trace(GUI.getLog());
-		GUI.onMouseWheel = onMouseWheel;
-		GUI.onMouseUp = onMouseUp;
-		GUI.onMouseDown = onMouseDown;
-		GUI.onMouseMove = onMouseMove;
-		GUI.onClick = onClick;
-		GUI.onKeyUp = onKeyUp;
-		GUI.onKeyDown = onKeyDown;
-
-	}// new()
+		GUI.onMouseWheel_ = onMouseWheel_;
+		GUI.onMouseUp_ = onMouseUp_;
+		GUI.onMouseDown_ = onMouseDown_;
+		GUI.onMouseMove_ = onMouseMove_;
+		GUI.onClick_ = onClick_;
+		GUI.onKeyUp_ = onKeyUp_;
+		GUI.onKeyDown_ = onKeyDown_;
+	}// init() 
 
 	public override function update()
 	{// TODO: fix  fps & events
@@ -65,12 +62,7 @@ class Terminal2D extends Terminal{
 		if(s != "")Sys.println(s);
 	}
 	
-	function onMsg(oid:String,cmd:Int)
-	{ 
-		if(oid.good())MS.exec(new MD(sign,oid,cmd,[],"",[ui.delta]));
-//LG.log(to+":"+MS.msgName(cmd));
-	}// onMsg()	
-	function onMouseMove(x=0,y=0)
+	function onMouseMove_(x:Int,y:Int)
 	{ 
 		var l = getObjectsUnderPoint(x,y);
 		if(l.length > 0){ 
@@ -79,25 +71,25 @@ class Terminal2D extends Terminal{
 				onMsg(t,MD.MOUSE_MOVE);
 			}else if(MS.accept(t,MD.MOUSE_OVER)){
 //				if(hovered != t)onMsg(hovered,MD.MOUSE_OUT);
-				hovered = t;
+//				hovered = t;
 //				onMsg(hovered,MD.MOUSE_OVER); 
 			}else if(hovered.good()){
 //				onMsg(hovered,MD.MOUSE_OUT); 
-				hovered = "";
+//				hovered = "";
 			}
 		}
-	}// onMouseMove()
+	}// onMouseMove_()
 	
-	function onMouseWheel()ui.wheel = 0;
-	function onMouseUp(x=0,y=0)ui.click = false;
-	function onMouseDown(x=0,y=0)
+	function onMouseWheel_()ui.wheel = 0;
+	function onMouseUp_(x=0,y=0)ui.click = false;
+	function onMouseDown_(x=0,y=0)
 	{ 
-		var oid = "";
+		var oid = -1;
 		var a = getObjectsUnderPoint(x,y);
 
-		for(o in a){  
-			if(MS.accept(o,MD.MOUSE_DOWN)){ 
-				oid = o; //trace(oid);
+		for(it in a){  
+			if(MS.accept(it,MD.MOUSE_DOWN)){ 
+				oid = it;  
 				break;
 			}
 		}
@@ -106,29 +98,27 @@ class Terminal2D extends Terminal{
 //		ui.start.set(e.clientX,e.clientY);  
 		ui.move.copy(ui.start);
 //
-		if(oid.good()){ trace(oid);
-			onMsg(oid,MD.CLICK); 
-		}
-	}// onMouseDown
+		if(oid > 0) onMsg(oid,MD.CLICK); 
+	}// onMouseDown_
 	
-	function onClick()
+	function onClick_()
 	{ 
-		var oid:String  = "";//cast(e.toElement,Element).id;
-		if(oid.good())onMsg(oid,MD.CLICK); 
+		var oid = -1;//cast(e.toElement,Element).id;
+		if(oid != -1)onMsg(oid,MD.CLICK); 
 //LG.log(oid);
-	}// onClick
+	}// onClick_
 	
-	function onKeyUp(key:Int)
+	function onKeyUp_(key:Int)
 	{
 		ui.keys[key] = false;
-		MS.exec(new MD(sign,"",MD.KEY_UP,[key])); 
-	}// onKeyUp()
+		MS.exec(new MD(id,"",MD.KEY_UP,[key])); 
+	}// onKeyUp_()
 	
-	function onKeyDown(key:Int)
+	function onKeyDown_(key:Int)
 	{ 
 		ui.keys[key] = true;
-		MS.exec(new MD(sign,"",MD.KEY_DOWN,[key]));
-	}// onKeyDown()
+		MS.exec(new MD(id,"",MD.KEY_DOWN,[key]));
+	}// onKeyDown_()
 	
 	public override function renderList(list:List<Component>)
 	{
@@ -145,12 +135,12 @@ class Terminal2D extends Terminal{
 		for(ro in l)drawObject(ro);
 	}// renderList
 
-	public override function clearScreen(root:String)
+	public override function clearScreen(root:Int)
 	{ 
 		GUI.clearScreen(); 
 	}// clearScreen()
 
-	public override function drawStart(shape:Shape)
+	public override function drawStart()
 	{
 		if(elms.exists(shape.id)){
 			elm = elms[shape.id];
@@ -159,21 +149,45 @@ class Terminal2D extends Terminal{
 		}; 
 	}// drawStart()
 
-	public override function drawShape(shape:Shape)
-	{ 
-		GUI.renderQuad(shape); 
+	public override function drawPoint()
+	{
+	}// drawPoint()
+
+	public override function drawLine()
+	{
+	}// drawLine()
+
+	public override function drawTriangle()
+	{
+	}// drawTriangle()
+
+	public override function drawCircle()
+	{
+	}// drawCircle()
+
+	public override function drawEllipse()
+	{
+	}// drawEllipse()
+
+	public override function drawShape()
+	{
 	}// drawShape()
 
-	public override function drawImage(shape:Shape)
+	public override function drawRect()
+	{ 
+		GUI.renderQuad(shape); 
+	}// drawRect()
+
+	public override function drawImage()
 	{
 		GUI.renderImage(shape.image.src,shape.x,shape.y,shape.image.tile,shape.scale); 
 	}
 	
-	public override function drawText(shape:Shape)
+	public override function drawText()
 	{ 
 		if(shape.text.font.src.good())
 			GUI.renderText(shape.text.font.src,shape.text.src,shape.x, shape.y, 
-			shape.text.color, shape.w.int());
+			shape.text.color, shape.w.i());
 	}// drawText()
 
 	public override function renderScreen()

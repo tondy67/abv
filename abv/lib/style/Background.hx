@@ -7,7 +7,7 @@ import abv.lib.style.BgPosition;
 @:dce
 class Background{
 
-	public var color:Null<Float> = null; 
+	public var color:Null<Color> = null; 
 	public var image:Null<String> = null;  
 	public var repeat:Null<Int> = null; 
 	public var position:Null<BgPosition> = null; 

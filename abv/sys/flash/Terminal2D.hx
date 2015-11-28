@@ -5,10 +5,11 @@ import abv.*;
 import abv.lib.style.*;
 import abv.io.*;
 import abv.lib.comp.Component;
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.io.Screen;
 import abv.ui.Shape;
 import abv.ds.AMap;
+
 
 import flash.display.Sprite;
 import flash.display.BitmapData;
@@ -23,59 +24,74 @@ using abv.lib.style.Color;
 @:dce
 class Terminal2D extends Terminal{
 
-	var shapes = new AMap<String,Sprite>();
+	var panels:AMap<Int,Sprite>; 
+	var shapes:AMap<Int,Sprite>;
 	var sp:Sprite;
-	public var monitor = new Sprite();
-	public var ui:Input;
-	var bmd = new AMap<String,BitmapData>();
-	
-	public function new()
+	public var monitor:Sprite;
+
+	public function new(id:String)
 	{
-		super("Terminal2D");
-		ui = new Input(); 
+		super(id);
 	}// new()
 
+	public override function init()
+	{ 
+		panels = new AMap<Int,Sprite>(); 
+		shapes = new AMap<Int,Sprite>();
+		monitor = new Sprite();
+	}// init()
+	
+	public function initListeners()
+	{ 
+//		monitor.stage.addEventListener(MouseEvent.CLICK, onClick_);
+		monitor.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp_);
+		monitor.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown_);
+		monitor.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove_);
+		monitor.stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel_);
+		monitor.stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOver_);
+		monitor.stage.addEventListener(MouseEvent.MOUSE_OUT, onMouseOut_);
+		monitor.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown_);   
+		monitor.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp_); 
+	}// initListeners()
+	
 	function tid(e:MouseEvent)
 	{ 
+		var r = -1;
 		var oid:Null<String> = "";
 		try oid = e.target.name catch(d:Dynamic) trace(d); 
-		return oid;
+		if(oid.good()) r = MS.getID(oid);
+		return r;
 	}// tid()
 	
 	override function getObjectsUnderPoint(x:Float,y:Float)
 	{
-		var r = new List<String>();
+		var r = new List<Int>();
 		var p = new flash.geom.Point(x,y);
 		var l = monitor.getObjectsUnderPoint(p);
 		l.reverse(); 
 		for(o in l){ 
-			r.add(o.name); 
+			r.add(MS.getID(o.name)); 
 		} 
 		return r;
 	}// getObjectsUnderPoint()
 	
-	function onMsg(oid:String,cmd:Int)
-	{ 
-		if(oid.good())MS.exec(new MD(sign,oid,cmd,[monitor.mouseX,monitor.mouseY],"",[ui.delta]));
-//LG.log(to+":"+MS.msgName(cmd));
-	}// onMsg()	
-	function onMouseOver(e:MouseEvent)onMsg(tid(e),MD.MOUSE_OVER);
-	function onMouseOut(e:MouseEvent)onMsg(tid(e),MD.MOUSE_OUT);
-	function onMouseMove(e:MouseEvent){
+	function onMouseOver_(e:MouseEvent)onMsg(tid(e),MD.MOUSE_OVER);
+	function onMouseOut_(e:MouseEvent)onMsg(tid(e),MD.MOUSE_OUT);
+	function onMouseMove_(e:MouseEvent){
 		if(ui.click){
 			onMsg(tid(e),MD.MOUSE_MOVE);
 		};
 	}
-	function onMouseWheel(e:MouseEvent)ui.wheel = e.delta;
-	function onMouseUp(e:MouseEvent)ui.click = false;
-	function onMouseDown(e:MouseEvent)
+	function onMouseWheel_(e:MouseEvent) super.onMouseWheel(e.delta);
+	function onMouseUp_(e:MouseEvent) super.onMouseUp(monitor.mouseX.i(),monitor.mouseY.i());
+	function onMouseDown_(e:MouseEvent)
 	{ 
-		var oid = "";
+		var oid = -1;
 		var a = getObjectsUnderPoint(monitor.mouseX,monitor.mouseY);
- 
-		for(o in a){  
-			if(MS.accept(o,MD.MOUSE_DOWN)){ 
-				oid = o; //trace(oid);
+
+		for(it in a){  
+			if(MS.accept(it,MD.MOUSE_DOWN)){ 
+				oid = it; //trace(oid);
 				break;
 			}
 		}
@@ -85,56 +101,68 @@ class Terminal2D extends Terminal{
 		ui.move.copy(ui.start);
 //
 		onMsg(oid,MD.CLICK);
-	}// onMouseDown
+	}// onMouseDown_
 	
-	function onClick(e:MouseEvent)
-	{ 
-	}// onClick
+	function onClick_(e:MouseEvent) super.onClick(monitor.mouseX.i(),monitor.mouseY.i());
 	
-	function onKeyUp(e:KeyboardEvent)
+	function onKeyDown_(e:KeyboardEvent) super.onKeyDown(e.keyCode);
+ 	
+	function onKeyUp_(e:KeyboardEvent) super.onKeyUp(e.keyCode);
+ 
+	public override function clearScreen(root:Int)
 	{
-		ui.keys[e.keyCode] = false;
-		MS.exec(new MD(sign,"",MD.KEY_UP,[e.keyCode]));
-	}// onKeyUp()
+		if(!panels.exists(root)){ //trace(root);
+			panels.set(root,new Sprite());
+			panels.get(root).name = MS.getName(root);
+			monitor.addChild(panels.get(root));
+		};  
+		clearList(roots[root]);
+	}// clearScreen()
 
-	function onKeyDown(e:KeyboardEvent)
+	public override function drawStart()
 	{ 
-		ui.keys[e.keyCode] = true; 
-		MS.exec(new MD(sign,"",MD.KEY_DOWN,[e.keyCode]));
-	}// onKeyDown()
-	
-	public function init()
-	{ 
-//		monitor.stage.addEventListener(MouseEvent.CLICK, onClick);
-		monitor.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-		monitor.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
-		monitor.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-		monitor.stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
-		monitor.stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
-		monitor.stage.addEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
-		monitor.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);   
-		monitor.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-	}// init()
-	
-	public override function drawStart(shape:Shape)
-	{
+		var root = shape.root;
 		if(shapes.exists(shape.id)){
-			sp = shapes[shape.id];
+			sp = shapes.get(shape.id);
 		}else{
 			sp = new Sprite();
-			sp.name = shape.id; 
+			sp.name = MS.getName(shape.id); 
 			shapes.set(shape.id, sp);
-			monitor.addChild(sp);
+			panels.get(root).addChild(sp);
 		}; 
 		sp.removeChildren();
 		sp.graphics.clear();
 		sp.visible = shape.visible; 
 	}// drawStart()
 
-	public override function drawShape(shape:Shape)
+	public override function drawPoint()
+	{
+	}// drawPoint()
+
+	public override function drawLine()
+	{
+	}// drawLine()
+
+	public override function drawTriangle()
+	{
+	}// drawTriangle()
+
+	public override function drawCircle()
+	{
+	}// drawCircle()
+
+	public override function drawEllipse()
+	{
+	}// drawEllipse()
+
+	public override function drawShape()
+	{
+	}// drawShape()
+
+	public override function drawRect()
 	{ 
-		var fColor = shape.color.clr();
-		var bColor = shape.border.color.clr();
+		var fColor = shape.color;
+		var bColor = shape.border.color;
 
 		if(bColor.alpha > 0)sp.graphics.lineStyle(shape.border.width,bColor.rgb ,bColor.alpha);
 		
@@ -144,20 +172,12 @@ class Terminal2D extends Terminal{
 				shape.w * shape.scale, shape.h * shape.scale, 
 				shape.border.radius);
 		}
-	}// drawShape()
+	}// drawRect()
 
-	public override function drawImage(shape:Shape)
+	public override function drawImage()
 	{
-		var bd:BitmapData = null;
-		var src = shape.image.src;
-		var tile = shape.image.tile;
-		var id = src+tile;
-		if(bmd.exists(id)){
-			bd = bmd[id]; 
-		}else{ 
-			bd = getTile(FS.getTexture(src),tile,shape.scale);
-			if(bd != null)bmd.set(id,bd); 
-		}
+		var bd = FS.getImage(shape.image.src,shape.image.tile,shape.scale);
+		
 		if(bd != null){
 			var m:Matrix = new Matrix();
 			m.translate(shape.x, shape.y);
@@ -168,9 +188,9 @@ class Terminal2D extends Terminal{
 		}
 	}// drawImage()
 
-	public override function drawText(shape:Shape)
+	public override function drawText()
 	{ 
-		var c = shape.text.color.clr();
+		var c = shape.text.color;
 		var tf = new TextField();
 		var font = FS.getFont(shape.text.font.src);
 		var ft = new TextFormat(font.fontName, shape.text.font.size, c.rgb);
@@ -187,40 +207,15 @@ class Terminal2D extends Terminal{
 		sp.addChild(tf);	
 	}// drawText()
 
-	function getTile(bm:BitmapData,rect:Rectangle,scale = 1.)
-	{ 
-		var sbm:BitmapData = null; 
-		if(bm == null) return sbm; 
-		if(rect == null){
-			rect = new Rectangle(0,0,bm.width,bm.height);
-		}
-		var bd = new BitmapData(MT.closestPow2(rect.w.int()), MT.closestPow2(rect.h.int()), true, 0);
-		var pos = new flash.geom.Point();
-		var r = new flash.geom.Rectangle(rect.x,rect.y,rect.w,rect.h);
-		bd.copyPixels(bm, r, pos, null, null, true);
-		
-		if(scale == 1){
-			sbm = bd;
-		}else{
-			var m = new flash.geom.Matrix();
-			m.scale(scale, scale);
-			var w = (bd.width * scale).int(), h = (bd.height * scale).int();
-			sbm = new BitmapData(w, h, true, 0x000000);
-			sbm.draw(bd, m, null, null, null, true);
-		}		
-		return sbm;
-	}// getTile()
 
-	public override function clear(l:List<Component>)
+	public override function clearList(list:List<Component>)
 	{ 
-		super.clear(l);
-		for(el in l){ 
-			if(shapes.exists(el.id)){
-				monitor.removeChild(shapes[el.id]);
-				shapes.remove(el.id);
-			}
-		}
-	}// clear()
+		if(list.isEmpty())return; 
+		var root = list.first().root.id; 
+		panels.get(root).removeChildren();
+		for(el in list) shapes.remove(el.id);
+		super.clearList(list); 
+	}// clearList()
 	
 
 	public override function drawEnd()

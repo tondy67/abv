@@ -14,7 +14,7 @@ interface IAnim extends IObject{
 // depth
 	public var depth(get,set):Float;
 // transparency
-	public var fade(get,set):Float;
+	public var alpha(get,set):Float;
 // position
 	public var pos(get,set):Point;
 // rotation
@@ -22,7 +22,7 @@ interface IAnim extends IObject{
 // scaling
 	public var scale(get,set):Float;
 	
-	public function moveBy(from:Point,delta:Point):Void;
+	public function animBy(from:Point,delta:Point):Void;
 
 }// abv.interfaces.IAnim
 

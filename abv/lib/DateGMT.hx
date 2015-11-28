@@ -149,7 +149,7 @@ class DateGMT{
 		var d = now.getDate();
 		var n = new Date(y, m, d, 0, 0, 0 );
 		var t =  n.getTime(); 
-		return (24 * Math.ceil(t / 24 / ms ) - t/ms).int();  
+		return (24 * Math.ceil(t / 24 / ms ) - t/ms).i();  
 	}// timezone();
 	
 	

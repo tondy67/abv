@@ -29,6 +29,11 @@ class Timer {
 	public static inline function stamp()
 	{ 
 		return haxe.Timer.stamp();
+/*
+var date:Date = new Date();
+var numVal:Number = date.time;
+* Sys.time
+* */
 	}// stamp()
 	
 	public dynamic function run() { }

@@ -3,18 +3,17 @@ package abv.lib.style;
  * -1 = auto; 0-0.9999 = %; >=1 px
  * RGB.A
  **/
-import abv.lib.comp.Component;
 import abv.ds.AMap;
-
-using abv.lib.CC;
+import abv.lib.Enums;
 
 @:dce
 class Style extends StyleProps{
 
 	public var state:States = NORMAL;
-	var styles = new AMap<States,StyleProps>(); 
+	var styles:AMap<States,StyleProps>; 
+
 	public var states(get,never):Array<States>;
-	function get_states(){return styles.getK();}
+	function get_states(){return styles.keys();}
 	
 	override function get_left(){return styles[state].left;};
 	override function set_left(v:Float){return styles[state].left = v;};
@@ -35,7 +34,7 @@ class Style extends StyleProps{
 	override function set_height(v:Float){return _height = v;};
 
 	override function get_color(){return styles[state].color;};
-	override function set_color(v:Float){return styles[state].color = v;};
+	override function set_color(v:Color){return styles[state].color = v;};
 
 	override function get_border(){return styles[state].border;};
 	override function set_border(v:Border){return styles[state].border = v;};
@@ -58,7 +57,8 @@ class Style extends StyleProps{
 	public function new(name="") 
 	{ 
 		super();
-		this.name = name;
+		this.name = name; 
+		styles = new AMap<States,StyleProps>(); 
 		styles.set(NORMAL , new StyleProps());
 	}// new()
 
@@ -181,27 +181,9 @@ class Style extends StyleProps{
 		return s;
 	}// clone()
 	
-	public static inline function apply(o:Component,s:Style)
-	{
-		if((o != null)&&(s != null)){
-			o.style.copy(s);
-			if(s.left != null) o.pos.x = s.left; else o.style.left = o.pos.x;
-			if(s.top != null) o.pos.y = s.top; else o.style.top = o.pos.y;
-			if(s.width != null) o.width = s.width; else o.style.width = o.width;
-			if(s.height != null) o.height = s.height; else o.style.height = o.height;
-			if(o.style.background == null) o.style.setBackground();
-			if(o.style.background.color != null) o.color = o.style.background.color.int();
-			else o.style.background.color = o.color;
-			if(o.style.margin == null) o.style.setMargin();
-			if(o.style.padding == null) o.style.setPadding();
-		}else{
-			trace('obj: $o \nstyle: $s');
-		}
-	}// apply()	
-
 	public function toString() 
 	{
-		var s = 'Style(state: $state, ';
+		var s = 'Style(state: $state, name: $name, visibility: $visibility';
 		if(left != null)s += 'left: $left,';
 		if(top != null)s += 'top: $top,';
 		if(width != null)s += 'width: $width,';
@@ -219,6 +201,7 @@ class Style extends StyleProps{
 
 }// abv.lib.style.Style
 
+@:dce
 class StyleProps{
 	public var name = "";
 	public var visibility = "";
@@ -253,10 +236,10 @@ class StyleProps{
 	function get_height(){return _height;};
 	function set_height(v:Float){return _height = v;};
 
-	public var color(get,set):Null<Float>;
-	var _color:Null<Float> = null;
+	public var color(get,set):Null<Color>;
+	var _color:Null<Color> = null;
 	function get_color(){return _color;};
-	function set_color(v:Float){return _color = v;};
+	function set_color(v:Color){return _color = v;};
 
 	public var border(get,set):Null<Border>;
 	var _border:Null<Border> = null;
@@ -288,7 +271,7 @@ class StyleProps{
 	function get_boxShadow(){return _boxShadow;};
 	function set_boxShadow(v:BoxShadow){return _boxShadow = v;};
 	
-	public inline function new(){}
+	public inline function new(){ }
 	
 }// abv.lib.style.StyleProps
 	

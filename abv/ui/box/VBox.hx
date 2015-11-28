@@ -8,10 +8,12 @@ import abv.lib.comp.Object;
 @:dce
 class VBox extends Box{
 
+	public var maxRows = 10;
+
 	public function new(id:String,x=.0,y=.0,width=150.,height=200.)
 	{
 		super(id,x,y,width,height);
-		_kind = "VBox";
+		_kind = VBOX;
 		placement.set(0,1);
 	}// new()
 

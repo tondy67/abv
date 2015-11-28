@@ -4,6 +4,7 @@ import abv.cpu.Timer;
 import abv.interfaces.*;
 import abv.ds.AMap;
 
+
 using abv.lib.CC;
 
 typedef MsgProp = { accept:Int, action:AMap<Int,MD> }
@@ -21,12 +22,35 @@ class MS{
 // inbox
 	static var inbox = setInbox();
 	static var subscribers = new AMap<Int,IComm>();
-	static var subscribersID = new AMap<String,IComm>();
+	static var names = setNames();
 	static var slots = new AMap<Int,List<IComm>>();
 	static var trash = new List<MD>();
 	
 	inline function new(){ }
 
+	public static inline function setNames()
+	{
+		var m = new AMap<String,Int>();
+		m.set("",-1);
+		m.set("abv",0);
+		return m;
+	}// setNames()
+	
+	public static inline function getName(id:Int)
+	{
+		var r = "";
+		var key = names.keyOf(id);
+		if(key != null)r = key;
+		return r;
+	}// getName()
+	
+	public static inline function getID(name:String)
+	{
+		var r = -1;
+		if(names.exists(name)) r = names[name];
+		return r;
+	}// getID()
+	
 	public static inline function cmName(c:Int)
 	{
 		var r = "";
@@ -46,31 +70,33 @@ class MS{
 		return r;
 	}// cmCode()
 	
-	public static inline function msgName(m:Int)return msgMap.find(m);
+	public static inline function msgName(m:Int)return msgMap.keyOf(m);
 
 	public static inline function msgCode(n:String)return msgMap[n];
 
-	public static inline function subscribe(obj:IComm)
+	public static inline function subscribe(obj:IComm,name:String)
 	{ 
 #if debug var m = "";
-		if (obj == null)m += "Null Subscriber! ";
-		else if(!obj.id.good())m += "No subscriber ID! ";
-		else if(subscribers.exists(obj.sign))m += "Subscriber ("+obj.id+") exist! ";
+		if(obj.isNull())m += "Null Subscriber! ";
+		else if(!name.good())m += "No name! ";
+		else if(names.exists(name))m += "Subscriber ("+name+") exist! ";
 		if(m != "")trace(ERROR+m); 
 #end		
 		var ts = Timer.stamp()- Std.int(Timer.stamp());
-		var sign = Std.int(1000000*(ts + Math.random())); 
-		subscribers.set(sign,obj);  
-		subscribersID.set(obj.id,obj);  
+		var id = Std.int(1000000*(ts + Math.random())); 
+		subscribers.set(id,obj);  
+		names.set(name,id);  
 
-		return sign;
+		return id;
 	}// subscribe()
 
-	public static inline function unsubscribe(sign:Int)
+	public static inline function unsubscribe(id:Int)
 	{
-		var o = subscribers[sign];
-		subscribersID.remove(o.id);
-		subscribers.remove(sign);
+		if(subscribers.exists(id)){
+			var o = subscribers[id];
+			names.remove(getName(o.id));
+			subscribers.remove(id);
+		}
 	}// unsubscribe()
 	
 	public static inline function send(md:MD)setBox(md);
@@ -82,7 +108,7 @@ class MS{
 		trash.add(md);
 		if(trash.length < 1000)return;
 		for(m in trash){
-			m.free();
+			m.dispose();
 			m = null;
 		}
 		trash.clear();
@@ -91,14 +117,14 @@ class MS{
 	static inline function getSlot(msg:Int)
 	{
 		var l = new List<IComm>();
-		if(slots.exists(msg)) l = slots[msg]; 
+		if(slots.exists(msg)) l = slots.get(msg); 
 		return l;
 	}// getSlot()
 	
 	public static inline function setSlot(o:IComm,msg:Int)
 	{
 		if(slots.exists(msg)){
-			slots[msg].add(o);
+			slots.get(msg).add(o);
 		}else{
 			var l = new List<IComm>();
 			l.add(o);
@@ -107,26 +133,27 @@ class MS{
 	}// setSlot()
 	
 	static inline function objExec(o:IComm,md:MD)
-	{  
-		try o.exec(md) catch (d:Dynamic)trace(ERROR+o.id+": "+d);
-		md.free(); 
+	{  //trace(getName(o.id)+":"+md);
+		try o.exec(md) catch(d:Dynamic)trace(ERROR+" "+getName(o.id)+": "+d);
+		md.dispose(); 
 		md = null;
 	}// objExec()
 	
 	static inline function setBox(md:MD,exec=false)
 	{ 
 		if(isSender(md)){ 
-			var to = md.to;
-			if(to == ""){ 
+			var to = -1;
+			if(names.exists(md.to)) to = names[md.to];  
+			if(to == -1){ 
 				for(o in getSlot(md.msg)){ 
 					objExec(o,md);
 				}
 			}else if(isSubscriber(to)){ 
 				checkBox(to);
 				if (exec) { 
-					md.sign = subscribersID[to].sign; 
-					objExec(subscribersID[to],md);
-				}else inbox[to].add(md.clone());  
+					md.from = subscribers[to].id; 
+					objExec(subscribers[to],md);
+				}else inbox.get(to).add(md.clone());  
 			} 
 		}
 	}// setBox()
@@ -137,26 +164,26 @@ class MS{
 		if(md == null){
 			trace(FATAL+"Null data?!"); 
 			r = false;
-		}else if(!subscribers.exists(md.sign)){ 
+		}else if(!subscribers.exists(md.from)){ 
 			trace(ERROR+"Fake sign!"); 
 			r = false;
 		}
 		return r;
 	}// isSender()
 	
-	public static inline function isSubscriber(id:String)
+	public static inline function isSubscriber(id:Int)
 	{
-		return subscribersID.exists(id) && (subscribersID[id] != null);
+		return subscribers.exists(id) && (subscribers[id] != null);
 	}// isSubscriber()
 	
-	public static inline function accept(id:String,cmd:Int)
+	public static inline function accept(id:Int,cmd:Int)
 	{
 		var r = false; 
-		if((isSubscriber(id))&&(subscribersID[id].msg.accept & cmd  != 0))r = true;
+		if((isSubscriber(id))&&(subscribers[id].msg.accept & cmd  != 0))r = true;
 		return r;
 	}// accept()
 	
-	static inline function checkBox(id:String)
+	static inline function checkBox(id:Int)
 	{
 		inbox.add(id,new List<MD>());
 	}// checkBox()
@@ -164,18 +191,18 @@ class MS{
 /**
 	to => "*" = all, "." = ab, "-" = app
  **/	
-	public static inline function recv(to:String)
+	public static inline function recv(to:Int)
 	{
 		var r = new List<MD>();
 		if(isSubscriber(to)){
 			checkBox(to);
-			if(!inbox[to].isEmpty()){ //trace(inbox);
-				for(m in inbox[to]){
+			if(!inbox.get(to).isEmpty()){ //trace(inbox);
+				for(m in inbox.get(to)){
 					r.add(m.clone());
-					m.free();
+					m.dispose();
 					m = null;
 				}
-				inbox[to].clear();
+				inbox.get(to).clear();
 			}; 
 		}
 		return r;
@@ -215,7 +242,7 @@ class MS{
 	static inline function setInbox()
 	{
 		var m = new AMap();
-		m.set("*",new List<MD>());
+		m.set(0,new List<MD>());
 		return m;
 	}//
 	

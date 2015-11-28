@@ -3,7 +3,6 @@ package abv.ds;
  * TextProcessing encapsulate haxe String,StringTools,Utf8
  **/
 import haxe.Utf8;
-import haxe.ds.StringMap;
 
 using StringTools;
 using abv.lib.CC;
@@ -291,7 +290,7 @@ class TP{
 	public static inline function map2str(m:AMap<String,String>,sep1=CC.SEP1,sep3=CC.SEP3)
 	{   
 		var r = "";
-		for(k in m.keys()) r += k + sep1 + m.get(k) + sep3;
+		for(k in m.keys()) r += k + sep1 + m[k] + sep3;
 
 		return r;
 	}// map2str()

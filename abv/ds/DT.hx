@@ -2,8 +2,6 @@ package abv.ds;
 /**
  * DataTools
  **/
-import haxe.ds.StringMap;
-
 using abv.lib.CC;
 using abv.ds.TP;
 using abv.lib.math.MT;
@@ -29,21 +27,6 @@ class DT{
 		return r;
 	}// good<T>()
 	
-	public static inline function empty<T>(v:List<T>,msg="")
-	{ 
-		var r = false;
-		
-		if(v == null){
-			if(msg != "")trace(ERROR+"Null List: "+msg); 
-			r = true;
-		}else if(v.length == 0){
-			if(msg != "")trace(WARN+"Empty List: "+msg);
-			r = true;
-		}
-		
-		return r;
-	}// empty<T>()
-
 	public static inline function fields(o:Dynamic)
 	{ 
 		var r:Array<String> = [];

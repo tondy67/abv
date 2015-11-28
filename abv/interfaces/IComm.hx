@@ -4,10 +4,10 @@ package abv.interfaces;
  **/
 import abv.bus.MD;
 
-interface IComm extends IObject{
-
 @:allow(abv.bus.MS)
-	public var sign(null,null):Int;
+interface IComm {
+
+	public var id(null,null):Int;
 	public var msg(default,null):abv.bus.MS.MsgProp;
 	
 	public function exec(md:MD):Void;

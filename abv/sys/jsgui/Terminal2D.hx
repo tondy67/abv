@@ -8,7 +8,7 @@ import abv.cpu.Timer;
 import abv.io.Screen;
 import abv.ui.box.*;
 import abv.ui.widget.*;
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.lib.comp.Component;
 import abv.ui.Shape;
 import abv.ds.AMap;
@@ -30,48 +30,39 @@ using abv.lib.style.Color;
 @:dce
 class Terminal2D extends Terminal{
 
-	var elms = new AMap<String,DOMElement>();
+	var elms:AMap<String,DOMElement>;
 	var elm:DOMElement;
 	var doc:Document;
 	var body: DOMElement;   
     var ctx: CanvasRenderingContext2D = null;
 //
-	var ui:Input;
-	
-	public function new()
+	public function new(id:String)
 	{
-		super("Terminal2D");
-		ui = new Input(); 
-//
+		super(id);
+	}// new()
+
+	public override function init() 
+	{ 
+		elms = new AMap();
         doc = Browser.document;
         body = doc.getElementById("body");
-/*
-var st = doc.createStyleHtmlElement();
-st.type = "text/css"; 
-doc.head.appendChild(st); 
-cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'DefaultFont';src: url('../../assets/fonts/regular.ttf')  format('truetype');");
-*/
-		if(CC.CONTEXT > CC.CTX_1D){
+
+		if(CC.CONTEXT != CTX_1D){
 			var canvas = cast(doc.createElement("Canvas"),CanvasElement);
 			var style = canvas.style;
 			body.appendChild(canvas);
 			ctx = canvas.getContext2d();
 			canvas.width = CC.WIDTH;    
-			canvas.height = CC.HEIGHT;
+			canvas.height = CC.HEIGHT; trace("canvas");
 		}
 //trace("new");
-		Browser.window.addEventListener("keydown", onKeyDown, false);
-		Browser.window.addEventListener("keyup", onKeyUp, false);
-		Browser.window.addEventListener("mouseup", onMouseUp, false);
-		Browser.window.addEventListener("mousedown", onMouseDown, false);
-	}// new()
+		Browser.window.addEventListener("keydown", onKeyDown_, false);
+		Browser.window.addEventListener("keyup", onKeyUp_, false);
+		Browser.window.addEventListener("mouseup", onMouseUp_, false);
+		Browser.window.addEventListener("mousedown", onMouseDown_, false);
+	}// init() 
 
-	function onMsg(oid:String,cmd:Int)
-	{ 
-		if(oid.good())MS.exec(new MD(sign,oid,cmd,[],"",[ui.delta]));
-//LG.log(to+":"+MS.msgName(cmd));
-	}// onMsg()	
-	function onMouseMove(e:MouseEvent)
+	function onMouseMove_(e:MouseEvent)
 	{ 
 		var l = getObjectsUnderPoint(e.clientX,e.clientY);
 		if(l.length > 0){ 
@@ -81,18 +72,18 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 				return;
 			}
 		}
-	}// onMouseMove()
+	}// onMouseMove_()
 	
-	function onMouseWheel(e:MouseEvent)ui.wheel = 0;
-	function onMouseUp(e:MouseEvent)ui.click = false;
-	function onMouseDown(e:MouseEvent)
+	function onMouseWheel_(e:MouseEvent)ui.wheel = 0;
+	function onMouseUp_(e:MouseEvent)ui.click = false;
+	function onMouseDown_(e:MouseEvent)
 	{ //trace("mouse down");
-		var oid = "";
+		var oid = -1;
 		var a = getObjectsUnderPoint(e.clientX,e.clientY);
  
-		for(o in a){  
-			if(MS.accept(o,MD.MOUSE_DOWN)){ 
-				oid = o; //trace(oid);
+		for(it in a){  
+			if(MS.accept(it,MD.MOUSE_DOWN)){ 
+				oid = it;  
 				break;
 			}
 		}
@@ -101,34 +92,34 @@ cast(st.sheet,js.html.CSSStyleSheet).addRule("@font-face", "font-family:'Default
 		ui.start.set(e.clientX,e.clientY);  
 		ui.move.copy(ui.start);
 //
-		if(oid.good())onMsg(oid,MD.CLICK); 
-	}// onMouseDown
+		if(oid > 0) onMsg(oid,MD.CLICK); 
+	}// onMouseDown_
 	
-	function onClick(e:MouseEvent)
+	function onClick_(e:MouseEvent)
 	{ //trace(e.target);
 		var oid:String  = cast(e.target,DOMElement).id; 
 trace(oid);
-		if(oid.good())onMsg(oid,MD.CLICK); 
-	}// onClick
+		if(oid.good())onMsg(MS.getID(oid),MD.CLICK); 
+	}// onClick_
 	
-	function onKeyUp(e:KeyboardEvent)
+	function onKeyUp_(e:KeyboardEvent)
 	{
 		e.preventDefault();
 		ui.keys[e.keyCode] = false;
-		MS.exec(new MD(sign,"",MD.KEY_UP,[e.keyCode]));
-	}// onKeyUp()
+		MS.exec(new MD(id,"",MD.KEY_UP,[e.keyCode]));
+	}// onKeyUp_()
 	
-	function onKeyDown(e:KeyboardEvent)
+	function onKeyDown_(e:KeyboardEvent)
 	{
 		e.preventDefault();
 		ui.keys[e.keyCode] = true;
-		MS.exec(new MD(sign,"",MD.KEY_DOWN,[e.keyCode]));
-	}// onKeyDown()
+		MS.exec(new MD(id,"",MD.KEY_DOWN,[e.keyCode]));
+	}// onKeyDown_()
 	
-	public override function clearScreen(root:String)
+	public override function clearScreen(root:Int)
 	{
 		var w = CC.WIDTH, h = CC.HEIGHT;
-		if(CC.CONTEXT == CC.CTX_2D){
+		if(CC.CONTEXT == CTX_2D){
 			ctx.clearRect(0,0,w,h);
 		}
 /*		var grd = ctx.createLinearGradient(150.000, 0.000, 150.000, 300.000);
@@ -138,24 +129,29 @@ trace(oid);
 		ctx.copyRect(0,0,w,h); */
 	}// clearScreen()
 
-	public override function drawStart(shape:Shape)
+	public override function drawStart()
 	{
-		if(shape.context != CC.CTX_1D)return;
+		if(shape.context != CTX_1D)return;
 		
 		var ix = CC.ERR;
-
-		if(elms.exists(shape.id)){
-			elm = elms[shape.id];
+		var name = MS.getName(shape.id);
+		var pname = MS.getName(shape.parent);
+		
+		if(elms.exists(name)){
+			elm = elms[name];
 		}else{
-			if(shape.kind == "Button"){
+			if(shape.kind == BUTTON){
 				elm = doc.createElement("Button");
-				elm.addEventListener("click", onClick, false);
-			}else if(shape.kind == "HBox"){
+				elm.addEventListener("click", onClick_, false);
+			}else if(shape.kind == HBOX){
 				elm = doc.createElement("Div");
 				elm.className = "hbox"; 
-			}else if(shape.kind == "VBox"){
+			}else if(shape.kind == VBOX){
 				elm = doc.createElement("Div");
 				elm.className = "vbox"; 
+			}else if(shape.kind == FBOX){
+				elm = doc.createElement("Div");
+				elm.className = "fbox"; 
 			}else if(shape.style == ".dialog"){
 				elm = doc.createElement("Div");
 				elm.className = "dialog";  
@@ -164,15 +160,15 @@ trace(oid);
 				elm.className = "text"; 
 			}else{ 
 				elm = doc.createElement("Div");
-				ix = shape.id.indexOf("_");
-				elm.className = ix == CC.ERR?"text":shape.id.substr(0,ix);
+				ix = name.indexOf("_");
+				elm.className = ix == CC.ERR?"text":name.substr(0,ix);
 			}
 		
-			elm.id = shape.id;
+			elm.id = name;
 			elms.set(elm.id, elm); 
 			if(shape.parent == shape.root)body.appendChild(elm);
-			else if(elms.exists(shape.parent)){ 
-				elms[shape.parent].appendChild(elm);
+			else if(elms.exists(pname)){ 
+				elms[pname].appendChild(elm);
 			}
 		}; 
 		if(shape.visible){ 
@@ -190,10 +186,34 @@ trace(oid);
 		}
  	}// drawStart()
 
-	public override function drawShape(shape:Shape)
+	public override function drawPoint()
+	{
+	}// drawPoint()
+
+	public override function drawLine()
+	{
+	}// drawLine()
+
+	public override function drawTriangle()
+	{
+	}// drawTriangle()
+
+	public override function drawCircle()
+	{
+	}// drawCircle()
+
+	public override function drawEllipse()
+	{
+	}// drawEllipse()
+
+	public override function drawShape()
+	{
+	}// drawShape()
+
+	public override function drawRect()
 	{ 
-		if(shape.context == CC.CTX_1D){
-			var elm = doc.getElementById(shape.id);
+		if(shape.context == CTX_1D){
+			var elm = doc.getElementById(MS.getName(shape.id));
 			if(elm != null){  
 				elm.style.left = shape.x + "px"; 
 				elm.style.top = shape.y + "px";
@@ -207,7 +227,7 @@ trace(oid);
 				var h = shape.h;
 				var r = shape.border.radius;
 				var scale = shape.scale;
-				ctx.strokeStyle = shape.border.color.srgba();
+				ctx.strokeStyle = shape.border.color.toCssRgba();
 				ctx.lineWidth = shape.border.width ;
 				ctx.beginPath();
 				ctx.moveTo(x + r, y);
@@ -223,16 +243,16 @@ trace(oid);
 				ctx.stroke();
 			}
 			
-			if(shape.color > 0){
-				ctx.fillStyle = shape.color.srgba(); 
+			if(shape.color.alpha > 0){
+				ctx.fillStyle = shape.color.toCssRgba(); 
 				ctx.fill();
 			}
 			ctx.strokeStyle = "rgba(0,0,0,0)";
 			ctx.fillStyle 	= "rgba(0,0,0,0)";
 		}
-	}// drawShape()
+	}// drawRect()
 
-	public override function drawImage(shape:Shape)
+	public override function drawImage()
 	{
 			var img = FS.getTexture(shape.image.src); //trace(img.w);
 			if(img != null){
@@ -243,14 +263,14 @@ trace(oid);
 			}
 	}
 	
-	public override function drawText(shape:Shape)
+	public override function drawText()
 	{ 
-		if(shape.context == CC.CTX_1D){
+		if(shape.context == CTX_1D){
 			elm.innerHTML = shape.text.src.nl2br();
 		}else{		
 			var name = "DefaultFont";
 
-			ctx.fillStyle = shape.text.color.srgba();
+			ctx.fillStyle = shape.text.color.toCssRgba();
 			ctx.font = shape.text.font.size + "pt " + name; 
 			var text = shape.text.src; 
 			fillText(text,shape.x+2,shape.y+20,shape.w,shape.text.font.size+2);

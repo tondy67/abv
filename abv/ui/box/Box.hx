@@ -7,7 +7,7 @@ import abv.interfaces.IStyle;
 import abv.lib.style.Style;
 import abv.lib.comp.Object;
 import abv.lib.comp.Component;
-
+import abv.lib.Enums;
 
 using abv.lib.math.MT;
 using abv.lib.CC;
@@ -19,7 +19,7 @@ class Box extends Container {
 	public inline function new(id:String,x=.0,y=.0,width=200.,height=200.)
 	{
 		super(id);
-		_kind = "Box";
+		_kind = BOX;
 		_pos.set(x,y);
 		_width = width; _height = height;
 //
@@ -29,17 +29,17 @@ class Box extends Container {
 	override function dispatch(md:MD)
 	{ 
 		super.dispatch(md);
-		
+	
 		switch(md.msg){
-			case MD.STATE: 
-				visible = !visible; 
-				draw(this);
+			case MD.STATE:  	
+				visible = !visible;  
+				draw(this); 
 			case MD.OPEN: 
 				visible = true; 
 				draw(this);
 			case MD.CLOSE: 
 				visible = false; 
-				draw(this);
+				draw(this); 
 		}
 	}// dispatch
 

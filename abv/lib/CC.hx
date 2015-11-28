@@ -4,25 +4,16 @@ package abv.lib;
  * 
  **/
 import haxe.crypto.Md5;
+import haxe.io.Path;
 
 import abv.AM;
 import abv.cpu.Timer;
 import abv.lib.math.MT;
 import abv.ST;
+import abv.lib.Enums;
+import abv.interfaces.IComm;
 
 using abv.ds.TP;
-
-enum States{
-	DISABLED;
-	NORMAL;
-	ACTIVE;
-	VISITED;
-	HOVER;
-	FOCUS;
-	LINK;
-	PRESSED;
-	CLICK;
-}
 
 enum LogLevels{
 	OFF;
@@ -34,23 +25,11 @@ enum LogLevels{
 	DEBUG;
 }
 
-enum OsName{
-	BSD;
-	LINUX;
-	MAC;
-	WINDOWS;
-}
-
 @:dce
 @:build(abv.macro.BM.buildConfig())
 class CC{
 // css
 	public static inline var AUTO 	= -1;
-// render context
-	public static inline var CTX_1D = 1;
-	public static inline var CTX_2D = 2;
-	public static inline var CTX_3D = 3;
-
 // Separators
 	public static inline var SEP1 	= "|";
 	public static inline var SEP3 	= "|||";
@@ -74,13 +53,17 @@ class CC{
 
 	public static inline function md5(s:String)return Md5.encode(s);
 
-	public static inline function int(f:Float)return Std.int(f);
+	public static inline function i(f:Float) return Std.int(f);
 
+	public static inline function toInt(s:String) return Std.parseInt(s); 
+
+	public static inline function toFloat(s:String) return Std.parseFloat(s); 
+	
 	public static inline function json(s:String)
 	{
 		var r:Dynamic = null;
 		if(good(s))
-			try r = haxe.Json.parse(s) catch (m:Dynamic)trace(ERROR+m); 
+			try r = haxe.Json.parse(s) catch (m:Dynamic)trace(ERROR+" " +m); 
 		return r;
 	}// json()
 	
@@ -89,34 +72,42 @@ class CC{
 		var r = true;
 		
 		if(v == null){
-			if(msg != "")trace(DEBUG+"Null String: "+msg); 
+			if(msg != "")trace(DEBUG+" Null String: "+msg); 
 			r = false;
 		}else if(v == ""){
-			if(msg != "")trace(DEBUG+"Empty String: "+msg); 
+			if(msg != "")trace(DEBUG+" Empty String: "+msg); 
 			r = false;
 		}
 		
 		return r;
 	}// good()
 	
+	public static inline function isNull(v:IComm,msg="")
+	{ 
+		var r = false;
+		
+		if(v == null){
+			if(msg != "")trace(DEBUG+" Null Object: "+msg); 
+			r = true;
+		}
+		
+		return r;
+	}// isNull()
+	
 	public static inline function eq(str:String,cmp:String)
 	{
 		return str.toLowerCase() == cmp.toLowerCase();
 	}// eq()
 
+	public static inline function rmLast(s:String,c="/")
+	{
+		return s.charAt(s.length-1) == c? s.substr(0,s.length-1):s;
+	}// rmLast
+	
 	public static inline function dirname(path:String)
 	{
 		var r = "";
-		if(good(path)){
-			var sep = "/";
-			r = path.trim();
-			var a = r.splitt(sep); 
-			if(a.length > 1){
-				var last = a.pop();
-				if(!good(last)) a.pop();
-				r = a.join(sep) + "/";
-			}
-		}
+		if(good(path))r = Path.addTrailingSlash(Path.directory(path));
 		return r;
 	}// dirname()
 	
@@ -124,13 +115,9 @@ class CC{
 	{
 		var r = "";
 		if(good(path)){
-			r = path.replace(dirname(path),"");
-
+			r = Path.withoutDirectory(path);
 			if(!ext){
-				var sep = ".";
-				var a = r.splitt(sep);
-				a.pop();
-				r = a.join(sep);
+				r = Path.withoutExtension(r);
 			}
 		}
 		return r;
@@ -139,14 +126,7 @@ class CC{
 	public static function extname(path:String)
 	{
 		var r = ""; 
-		if(good(path)){
-			var sep = ".";
-			var name = basename(path); 
-			if(good(name)){  
-				var a = name.splitt(sep); 
-				if(a.length > 1)r = a.pop(); 
-			}
-		}
+		if(good(path)) r = Path.extension(path);
 		return r;
 	}// extname()
 
@@ -154,16 +134,6 @@ class CC{
 	{
 #if flash untyped a.length = 0; #else a.splice(0,a.length); #end
     }// clear<T>()
-	
-	public static inline function slash(s:String)
-	{
-		var r = "";
-		if(good(s)){
-			if(OS == WINDOWS) r = s.replace("/","\\");
-			else r = s.replace("\\","/");
-		}
-		return r;
-	}// slash()
 	
 	public static inline function getLog(line=0,filter="")
 	{
@@ -204,7 +174,7 @@ class CC{
 			ST.print(msg,color);
 			log(msg.trim(),level);
 		}
-	}// print()
+	}// pri()
 
 	public static inline function getLevel(s:String)
 	{//AM.trace(s);
@@ -232,7 +202,7 @@ class CC{
 				case DEBUG:  6;
 				default: 	 0;
 			}
-	}// lvl2int()
+	}// lvl2i()
 	
 	public static inline function lvl2color(level:LogLevels)
 	{   

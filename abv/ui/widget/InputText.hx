@@ -3,7 +3,7 @@ package abv.ui.widget;
  * InputText
  **/
 @:dce
-class InputText extends Text{
+class InputText {
 
 
 	public function new(id:String,label="Text",pos:Point=null,width=300.,height=150.)

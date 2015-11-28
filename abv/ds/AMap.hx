@@ -1,10 +1,11 @@
 package abv.ds;
 /**
- * AMap
+ * AbstractMap
  **/
-using abv.ds.DT;
+import haxe.Json;
 
-//@:dce
+@:dce
+@:forward(exists, good,getIndex,vals,setIndex,add,remove,clear,isPair,keyOf,indexOf,indexOfKey,toString)
 abstract AMap<K,V>(BMap<K,V>){
 
 	public var length(get,never):Int;
@@ -12,30 +13,14 @@ abstract AMap<K,V>(BMap<K,V>){
 	
 	public inline function new() this = new BMap<K,V>();
 	
-	public inline function exists(key:K) return this.exists(key);
-
-	public inline function good(key:K) return this.good(key);
-	
-// TODO: debug warning for IntMap key != index ?!?
+// TODO: debug warning for IntMap, key != index !!!
 @:arrayAccess 
 	public inline function get(key:K) return this.get(key);
 
 @:arrayAccess 
-	public inline function getIndex(key:Int) return this.getIndex(key);
-
-	public inline function getK() return this.getK();
-
-	public inline function getV() return this.getV();
-
-@:arrayAccess 
 	public inline function set(key:K, val:V) this.set(key,val);
 	
-	public inline function setIndex(key:K, val:V, id:Null<Int>) this.setIndex(key,val,id);
-	
-	public inline function add(key:K,val:V) return this.add(key,val);
-	
-	public inline function remove(key:K) return this.remove(key);
-	
+// FIXME: (haxe) no iterator call when K is Int/Float [suspect: build macro]
 	public inline function iterator() return this.iterator();
 	
 	public inline function keys() return this.keys();
@@ -46,18 +31,19 @@ abstract AMap<K,V>(BMap<K,V>){
 		for(k in keys())r.set(k,get(k));
 		return r; 
 	}// copy()
+
+	public static inline function fromJson(json:String)
+	{
+		var m = new AMap<String,String>();
+		var r:Dynamic = null;
+		try r = Json.parse(json) catch(d:Dynamic){trace(d);}
+		if(r != null){
+			var keys = Reflect.fields(r); 
+			for(it in keys) m.set(it+"",Reflect.field(r,it)+"");
+		}
+		return m;
+	}// fromJson()
 	
-	public inline function clear() this.clear();
 	
-	public inline function isPair(key:K,val:V) return this.isPair(key,val);
-	
-	public inline function find(val:V) return this.find(val);
-
-	public inline function indexOf(val:V) return this.indexOf(val);
-
-	public inline function findK(key:K) return this.findK(key);
-
-	public function toString() return this.toString();
-
 }// abv.ds.AMap
 

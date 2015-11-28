@@ -7,15 +7,20 @@ import abv.lib.box.Container;
 import abv.ui.Root;
 import abv.lib.style.*;
 import abv.lib.style.Style;
+import abv.lib.Enums;
 
 using abv.lib.CC;
 //
 @:dce
 class Component extends MObject implements IDraw {
 
-	public var kind(get, never):String;
-	var _kind = "";
+	public var kind(get, never):RenderKind;
+	var _kind = RK_NONE;
 	public function get_kind()  return _kind;
+	
+	public var outline(get, null):Array<Point>;
+	var _outline:Array<Point> = [];
+	public function get_outline()  return _outline.copy();
 	
 	public var style(get, never):Style;
 	var _style = new Style();
@@ -44,6 +49,7 @@ class Component extends MObject implements IDraw {
 	public inline function new(id:String)
 	{
 		super(id);
+		outline.push(pos);
 	}// new()
 
 	public override function moveBy(from:Point,delta:Point)
@@ -53,8 +59,7 @@ class Component extends MObject implements IDraw {
 	}// moveBy()
 	
 	public function draw(obj:Component){
-		if (root == null) trace(ERROR+"No Root?");  
-		else root.draw(this);
+		if(!root.isNull(ERROR+" No Root?"))root.draw(this);
 	}// draw()
 
 	override function dispatch(md:MD)
@@ -65,7 +70,7 @@ class Component extends MObject implements IDraw {
 				draw(this);
 			case MD.OPEN: 
 				visible = true;
-				draw(this);
+				draw(this); 
 			case MD.MOVE: 
 				pos.offset(md.f[0],md.f[1]);
 				draw(this); 
@@ -75,17 +80,17 @@ class Component extends MObject implements IDraw {
 		}
 	}// dispatch
 
-	public override function free() 
+	public override function dispose() 
 	{
-//		delChildren(); 
-//		if(parent != null)parent.delChild(this);
-    }// free() 
+		super.dispose();
+    }// dispose() 
 
 	public function resize()
 	{
 //		trace(id+" - resize: "+parent.id);
 	}// resize()
 
+// local to global coord.
 	public inline function toScreen()
 	{
 		var x = pos.x;
@@ -102,13 +107,18 @@ class Component extends MObject implements IDraw {
 		gY = y;
 	}// toScreen()
 
+	public inline function getBounds()
+	{ // TODO: getBounds()
+		return {w:width,h:height,d:depth};
+	}// getBounds()
+	
 	public override function toString() 
 	{
-		var pid:Null<String> = ""; try pid = parent.id catch(d:Dynamic){}; //trace(pid);
-		var rid:Null<String> = ""; try rid = root.id catch(d:Dynamic){};
+		var pid = 0; try pid = parent.id catch(d:Dynamic){}; //trace(pid);
+		var rid = 0; try rid = root.id catch(d:Dynamic){};
 		var s = Object.traceInherited?super.toString() + "\n └>":""; 
-		return '$s Component<IAnim>(id: $id, state: $state, parent: $pid'+
-		', root: $rid, visible: $visible, text: $text, color: $color,fade: $fade, rot: ${rot.x})';
+		return '$s Component<IAnim>(id: $name, state: $state, parent: $pid'+
+		', root: $rid, visible: $visible, text: $text, color: $color,alpha: $alpha, rot: ${rot.x})';
     }// toString() 
 
 }// abv.lib.comp.Component

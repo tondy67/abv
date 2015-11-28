@@ -1,100 +1,145 @@
 package abv.lib.style;
-
+/**
+ * Color RGBA
+ **/
+import abv.ds.AMap;
 
 using abv.lib.CC;
-using abv.lib.math.MT;
-using abv.ds.TP;
-/**
- * Color
- **/
+using StringTools;
+
 @:dce
-class Color{
-// TODO: Abstract Float ?!
-	public static inline var WHITE:Int 		= 0xFFFFFF;
-	public static inline var SILVER:Int 	= 0xC0C0C0;
-	public static inline var GRAY:Int 		= 0x808080;
-	public static inline var BLACK:Int 		= 0x000000;
-	public static inline var RED:Int 		= 0xFF0000;
-	public static inline var MAROON:Int 	= 0x800000;
-	public static inline var YELLOW:Int 	= 0xFFFF00;
-	public static inline var OLIVE:Int 		= 0x808000;
-	public static inline var LIME:Int 		= 0x00FF00;
-	public static inline var GREEN:Int 		= 0x008000;
-	public static inline var AQUA:Int 		= 0x00FFFF;
-	public static inline var TEAL:Int 		= 0x008080;
-	public static inline var BLUE:Int 		= 0x0000FF;
-	public static inline var NAVY:Int 		= 0x000080;
-	public static inline var FUCHSIA:Int 	= 0xFF00FF;
-	public static inline var PURPLE:Int 	= 0x800080;
+abstract Color(Int) from Int to Int {  
 
-	static var names = ["white" => WHITE,"silver" => SILVER,
-		"gray" => GRAY,"black" => BLACK,"red" => RED,"maroon" => MAROON,
-		"yellow" => YELLOW,"olive" => OLIVE,"lime" => LIME,
-		"green" => GREEN,"aqua" => AQUA,"teal" => TEAL,"blue" => BLUE,
-		"navy" => NAVY,"fuchsia" => FUCHSIA,"purple" => PURPLE];
+	public static inline var WHITE:Int 		= 0xFFFFFF + 255;
+	public static inline var SILVER:Int 	= 0xC0C0C0 + 255;
+	public static inline var GRAY:Int 		= 0x808080 + 255;
+	public static inline var BLACK:Int 		= 0x000000 + 255;
+	public static inline var RED:Int 		= 0xFF0000 + 255;
+	public static inline var MAROON:Int 	= 0x800000 + 255;
+	public static inline var YELLOW:Int 	= 0xFFFF00 + 255;
+	public static inline var OLIVE:Int 		= 0x808000 + 255;
+	public static inline var LIME:Int 		= 0x00FF00 + 255;
+	public static inline var GREEN:Int 		= 0x008000 + 255;
+	public static inline var AQUA:Int 		= 0x00FFFF + 255;
+	public static inline var TEAL:Int 		= 0x008080 + 255;
+	public static inline var BLUE:Int 		= 0x0000FF + 255;
+	public static inline var NAVY:Int 		= 0x000080 + 255;
+	public static inline var FUCHSIA:Int 	= 0xFF00FF + 255;
+	public static inline var PURPLE:Int 	= 0x800080 + 255;
+
+	static var names = setNames();
 	
-	static inline function argb(rgb:Int,alpha:Float) 
-	{
-		var a:Float;
-		alpha = alpha.range(alpha,0);
-		a = alpha > .99?.99:alpha;
-		return rgb + a;
-	}// argb()
+	public var r(get, never):Int;
+	inline function get_r():Int return (this >> 24) & 0xFF;
 
-	public static inline function srgba(f:Float)
-	{
-		var c = trgba(f);
-		return 'rgba(${c.r},${c.g},${c.b},${c.a/255})';
-	}// srgba()
+	public var g(get, never):Int;
+	inline function get_g():Int return (this >> 16) & 0xFF;
 
-	public static inline function trgba(f:Float)
-	{
-		var c = clr(f);
-		var rgb = c.rgb;
- 
-		var r = (rgb >> 16) & 255;  
-		var g = (rgb >> 8) & 255;
-		var b = rgb & 255;
-		var a = Std.int(c.alpha * 255);
-		return {r:r, g:g, b:b, a:a};
-	}// trgba()
+	public var b(get, never):Int;
+	inline function get_b():Int return (this >> 8) & 0xFF;
 
-	public static inline function web(rgb:Int)
-	{
-		return "#" + rgb.hex(6);
-	}// web()
+	public var a(get, never):Int;
+	inline function get_a():Int return this & 0xFF;
 
-	public static inline function clr(f:Float) 
+	public var rgb(get, never):Int;
+	inline function get_rgb():Int return this >> 8;
+
+	public var alpha(get, never):Float;
+	inline function get_alpha():Float return a/255;
+
+	public inline function new(color:Int = 0):Color this = color;
+
+	public inline function toCssRgba() return toString();
+
+	public inline function toHex(prefix="#")
 	{
-		var rgb = Std.int(f.range(16777215)); 
-		var alpha = (f - rgb).range(.99,0); 
-		return {rgb:rgb,alpha:alpha};
-	}// new()
+		return prefix + r.hex(2) + g.hex(2) + b.hex(2) + a.hex(2);
+	}// toHex()
 
 	public static inline function name2clr(s:String)
 	{
-		var r:Null<Float> = null;
-		if(names.exists(s))r = argb(names[s],1);
+		var r:Null<Color> = null;
+		if(names.exists(s))r = names[s];
 		return r;
 	}// name2clr()
 
-	public static inline function rgba(r:Int,g:Int,b:Int,a:Float)
+	public static inline function fromRgba(r:Int,g:Int,b:Int,a:Int):Color
 	{
-		var alpha = a.range(.99,0);
-		var rgb = Std.int(r.range(255)*65536 + g.range(255)*256 + b.range(255));
-		return argb(rgb,alpha);
-	}// rgba()
+		return ((r & 0xFF) << 24) | ((g & 0xFF) << 16) | ((b & 0xFF) << 8) | ((a & 0xFF) << 0);
+	}// fromRgba()
 
-	public static inline function hex2clr(s:String,a:Float=1)
+
+@:from
+	public static inline  function fromString(s:String):Color
+	{ 
+		var v = s.trim().toLowerCase();
+		var r = new Color();
+		if(v.startsWith("#")){
+			r = fromHex(v.replace("#",""));
+		}else if(v.startsWith("rgba(")){ 
+			v = v.replace("rgba(","");
+			var p = v.split(","); 
+			r = fromRgba(p[0].toInt(),p[1].toInt(),p[2].toInt(),(p[3].toFloat()*255).i());
+		}else if(name2clr(v) != null){
+			r = name2clr(v);
+		}else{
+			r = v.toInt();
+		}
+		
+		return r;	
+	}// fromString()
+ 
+@:from 
+	public static inline function fromInt(rgba:Int):Color
+	{ trace(rgba);
+		return rgba;
+	}
+
+@:from 
+	public static inline function fromInts(a:Array<Int>):Color
 	{
+		return fromRgba(a[0], a[1], a[2], a[3]);
+	}
+
+	public static inline function fromHex(s:String):Color
+	{
+		var r = 0;
 		if(s.length == 3)s = s.charAt(0)+s.charAt(0)
 			+s.charAt(1)+s.charAt(1)+s.charAt(2)+s.charAt(2);
-		else if(s.length != 6)s = "FFFFFF";
 		
-		var alpha = a.range(.99,0);
 		var rgb = Std.parseInt("0x"+s);
-		return argb(rgb,alpha);
-	}// hex2clr()
+		if(rgb != null){
+			if(s.length == 6) r = (rgb << 8) + 255; 
+			else if(s.length == 8) r = rgb;
+		}
+		return r;
+	}// fromHex()
 
+
+@:to 
+	public function toString():String return 'rgba($r,$g,$b,$alpha)';
+
+	static function setNames()
+	{
+		var r = new AMap<String,Int>();
+		r.set("white", WHITE);
+		r.set("silver", SILVER);
+		r.set("gray", GRAY);
+		r.set("black", BLACK);
+		r.set("red", RED);
+		r.set("maroon", MAROON);
+		r.set("yellow", YELLOW);
+		r.set("olive", OLIVE);
+		r.set("lime", LIME);
+		r.set("green", GREEN);
+		r.set("aqua", AQUA);
+		r.set("teal", TEAL);
+		r.set("blue", BLUE);
+		r.set("navy", NAVY);
+		r.set("fuchsia", FUCHSIA);
+		r.set("purple", PURPLE);
+		return r;
+	}// setNames()
+	
 }// abv.lib.style.Color
 

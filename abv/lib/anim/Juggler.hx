@@ -29,6 +29,11 @@ class Juggler{
 		tweens.remove(tw);
 	}// remove()
 
+	public static inline function clear()
+	{
+		tweens.clear();
+	}// clear()
+
 	public static inline function info()
 	{
 		var s = "Juggler(tweens: " + tweens.length + ")";

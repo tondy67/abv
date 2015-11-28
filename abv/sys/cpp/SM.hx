@@ -8,13 +8,10 @@ using abv.ds.TP;
 using abv.lib.CC;
 
 @:dce
-class AM {
+class SM {
 	
-	public static var verbose 	= DEBUG;
-	public static var exitTime 	= .0;
-	public static var silent 	= false;
-	public static var logFile	= "";
-	public static var colors 	= true;
+	var width_:Float 	= CC.WIDTH;
+	var height_:Float 	= CC.HEIGHT;
 
 	public static var args(get,never):Array<String>;
 	static var _args:Array<String> = null;
@@ -49,13 +46,11 @@ class AM {
 		
 		if(hlp.indexOf(args[0]) != -1){
 			print(INFO + "" + help("help"));
-			exit();
 		}else{
 			cfg = config(_config);
 			init();
 		}
 		
-		colors = true;
  	}// new()
 
 	function config(s:String) 
@@ -69,7 +64,7 @@ class AM {
 	{
 	}// init()
 	
-	function update(delta:Null<Float> = null)
+	function update(delta:Float=0)
 	{   
 	}// update()
 
@@ -82,21 +77,44 @@ class AM {
 		return r;
 	}// help()
 
-	public static inline function exit()
-	{
-		Sys.sleep(.5);
-		Sys.exit(err);
-	}// exit()
-
 	function print(msg:String,color="")
 	{
 		CC.print(msg,color);
 	}// print()
 
+	inline function onCreate() { create(); };
+	function create() { };
+
+	inline function onResize() { resize(); };
+	function resize() { };
+
+	inline function onStart() { start(); };
+	function start() { };
+
+	inline function onRestart() { restart(); };
+	function restart() { };
+
+	inline function onResume() { resume(); };
+	function resume() { };
+
+	inline function onPause() { pause(); };
+	function pause() { };
+
+	inline function onStop() { stop(); };
+	function stop() { };
+
+	inline function onDestroy() { destroy(); };
+	function destroy() { };
 
 /**
  * AbstractMachine properties
  **/
+	function setSize()
+	{
+		width_ = CC.WIDTH;
+		height_ = CC.HEIGHT; 
+	}// setSize()
+	
 	public static function info()
 	{
 		var lang = "",os = CC.OS,home = "",run = "cpp";
@@ -114,5 +132,5 @@ class AM {
 		return {lang:lang,os:os,home:home,run:run};
 	}// info()
 
-}// abv.sys.cpp.AM
+}// abv.sys.cpp.SM
 

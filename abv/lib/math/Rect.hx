@@ -1,9 +1,9 @@
 package abv.lib.math;
 /**
- * Rectangle
+ * Rect
  **/
 
-class Rectangle{
+class Rect{
 
 	public var x:Float;
 	public var y:Float;
@@ -25,8 +25,8 @@ class Rectangle{
 
 	public function toString()
 	{
-		return 'Rectangle($x,$y,$w,$h)';
+		return 'Rect($x,$y,$w,$h)';
 	}// toString()
 
-}// abv.lib.math.Rectangle
+}// abv.lib.math.Rect
 

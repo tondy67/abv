@@ -4,8 +4,10 @@ package abv.sys.cppgui;
  * look in abv-tools/gui/src for cpp source
  **/
 import abv.bus.MD;
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.ui.Shape;
+import abv.lib.style.Color;
+
 #if cpp
 import cpp.Lib;
 import cpp.ConstCharStar;
@@ -54,12 +56,12 @@ class GUI{
 		var e:Array<Int>;
 		var key = 0;
 		while((e = _poll_event())[EVENT] != 0){ 
-			if(e[MOUSE_DOWN] == MOUSE_DOWN)onMouseDown(e[MOUSE_X],e[MOUSE_Y]); 
-			else if(e[MOUSE_UP] == MOUSE_UP)onMouseUp(e[MOUSE_X],e[MOUSE_Y]); 
-			onMouseMove(e[MOUSE_X],e[MOUSE_Y]);
+			if(e[MOUSE_DOWN] == MOUSE_DOWN)onMouseDown_(e[MOUSE_X],e[MOUSE_Y]); 
+			else if(e[MOUSE_UP] == MOUSE_UP)onMouseUp_(e[MOUSE_X],e[MOUSE_Y]); 
+			onMouseMove_(e[MOUSE_X],e[MOUSE_Y]);
 			
-			if(e[KEY_DOWN] != 0) onKeyDown(e[KEY_DOWN]);
-			else if(e[KEY_UP] != 0) onKeyUp(e[KEY_UP]);
+			if(e[KEY_DOWN] != 0) onKeyDown_(e[KEY_DOWN]);
+			else if(e[KEY_UP] != 0) onKeyUp_(e[KEY_UP]);
 			if(e[QUIT] == QUIT) quit();
 		} 
 	}// update()
@@ -84,32 +86,32 @@ class GUI{
 	public static inline function renderQuad(shape:Shape)
 	{
 		var r = 0;
-		var c = shape.color.trgba(); //trace(c.r+":"+c.g+":"+c.b+":"+c.a);
-		var b = shape.border.color.trgba();
+		var c = shape.color; //trace(c.r+":"+c.g+":"+c.b+":"+c.a);
+		var b = shape.border.color;
 		
-		r = _render_quad(shape.x.int(),shape.y.int(),shape.w.int(),shape.h.int(),
-			c.r,c.g,c.b,c.a, shape.border.width.int(),b.r,b.g,b.b,b.a);
+		r = _render_quad(shape.x.i(),shape.y.i(),shape.w.i(),shape.h.i(),
+			c.r,c.g,c.b,c.a, shape.border.width.i(),b.r,b.g,b.b,b.a);
 
 		return r;
 	}// renderQuad()
 
 	public static inline function renderImage(path:String, 
-		x:Float,y:Float, tile:Rectangle = null, scale = 1.)
+		x:Float,y:Float, tile:Rect = null, scale = 1.)
 	{
 		var r = 0;
-		if(tile == null)tile = new Rectangle();
-		r = _render_texture(path,x.int(),y.int(),
-			tile.x.int(),tile.y.int(),tile.w.int(),tile.h.int(),scale);
+		if(tile == null)tile = new Rect();
+		r = _render_texture(path,x.i(),y.i(),
+			tile.x.i(),tile.y.i(),tile.w.i(),tile.h.i(),scale);
 
 		return r;
 	}// renderImage()
 
-	public static inline function renderText(font:String,text:String,x:Float,y:Float,color:Float,wrap:Int)
+	public static inline function renderText(font:String,text:String,x:Float,y:Float,color:Color,wrap:Int)
 	{ 
 		var r = 0;
-		var c = color.trgba(); 
+		var c = color; 
 		if(font.good() && text.good()){
-			r = _render_text(font,text,x.int(),y.int(),c.r,c.g,c.b,c.a, wrap);
+			r = _render_text(font,text,x.i(),y.i(),c.r,c.g,c.b,c.a, wrap);
 		}
 		
 	}// renderText()
@@ -125,13 +127,13 @@ class GUI{
 		return {w:1024, h:540};//{w:a[0], h:a[1]};
 	}// getWindowSize()
 ///
-	public dynamic static function onMouseWheel(){}
-	public dynamic static function onMouseUp(x:Int,y:Int){}
-	public dynamic static function onMouseDown(x:Int,y:Int){}
-	public dynamic static function onMouseMove(x:Int,y:Int){}
-	public dynamic static function onClick(){}
-	public dynamic static function onKeyUp(key:Int){}
-	public dynamic static function onKeyDown(key:Int){}
+	public dynamic static function onMouseWheel_(){}
+	public dynamic static function onMouseUp_(x:Int,y:Int){}
+	public dynamic static function onMouseDown_(x:Int,y:Int){}
+	public dynamic static function onMouseMove_(x:Int,y:Int){}
+	public dynamic static function onClick_(){}
+	public dynamic static function onKeyUp_(key:Int){}
+	public dynamic static function onKeyDown_(key:Int){}
 ///
 #if neko
 	public static var _poll_event = Lib.load("abv","poll_event_hx",0);

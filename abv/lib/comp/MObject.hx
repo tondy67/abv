@@ -1,11 +1,12 @@
 package abv.lib.comp;
-
-import abv.interfaces.*;
-import abv.lib.math.Point;
-import abv.bus.MD;
 /**
  *
  **/
+import abv.interfaces.*;
+import abv.lib.math.Point;
+import abv.bus.MD;
+import abv.lib.style.Color;
+
 @:dce
 class MObject extends Object implements IAnim {
 
@@ -40,15 +41,15 @@ class MObject extends Object implements IAnim {
 	function get_rot(){return _rot;}
 	function set_rot(p:Point){_rot.copy(p); return p;}
 // transparency
-	public var fade(get,set):Float;
-	var _fade = 1.;
-	function get_fade(){return _fade;};
-	function set_fade(f:Float){return _fade = f;};
+	public var alpha(get,set):Float;
+	var _alpha = 1.;
+	function get_alpha(){return _alpha;};
+	function set_alpha(f:Float){return _alpha = f <= 0 ? 0:f >= 1 ? 1: f;};
 //
-	public var color(get, set):Float;
-	var _color = .0;
+	public var color(get, set):Color;
+	var _color = new Color();
 	function get_color() { return _color; }
-	function set_color(c:Float) { return _color = c; }
+	function set_color(c:Color) { return _color = c; }
 //
 	public var state(get,set):Int;
 	var _state = 0;
@@ -65,16 +66,18 @@ class MObject extends Object implements IAnim {
 
 	public function moveBy(from:Point,delta:Point){ }
 
+	public function animBy(from:Point,delta:Point){ }
+
 	public function setAction(act:Int,to:String,m:Int,customMsg=MD.NONE)
 	{
-		var md = new MD(sign,to,m,[customMsg]);
+		var md = new MD(id,to,m,[customMsg]);
 		msg.action.set(act,md); //trace(msg.action);
 	}
 	
 	public override function toString() 
 	{
 		var s = Object.traceInherited?super.toString() + "\n└>":""; // ─
-		return '$s MObject(id: $id, pos: $pos, width:$width, height: $height, scale: $scale)';
+		return '$s MObject(id: $name, pos: $pos, width:$width, height: $height, scale: $scale)';
     }// toString() 
 
 }// abv.lib.comp.MObject

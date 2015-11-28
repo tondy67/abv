@@ -1,18 +1,19 @@
 package abv.ui.widget;
-
+/**
+ * Label
+ **/
 import abv.lib.comp.Object;
 import abv.lib.math.Point;
 import abv.lib.comp.Component;
-/**
- * 
- **/
+import abv.lib.Enums;
+
 @:dce
-class Text extends Component{
+class Label extends Component{
 	
-	public function new(id:String,label="Text",pos:Point=null,width=300.,height=150.)
+	public function new(id:String,label="Label",pos:Point=null,width=300.,height=150.)
 	{
 		super(id);
-		_kind = "Text";
+		_kind = LABEL;
 		if (pos != null) _pos.copy(pos);
 		_width = width; _height = height;
 		text = label;
@@ -21,8 +22,8 @@ class Text extends Component{
 	public override function toString() 
 	{
 		var s = Object.traceInherited?super.toString() + "\n   └>":"";
- 		return '$s Text(id: $id,text: $text)';
+ 		return '$s Label(id: $id,text: $text)';
     }// toString() 
     
-}// abv.ui.widget.Text
+}// abv.ui.widget.Label
 

@@ -51,24 +51,6 @@ class WebServer extends ThreadServer<Client, Message>{
 
 	var sessions(default,null) = new Wallet();
 
-	public function config(cfg:AMap<String,String>)
-	{
-		if(cfg.exists("host"))host = cfg["host"];
-		if(cfg.exists("port"))
-			port = Std.int(MT.range(Std.parseInt(cfg["port"]),10000,80));
-		if(cfg.exists("root"))root = cfg["root"];
-		if(cfg.exists("urls")){
-			urls = WT.parseQuery(cfg["urls"]);
-			if(!urls.exists("pa"))urls.set("pa","/pa/");
-		} 
-		if(cfg.exists("auth"))auth = cfg["auth"];
-		if(cfg.exists("index"))indexes = cfg["index"].splitt();
-		if(cfg.exists("threads"))
-			nthreads = Std.int(MT.range(Std.parseInt(cfg["threads"]),maxThreads,2));
-		if(cfg.exists("name"))name = cfg["name"];
-		if(cfg.exists("version"))version = cfg["version"];
-	}// config()
-
 	override function clientMessage(c: Client, msg: Message)
 	{
 		var s = msg.body;
@@ -115,8 +97,8 @@ class WebServer extends ThreadServer<Client, Message>{
 						WT.setCookie(ctx,"sid",sid);
 					}
 				}
-//trace(session);	
-				var path = WT.fsPath(ctx["path"]); 
+
+				var path = WT.fsPath(ctx["path"]); trace(path+": "+ctx["path"]+": "+root);
 				if(ctx.isPair(WT.IF_NONE_MATCH,WT.etag(ctx))){ 
 					ctx["status"] = "304";
 				}else if(!root.good()){
@@ -128,9 +110,11 @@ class WebServer extends ThreadServer<Client, Message>{
 				}else if(ctx["path"].starts(urls["pa"])){  
 					if(ctx.isPair(WT.AUTHORIZATION,"Basic "+auth))app(ctx,session,form);
 					else ctx["status"] = "401";
-				}else if(path.exists()){
-						if(path.isDir())mkDir(ctx); else mkFile(ctx,session);
-				}else{
+//				}else if(root.exists()){ trace("root exists");
+//						mkFile(ctx,session);
+//				}else if(path.exists()){ 
+//						if(path.isDir())mkDir(ctx); else mkFile(ctx,session);
+				}else{ 
 					app(ctx,session,form);
 				}
 				ctx["length"] = ctx["body"].length +"";
@@ -146,11 +130,11 @@ class WebServer extends ThreadServer<Client, Message>{
 	
 	function mkDir(ctx:AMap<String,String>)
 	{
-		ctx["path"] = WT.slash(ctx["path"]);
+		ctx["path"] = WT.slash(ctx["path"]); 
 		var path = WT.fsPath(ctx["path"]); 
 		var r = ""; 
-		var a = path.getDir(); 
-		if(a.good()){ 
+		var a = path.getDir(); //trace(a);
+		if(a.good()){ 	
 			for(f in indexes){
 				if(a.indexOf(f) != -1){
 					r = f;
@@ -236,8 +220,25 @@ class WebServer extends ThreadServer<Client, Message>{
 	}// log()
 
 ///	
+	public function config()
+	{ 
+		try host = CC.HOST catch(d:Dynamic){trace(d);}
+		try port = Std.int(MT.range(Std.parseInt(CC.PORT),10000,80)) catch(d:Dynamic){trace(d);}
+		try root = CC.ROOT catch(d:Dynamic){trace(d);}
+		try {
+			urls = WT.parseQuery(CC.URLS);
+			if(!urls.exists("pa"))urls.set("pa","/pa/");
+		} catch(d:Dynamic){trace(d);}
+		try auth = CC.AUTH catch(d:Dynamic){trace(d);}
+		try indexes = CC.INDEX.splitt(",") catch(d:Dynamic){trace(d);}
+		try nthreads = Std.int(MT.range(Std.parseInt(CC.THREADS),maxThreads,2)) catch(d:Dynamic){trace(d);}
+		try name = CC.NAME catch(d:Dynamic){trace(d);}
+		try version = CC.VERSION catch(d:Dynamic){trace(d);}
+	}// config()
+
 	public function start()
 	{ 
+		config();
 		tset(); 
 		var cwd = root.good()?root:".";
 		Sys.setCwd(cwd);

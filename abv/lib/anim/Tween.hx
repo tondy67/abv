@@ -71,7 +71,7 @@ class Tween{
 			delta = to.sub(from);  //trace(delta+" "+from+":"+to);
 			r = TS.get(trans)(ratio); //trace(delta+" : "+r);
 			delta.scale(r);    
-			func(from,delta); 
+			try func(from,delta) catch(d:Dynamic){trace(ERROR + "" + d);} 
 		}
 	
 		if (time < duration) { 

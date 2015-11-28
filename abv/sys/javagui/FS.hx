@@ -1,6 +1,6 @@
 package abv.sys.javagui;
 
-import abv.lib.math.Rectangle;
+import abv.lib.math.Rect;
 import abv.lib.math.MT;
 import abv.ds.AMap;
 

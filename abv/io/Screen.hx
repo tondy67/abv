@@ -63,15 +63,13 @@ class Screen {
 			r.add(obj);  
 		}
 		
-		for(to in terminals) to.clear(r); 
+		for(to in terminals) to.clearList(r); 
 
 	}// clear()
 	
 	public static inline function addRoot(r:Root)
 	{
-		var l:Root = roots.pop();
-		roots.push(r);
-		if(l != null)roots.push(l);
+		if(r != null)roots.push(r);
 	}// addRoot()
 	
 	public static inline function delRoot(r:Root)
@@ -89,9 +87,11 @@ class Screen {
 		terminals.remove(t);
 	}// delTerminal()
 
-	public static function resize(w:Float,h:Float)
-	{ 				
-		for(r in roots)r.refresh(w,h);
+	public static function resize()
+	{ 	
+		var w = AM.WIDTH;
+		var h = AM.HEIGHT;		
+		for(r in roots)r.resize();
 //		console.width = 400; console.height = 200;
 		for(t in terminals)t.resize(w,h);
 		render();

@@ -1,4 +1,4 @@
-package abv.sys.others;
+package abv.sys.none;
 
 import abv.lib.CC;
 /**
@@ -38,5 +38,5 @@ class ST{
 
 	static inline function log(msg=""){CC.log(err);}
 	
-}// abv.sys.others.ST
+}// abv.sys.none.ST
 

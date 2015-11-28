@@ -54,7 +54,7 @@ class MD {
 
 // Subscribers
 	public var to(get,never):String;
-	var _to:String = "";
+	var _to = "";
 	function get_to() return _to;
 
 	public var msg(get,never):Int;
@@ -62,17 +62,17 @@ class MD {
 	function get_msg() return _msg;
 
 @:allow(abv.bus.MS)	
-	public var sign(default,null):Int;
+	public var from(default,null):Int;
 	
 	public var f:Array<Float> = [];
 	public var p:Array<Point> = [];
 	public var s = "";
 	
-	public function new(sign:Int,to:String,msg:Int,f:Array<Float>=null,s="",p:Array<Point>=null)
+	public function new(from:Int,to:String,msg:Int,f:Array<Float>=null,s="",p:Array<Point>=null)
 	{
 		_to = to;
 		_msg = msg;
-		this.sign = sign;
+		this.from = from;
 		if(f != null)this.f = f.copy();
 		if(s.good())this.s = s;
 		if(p != null)this.p = p.copy();
@@ -80,23 +80,23 @@ class MD {
 
 	public inline function clone()
 	{
-		var n = new MD(sign,to,msg);
+		var n = new MD(from,to,msg);
 		n.f = f.copy();
 		n.s = s;
 		n.p = p.copy();
 		return n;
 	}// copy()
 	
-	public inline function free()
+	public inline function dispose()
 	{
-		_to = null;
-		sign = 0;
+		_to  = "";
+		from = -1;
 		_msg = 0;
 		clear(f);
 		s = null;
 		for(v in p)v = null;
 		clear(p);
-	}// free()
+	}// dispose()
 
 	function clear<T>(a:Array<T>)
 	{
@@ -105,7 +105,7 @@ class MD {
 
 	public inline function toString() 
 	{
-        return 'MD(sign: $sign,to: $to,msg: ${MS.msgName(msg)},f: $f,s: $s,p: $p)';
+        return 'MD(from: $from,to: $to,msg: ${MS.msgName(msg)},f: $f,s: $s,p: $p)';
     }// toString()
 
 
