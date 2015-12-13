@@ -3,12 +3,12 @@ package abv.ui;
  * Root
  **/
 import abv.lib.comp.Component;
-import abv.lib.box.Container;
+import abv.lib.comp.Container;
 import abv.lib.math.Point;
 import abv.bus.*;
 import abv.io.Screen;
 import abv.ds.AMap;
-import abv.ui.box.Box;
+import abv.ui.control.Box;
 import abv.lib.Enums;
 
 

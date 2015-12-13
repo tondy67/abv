@@ -28,7 +28,7 @@ class SH{
 
 	public static function hide(path:String)
 	{
-		path = path.slash(); 		
+//		path = path.slash(); 		
 		if(path.exists()){
 			if(CC.OS == WINDOWS) ST.command("attrib",["+h",path]);
 			else {};//ST.command("ln",["-s",path,link]);
@@ -37,7 +37,7 @@ class SH{
 	
 	public static function unhide(path:String)
 	{
-		path = path.slash(); 		
+//		path = path.slash(); 		
 		if(path.exists()){
 			if(CC.OS == WINDOWS) ST.command("attrib",["-h",path]);
 			else {};//ST.command("ln",["-s",path,link]);
@@ -98,7 +98,6 @@ class SH{
 	{
 		var r:String = "";
 		var s = 'cat: $path';
-		path = path.slash(); 		
 		if(path.exists(s) && !path.isDir(s)){
 			try r = path.open()
 			catch(m:Dynamic){trace(WARN+s + " "+m);}
@@ -167,7 +166,7 @@ class SH{
 
 	public static inline function zip(path:String,file:String,opt="r")
 	{
-		path = path.slash(); 		
+//		path = path.slash(); 		
 		if(path.good('zip: $path'))echo('zip: $path $opt');
 	}// zip()
 	

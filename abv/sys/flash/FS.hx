@@ -13,7 +13,7 @@ import flash.net.*;
 
 using abv.lib.CC;
 
-@:font("res/ui/default/font/regular.ttf") class DefaultFont extends Font {}
+@:font("../res/ui/default/font/regular.ttf") class DefaultFont extends Font {}
 
 @:build(abv.macro.BM.embedResources())
 class FS{

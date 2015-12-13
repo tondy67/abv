@@ -1,7 +1,7 @@
-package abv.ui.box;
+package abv.ui.control;
 
 import abv.lib.math.Point;
-import abv.lib.box.Container;
+import abv.lib.comp.Container;
 import abv.bus.MD;
 import abv.interfaces.IStyle;
 import abv.lib.style.Style;
@@ -50,5 +50,5 @@ class Box extends Container {
 		return '$s Box<IStyle>(id: $id)';
     }// toString() 
 
-}// abv.ui.box.Box
+}// abv.ui.control.Box
 

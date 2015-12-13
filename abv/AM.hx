@@ -5,42 +5,39 @@ package abv;
  **/
 
 using abv.lib.CC;
- 
-#if (flash && engine)
+
+#if flash
 import flash.system.Capabilities;
-	typedef SM = abv.sys.engine.SM;
-	typedef FS = abv.sys.flash.FS;
-	typedef AU = abv.sys.engine.AU;
+typedef FS = abv.sys.flash.FS;
+typedef AU = abv.sys.flash.AU;
+ #if engine
+typedef SM = abv.lib.CM;
+ #else
+typedef SM = abv.sys.flash.SM;
+ #end  
+#elseif android
+typedef SM = abv.sys.android.SM;
+typedef FS = abv.sys.android.FS;
+typedef AU = abv.sys.android.AU;
 #elseif (ios || engine)
-	typedef SM = abv.sys.engine.SM;
-	typedef FS = abv.sys.engine.FS;
-	typedef AU = abv.sys.engine.AU;
-#elseif flash
-import flash.system.Capabilities;
-	typedef SM = abv.sys.flash.SM;
-	typedef FS = abv.sys.flash.FS;
-	typedef AU = abv.sys.flash.AU;
-#elseif ((neko || cpp) && gui)
-	typedef SM = abv.sys.cppgui.SM;
-	typedef FS = abv.sys.cppgui.FS;
-	typedef AU = abv.sys.cppgui.AU;
-#elseif (neko || cpp)
-	typedef SM = abv.sys.cpp.SM;
+typedef SM = abv.lib.CM;
+typedef FS = abv.sys.engine.FS;
+typedef AU = abv.sys.engine.AU;
+#elseif (neko || cpp) 
+typedef SM = abv.lib.CM;
+ #if gui
+typedef FS = abv.sys.cppgui.FS;
+typedef AU = abv.sys.cppgui.AU;
+ #end
 #elseif (js && gui)
 import js.Browser;
-	typedef SM = abv.sys.jsgui.SM;
-	typedef FS = abv.sys.jsgui.FS;
-	typedef AU = abv.sys.jsgui.AU;
-#elseif android
-	typedef SM = abv.sys.android.SM;
-	typedef FS = abv.sys.android.FS;
-	typedef AU = abv.sys.android.AU;
+typedef SM = abv.lib.CM;
+typedef FS = abv.sys.jsgui.FS;
+typedef AU = abv.sys.jsgui.AU;
 #elseif (java && gui)
-	typedef SM = abv.sys.javagui.SM;
-	typedef FS = abv.sys.javagui.FS;
-	typedef AU = abv.sys.javagui.AU;
-#else
-	typedef SM = abv.sys.none.SM;
+typedef SM = abv.lib.CM;
+typedef FS = abv.sys.javagui.FS;
+typedef AU = abv.sys.javagui.AU;
 #end
 
 class AM extends SM{
@@ -57,7 +54,9 @@ class AM extends SM{
 	public static var ORIENTATION(get,never):Bool;
 	static var _ORIENTATION = false;
 	static function get_ORIENTATION(){ return WIDTH >= HEIGHT ? true : false;} 
-	
+#if !(flash || js)
+	var args = Sys.args();
+#end 	
 	public inline function new(id:String)
 	{
 		super(id); 

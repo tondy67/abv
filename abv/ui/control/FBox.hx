@@ -1,4 +1,4 @@
-package abv.ui.box;
+package abv.ui.control;
 /**
  * FloatBox
  **/
@@ -34,5 +34,5 @@ class FBox extends Box{
 		return '$s FBox(id: $id)';
     }// toString() 
 
-}// abv.ui.box.FBox
+}// abv.ui.control.FBox
 

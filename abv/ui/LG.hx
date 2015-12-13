@@ -2,7 +2,7 @@ package abv.ui;
 /**
  * Lang
  **/
-import abv.lib.box.Container;
+import abv.lib.comp.Container;
 import abv.interfaces.IStates;
 import abv.bus.MS;
 

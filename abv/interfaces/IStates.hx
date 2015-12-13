@@ -2,7 +2,7 @@ package abv.interfaces;
 /**
  * 
  **/
-import abv.ui.widget.Button.StateData;
+import abv.ui.control.Button.StateData;
 
 interface IStates {
 

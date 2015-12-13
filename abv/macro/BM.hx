@@ -18,7 +18,6 @@ class BM {
 	static var langFile = "lang.json";
 	static var err1 = "Missing config value: ";
 	static var cfg:Dynamic = null;
-	static var output = false;
 	
 	macro public static function buildR():Array<Field>
 	{
@@ -37,12 +36,12 @@ class BM {
 //		var file = "bin/android/gen/"+pack+"/R.java"; 
 var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.java"; 
 		if(!isFile(file)){
-			trace("FATALno file: "+file);
+			trace("no file: "+file);
 			return fields;
 		}
 		try s = File.getContent(file) catch(m:Dynamic){trace(m);}
 		if(s == ""){
-			trace("FATALempty file: "+file);
+			trace("empty file: "+file);
 			return fields;
 		}
 		
@@ -89,7 +88,7 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 		}
 		
 		for(r in a){
-			var f = resDir + r;
+			var f = resDir + r; 
 			if(isFile(f)){
 				switch(getFileType(f)){
 					case "txt": embedText(f); 
@@ -121,12 +120,10 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 			props.remove("context");  
 		}
 
-		if(props.indexOf("macro") != -1)output = true;
-
 		for(f in props){ 
 			name = f.toUpperCase(); 
 			d = Reflect.field(cfg,f); 
-#if debug 	if(output)Sys.println("abv.lib.CC."+name+": "+d); #end
+#if debug 	Sys.println("abv.lib.CC."+name+": "+d); #end
 			switch(getType(d)){
 				case ARRAY_STRING:
 					access = [AStatic,APublic]; 
@@ -310,9 +307,9 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 	}// dirname()
 	
 	static function embedText(f:String)
-	{
-		var s = File.getContent(f);
-		var rgx = ~/\s\s+/g;
+	{ 
+		var s = File.getContent(f); 
+		var rgx = ~/[ ][ ]+/g;
 		s = rgx.replace(s," "); 
 		Context.addResource(f,Bytes.ofString(s));
 	}// embedText()

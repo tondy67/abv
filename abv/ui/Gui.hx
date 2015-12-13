@@ -3,7 +3,7 @@ package abv.ui;
  * Gui
  **/
 import abv.bus.*;
-import abv.ui.widget.Button;
+import abv.ui.control.Button;
 import abv.ui.LG;
 
 using abv.lib.CC;

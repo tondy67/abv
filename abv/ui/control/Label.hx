@@ -1,4 +1,4 @@
-package abv.ui.widget;
+package abv.ui.control;
 /**
  * Label
  **/
@@ -25,5 +25,5 @@ class Label extends Component{
  		return '$s Label(id: $id,text: $text)';
     }// toString() 
     
-}// abv.ui.widget.Label
+}// abv.ui.control.Label
 

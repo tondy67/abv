@@ -1,50 +1,77 @@
-package abv.sys.cppgui;
+package abv.lib;
+/**
+ * CommonMachine 
+ **/
 
 import abv.bus.*;
-import abv.ui.Gui; 
-import abv.lib.anim.*;
-import abv.lib.comp.*;
-import abv.lib.math.Point;
-import abv.lib.style.Style;
 import abv.*;
 import abv.lib.*;
+import abv.lib.comp.Object;
 import abv.io.*;
 import abv.cpu.Timer;
 import abv.ST;
 import abv.ds.AMap;
+#if gui
+import abv.ui.Gui; 
+ #if (cpp||neko)
+import abv.sys.cppgui.Terminal3D;
+ #elseif js 
+import abv.sys.jsgui.Terminal3D;
+ #end 	
+ 
+#end
 
 using abv.lib.CC;
 using abv.ds.TP;
 
-class SM extends Object{
+class CM extends Object{
 
 	var width_:Float 	= CC.WIDTH;
 	var height_:Float 	= CC.HEIGHT;
 		
-	var last:Float;
-	var term:Terminal3D;
-	var gui:Gui;
+	var last = Timer.stamp();
 	var fps = CC.UPS;
+	var quit = false;
+	public static var trace = haxe.Log.trace; 
+#if gui
+	public var term:Terminal3D;
+	var gui:Gui;
+#end
 	
-	public function new(id:String)
+	public inline function new(id:String)
 	{
 		super(id);
-		haxe.Log.trace = ST.trace;
+#if !flash 	haxe.Log.trace = ST.trace; #end
 
 		msg = {accept:MD.EXIT,action:new AMap()};
 // customMessage register
-		MS.cmCode("cmSound");
-
-		last = Timer.stamp();
+//		MS.cmCode("cmSound");
 
 		onCreate();
+		onStart();
 
-		while( true ){
-//			term.update();
-			update();
-			Sys.sleep(1/fps);
-		}		
+		if(fps > 0){
+#if flash
+#elseif js
+			untyped setInterval(update_,1000/fps);
+#elseif java
+			var tm = new abv.sys.java.JavaTimer(1000/fps);
+			tm.run = update_;
+#else
+trace(fps);
+			while( !quit ){
+				update_();
+				Sys.sleep(1/fps);
+			}	
+#end	
+		}
 	}// new()
+
+	function update_()
+	{
+		Timer.update();
+		update();
+	}// update_()
 
 	override function update()
 	{  //trace("step");
@@ -53,21 +80,15 @@ class SM extends Object{
 
 	inline function onCreate() 
 	{ 
+#if gui
 		term = new Terminal3D(); 
 		Screen.addTerminal(term);
-		//LG.screen = Screen;
+#end
 		create(); 
-		onResize();		
 	}// onCreate() 
 	
 	function create() 
 	{
-		var w:Float = CC.WIDTH; 
-		var h:Float = CC.HEIGHT; 
-
-		gui = new Gui(w,h); 
-		gui.context = CTX_1D;
-		Screen.addRoot(gui);
 	}// create() 
 	
 
@@ -75,7 +96,9 @@ class SM extends Object{
 	{ 
 		setSize();
 		resize(); 
+#if gui
 		Screen.resize(); 
+#end
 	}// onResize()
 	
 	function resize() { };
@@ -104,4 +127,4 @@ class SM extends Object{
 	}// setSize()
 	
 
-}// abv.sys.cppgui.SM
+}// abv.lib.CM

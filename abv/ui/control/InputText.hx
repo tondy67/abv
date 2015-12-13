@@ -1,4 +1,4 @@
-package abv.ui.widget;
+package abv.ui.control;
 /**
  * InputText
  **/
@@ -18,5 +18,5 @@ class InputText {
  		return '$s InputText(id: $id,text: $text)';
 	}// toString()
 
-}// abv.ui.widget.InputText
+}// abv.ui.control.InputText
 

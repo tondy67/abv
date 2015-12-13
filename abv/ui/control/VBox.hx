@@ -1,4 +1,4 @@
-package abv.ui.box;
+package abv.ui.control;
 
 import abv.lib.math.Point;
 import abv.lib.comp.Object;
@@ -23,5 +23,5 @@ class VBox extends Box{
 		return '$s VBox(id: $id)';
     }// toString() 
 
-}// abv.ui.box.VBox
+}// abv.ui.control.VBox
 

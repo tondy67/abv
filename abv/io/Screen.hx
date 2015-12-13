@@ -8,9 +8,9 @@ import abv.ui.*;
 import abv.lib.style.*;
 import abv.lib.style.Style;
 import abv.lib.comp.Component;
-import abv.lib.box.Container;
-import abv.ui.box.Box;
-import abv.ui.widget.Button;
+import abv.lib.comp.Container;
+import abv.ui.control.Box;
+import abv.ui.control.Button;
 import abv.io.Terminal;
 
 
@@ -22,7 +22,7 @@ class Screen {
 
 	static var terminals:Array<Terminal> = [];
 	static var roots:Array<Root> = [];
-//	var console:Box;
+//	var console:control;
 //	var conRoot:Root;
 
 	inline function new(){ };

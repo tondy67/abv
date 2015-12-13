@@ -1,4 +1,4 @@
-package abv.ui.widget;
+package abv.ui.control;
 /**
  * Button
  **/
@@ -79,5 +79,5 @@ class Button extends Label implements IStates{
         return '$s Button(id: $id, state: $state)';
     }// toString() 
 
-}// abv.ui.widget.Button
+}// abv.ui.control.Button
 

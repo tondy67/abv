@@ -1,4 +1,4 @@
-package abv.ui.widget;
+package abv.ui.control;
 /**
  * 
  **/
@@ -14,5 +14,5 @@ class Image extends Component{
 		_kind = IMAGE;
 	}// new()
 
-}// abv.ui.widget.Image
+}// abv.ui.control.Image
 

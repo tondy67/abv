@@ -104,8 +104,8 @@ class ST{
 
 	public static function ln(path:String,link:String,opt="s")
 	{
-		path = slash(path); 		
-		link = slash(link);
+//		path = slash(path); 		
+//		link = slash(link);
 
 		if(exists(path)){
 			if(CC.OS == WINDOWS)command("cmd",["/c","mklink","/D",link,path]);
@@ -208,7 +208,6 @@ class ST{
 	public static inline function open(path:String)
 	{
 		var r = ""; 
-		path = slash(path);
 		if(exists(path))r = isDir(path)?"is dir":File.getContent(path);
 		return r;
 	}// open()
@@ -224,7 +223,7 @@ class ST{
 
 	public static inline function save(path:String,s:String)
 	{
-		path = slash(path);
+//		path = slash(path);
 		if(path.good())File.saveContent(path, s);
 	}// save()
 
@@ -273,7 +272,7 @@ class ST{
 	{ 
 		var r = 0;
 
-		cmd = slash(cmd);
+//		cmd = slash(cmd);
 		if(cmd.good()){
 			if(args == null){
 				r = Sys.command(cmd);
@@ -291,7 +290,7 @@ class ST{
 	{ 
 		var r = "-1";
 
-		cmd = slash(cmd);
+//		cmd = slash(cmd);
 		if(cmd.good()){
 			if(!background){
 					var p:Process = null;

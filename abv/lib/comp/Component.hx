@@ -3,7 +3,7 @@ package abv.lib.comp;
 import abv.interfaces.*;
 import abv.bus.*;
 import abv.lib.math.Point;
-import abv.lib.box.Container;
+import abv.lib.comp.Container;
 import abv.ui.Root;
 import abv.lib.style.*;
 import abv.lib.style.Style;

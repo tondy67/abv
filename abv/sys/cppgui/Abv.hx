@@ -5,11 +5,11 @@ package abv.sys.cppgui;
  **/
 import cpp.ConstCharStar;
 
-@:include("../../../../abv-tools/gui/src/abv.h")
+@:include("../../../../../abv-tools/gui/src/abv.h")
 @:buildXml('<target id="haxe">
  <section if="linux">
-	<lib name="../../../abv-tools/libs/Linux/x64/libABV.a" if="HXCPP_M64"/>
-	<lib name="../../../abv-tools/libs/Linux/x86/libABV.a" unless="HXCPP_M64"/>
+	<lib name="../../../../abv-tools/libs/Linux/x64/libABV.a" if="HXCPP_M64"/>
+	<lib name="../../../../abv-tools/libs/Linux/x86/libABV.a" unless="HXCPP_M64"/>
 	<lib name="-lm" />
 	<lib name="-ldl" />
 	<lib name="-lpthread" /> 

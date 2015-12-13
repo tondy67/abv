@@ -59,7 +59,7 @@ class TP{
 	
 	public static function reduceSpaces(s:String,sp=" ")
 	{
-		var rgx = ~/\s\s+/g;
+		var rgx = ~/[ ][ ]+/g;
 		return rgx.replace(s,sp); 
 	}// reduceSpaces()
 	
