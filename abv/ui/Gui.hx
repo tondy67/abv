@@ -3,10 +3,10 @@ package abv.ui;
  * Gui
  **/
 import abv.bus.*;
-import abv.ui.control.Button;
+import abv.ui.controls.Button;
 import abv.ui.LG;
 
-using abv.lib.CC;
+using abv.sys.ST;
 using abv.ds.TP;
 
 class Gui extends Root{
@@ -14,7 +14,7 @@ class Gui extends Root{
 	public inline function new(w:Float,h:Float)
 	{
 		super("Gui",w,h);
-		context = CTX_1D;
+		context = 1;
 		MS.cmCode("cmLang"); 		
 	}// new()
 
@@ -32,13 +32,8 @@ class Gui extends Root{
 	function setLang(lg:Int)
 	{
 		LG.set(lg,this);
-		draw(this);
+		draw();
 	}// setLang()
 	
-	public override function toString()
-	{
-		return "Gui";
-	}// toString()
-
 }// abv.ui.Gui
 

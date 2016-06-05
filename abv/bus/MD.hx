@@ -2,8 +2,10 @@ package abv.bus;
 /**
  * Message Data
  **/
-import abv.lib.math.Point;
-using abv.lib.CC;
+import abv.math.Point;
+import abv.factory.IComm;
+
+using abv.sys.ST;
 
 @:dce
 class MD {
@@ -45,7 +47,6 @@ class MD {
 	public static inline var TWEEN 			= 1 << 30;
 	public static inline var EXIT 			= 1 << 31;
 
-//
 // Message groups
 	public static inline var ALL 			= 0xFFFFFF;
 	public static inline var MOUSE_ENABLED 		= CLICK | DOUBLE_CLICK | MOUSE_UP | 
@@ -62,13 +63,13 @@ class MD {
 	function get_msg() return _msg;
 
 @:allow(abv.bus.MS)	
-	public var from(default,null):Int;
+	public var from(default,null):IComm;
 	
 	public var f:Array<Float> = [];
 	public var p:Array<Point> = [];
 	public var s = "";
 	
-	public function new(from:Int,to:String,msg:Int,f:Array<Float>=null,s="",p:Array<Point>=null)
+	public function new(from:IComm,to:String,msg:Int,f:Array<Float>=null,s="",p:Array<Point>=null)
 	{
 		_to = to;
 		_msg = msg;
@@ -90,22 +91,17 @@ class MD {
 	public inline function dispose()
 	{
 		_to  = "";
-		from = -1;
+		from = null;
 		_msg = 0;
-		clear(f);
+		f.clear();
 		s = null;
 		for(v in p)v = null;
-		clear(p);
+		p.clear();
 	}// dispose()
-
-	function clear<T>(a:Array<T>)
-	{
-        #if (cpp||php) a.splice(0,a.length); #else untyped a.length = 0; #end
-    }// clear()
 
 	public inline function toString() 
 	{
-        return 'MD(from: $from,to: $to,msg: ${MS.msgName(msg)},f: $f,s: $s,p: $p)';
+        return 'MD(from: ${from},to: $to,msg: ${MS.msgName(msg)},f: $f,s: $s,p: $p)';
     }// toString()
 
 

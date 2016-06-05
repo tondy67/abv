@@ -2,19 +2,17 @@ package abv.sys.engine;
 
 import abv.lib.math.Rect;
 import abv.lib.math.MT;
-import abv.ds.AMap;
+
 
 import haxe.Resource;
 
-using abv.lib.CC;
+using abv.sys.ST;
 
 @:build(abv.macro.BM.embedResources())
 class FS{
 
-	static var texts = new AMap<String,String>();
+	static var texts = new MapSS();
 	
-	inline function new(){ }
-
 	public static function getText(id:String)
 	{
 		var r = Resource.getString(id);

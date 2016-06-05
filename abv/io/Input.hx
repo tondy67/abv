@@ -1,6 +1,6 @@
 package abv.io;
 
-import abv.lib.math.Point;
+import abv.math.Point;
 /**
  * Mouse
  **/

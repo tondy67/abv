@@ -2,8 +2,6 @@ package abv.sys.flash;
 
 class AU{
 
-	inline function new(){ }
-
 	public static function playSound(path:String)
 	{
 	}// playSound()

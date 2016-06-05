@@ -8,40 +8,52 @@ import sys.io.File;
 import sys.FileSystem;
 import haxe.Json;
 import haxe.io.Bytes;
-import abv.lib.Enums;
+import abv.Enums;
 
 using StringTools;
+using abv.sys.ST;
 
 class BM {
 	
-	static var configFile = "config.json";
-	static var langFile = "lang.json";
-	static var err1 = "Missing config value: ";
-	static var cfg:Dynamic = null;
-	
+	static var langFile 	= "lang.json";
+	static var cfg:Dynamic 	= null;
+//
+	static inline var TRAIT = "ITrait";
+	static inline var TPATH = "abv.factory";
+	static var fieldsMap 	= new Map<String,Map<String,Field>>();
+	static var parentsMap 	= new Map<String,String>();
+   	static var args: Array<FunctionArg>;
+   	static var kind: FieldType;
+   	static var expr: Expr;
+   	static var meta: Null<Metadata>;
+	static var pos: Position;
+	static var access: Null<Array<Access>>;
+	static var field: Field;
+	static var fields: Array<Field>;
+
 	macro public static function buildR():Array<Field>
 	{
-		var fields = Context.getBuildFields();
-#if !android return fields; #end
-		var pos = Context.currentPos();
-		var access = [AStatic,APublic,AInline];
-		var kind = FVar(macro: Int,macro 0);
+		fields = Context.getBuildFields();
+#if !android return null; #end
+		pos = Context.currentPos();
+		access = [AStatic,APublic,AInline];
+		kind = FVar(macro: Int,macro 0);
 		var L1:Array<String>, L2:Array<String>, L3:Array<String>, L4:Array<String>;
 		var names:Array<String> = [], vals:Array<Int> = [];
-		if(cfg == null) cfg = getConfig(configFile);
+		if(cfg == null) cfg = getConfig(ST.CFG_FILE);
 
 		var s = "";  
 		var pack = cfg.pack + "";
 		pack = pack.replace(".","/"); 
 //		var file = "bin/android/gen/"+pack+"/R.java"; 
 var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.java"; 
-		if(!isFile(file)){
+		if(!ST.isFile(file)){
 			trace("no file: "+file);
 			return fields;
 		}
 		try s = File.getContent(file) catch(m:Dynamic){trace(m);}
 		if(s == ""){
-			trace("empty file: "+file);
+			ST.error("empty file",file);
 			return fields;
 		}
 		
@@ -59,71 +71,103 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 		}
 		for(i in 0...names.length){
 			kind = FVar(macro:Int,macro $v{vals[i]});
-			fields.push({name: names[i], access: access, kind: kind, pos: pos, doc: null, meta: []});
+			fields.push(mkField(names[i],kind,access,pos));
 		}
 
 		return fields;
 	}// buildR()
 	
-	macro public static function embedResources():Array<Field>
+	static function embedResources():Array<Field>
 	{
-		var fields = Context.getBuildFields();
-		
-		Context.addResource(configFile,File.getBytes(configFile));
+//		if(!ST.exists(ST.CFG_FILE))throw ST.getText(22);
 
-		if(cfg == null) cfg = getConfig(configFile);
+//		Context.addResource(ST.CFG_FILE,File.getBytes(ST.CFG_FILE));
+	
+		if(cfg == null) cfg = getConfig(ST.CFG_FILE); 
 
-		var resDir:String = cfg.resDir == null?"res/":cfg.res;
 		var a:Array<String> = cfg.resources; 
-		if(a[0] == "*") a = getDir(resDir);
-		var trg = "default";
-#if android trg = "android"; #elseif ios trg = "ios"; #end
-		for(w in a){
-			if(w == "gui"){
-				a.remove(w);
-				a.push("ui/"+trg+"/gui.html");
-				a.push("ui/"+trg+"/gui.css");
-				break;
+		if(a == null) return null;
+		var files:Array<String> = [];
+		var cur = ""; 
+		if(a[0] == "*"){
+			files = ST.ls(ST.RES_DIR,true); 
+		}else{
+			for (it in a){
+				cur = ST.RES_DIR.addSlash() + it; 
+				if (ST.isDir(cur)) files = files.concat(ST.ls(cur,true));	
+				else files.push(cur);
+			} 
+		} 
+/*
+			var trg = "default";
+#if android 
+			trg = "android"; 
+#elseif ios 
+			trg = "ios"; 
+#end
+			for(w in a){
+				if(w == "gui"){
+					a.remove(w);
+					a.push("ui/"+trg+"/gui.html");
+					a.push("ui/"+trg+"/gui.css");
+					break;
+				}
 			}
-		}
-		
-		for(r in a){
-			var f = resDir + r; 
-			if(isFile(f)){
-				switch(getFileType(f)){
-					case "txt": embedText(f); 
-					case "img": embedImage(f);
-					case "font": embedFont(f);
-				}					
-			}
-		}
+*/	
+		var target = getTarget();
+		var m = new Map<String,Bytes>();
 
-		return fields;
+		for(f in files){ 
+			if(ST.isFile(f)){ 
+				if (!ST.file(f).bin || (ST.file(f).type == "img")){
+					m.set(f,ST.openFile(f));		
+				}else{
+					switch(ST.file(f).type){
+						case "font": embedFont(f);
+					}	
+				} 
+				ST.rm(ST.BUILD_DIR + ST.addSlash(target) + f);
+			}
+		}
+#if !android
+		var z = ST.zipVFS(m); 
+		if (z != null) Context.addResource("zip",z);
+#end
+		return null;
 	}// embedResources()
+
+	static function getTarget()
+	{
+		var r = "";
+		if (Context.defined("flash"))        r = "flash";
+		else if (Context.defined("js"))      r = "js";
+		else if (Context.defined("neko"))    r = "neko";
+		else if (Context.defined("cpp"))     r = "cpp";
+		else if (Context.defined("java"))    r = "java";
+		else if (Context.defined("android")) r = "android";
+		else if (Context.defined("ios"))     r = "ios";
+		else if (Context.defined("engine"))  r = "engine";
+
+		return r;
+	}
 
 	macro public static function buildConfig():Array<Field>
 	{
-		var fields = Context.getBuildFields();
-		var pos = Context.currentPos();
-		var name = basename(Sys.getCwd());
-		var access = [AStatic,APublic];
-		var kind = FVar(macro: String,macro "");
-		var context = 2;
+		fields = Context.getBuildFields();
+		pos = Context.currentPos();
+		var name = ST.basename(ST.pwd());
+		access = [AStatic,APublic];
+		kind = FVar(macro: String,macro "");
 		
-		if(cfg == null) cfg = getConfig(configFile); 
+		if(cfg == null) cfg = getConfig(ST.CFG_FILE); 
 
 		var d:Dynamic = null;
 		var props = Reflect.fields(cfg); 
 		
-		if(props.indexOf("context") != -1){
-			context = Reflect.field(cfg,"context");  
-			props.remove("context");  
-		}
-
 		for(f in props){ 
 			name = f.toUpperCase(); 
 			d = Reflect.field(cfg,f); 
-#if debug 	Sys.println("abv.lib.CC."+name+": "+d); #end
+			ST.info("abv.CC."+name,d,null); 
 			switch(getType(d)){
 				case ARRAY_STRING:
 					access = [AStatic,APublic]; 
@@ -143,46 +187,36 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 				case FLOAT: 
 					access = [AStatic,APublic,AInline]; 
 					kind = FVar(macro: Float,macro $v{d});
-				default: name = ""; trace(f+": unknown");
+				default: name = ""; ST.error(ST.getText(9),f);
 			}
 
-			if(name != ""){
-				fields.push({name: name, access: access, kind: kind, pos: pos, doc: null, meta: []});
-			}
+			if(name != "")fields.push(mkField(name,kind,access,pos));
 		}
-
-		if(true){
-			access = [AStatic,APublic]; 
-			d = switch(context){
-				case 1: CTX_1D;
-				case 3: CTX_3D;
-				default: CTX_2D;
-			}
-			kind = FVar(macro: RenderContext,macro $v{d});
-			fields.push({name: "CONTEXT", access: access, kind: kind, pos: pos, doc: null, meta: []});
-		}
-
+		
+		embedResources();
+        
         return fields;
 	}// buildConfig()
 
 	macro public static function buildLang():Array<Field>
 	{ 
-		var fields = Context.getBuildFields(); //trace("\n"+fields[1].kind);
-		var pos = Context.currentPos();
+		fields = Context.getBuildFields(); //trace("\n"+fields[1].kind);
+		pos = Context.currentPos();
 		
-		if(cfg == null) cfg = getConfig(configFile);
+		if(cfg == null) cfg = getConfig(ST.CFG_FILE);
 		
-		var access = [AStatic,APublic];
+		access = [AStatic,APublic];
 		var props:Array<String> = [];
 		var d:Dynamic = null;
 		var lg:Dynamic = null;
 		var langs:Array<String> = [];
 		var id:Array<String> = [];
 		var words:Array<Array<String>> = [];
-		var file = cfg.res + langFile;
-		if(isFile(file)){
+		var file = ST.addSlash(cfg.res) + langFile; 
+		if(ST.isFile(file)){
 			lg = getJson(file); 
 			props = Reflect.fields(lg); 
+			ST.rm(ST.BUILD_DIR + ST.addSlash(getTarget()) + ST.addSlash(ST.RES_DIR)+langFile);			
 		}
 
 		for(f in props){ 
@@ -196,14 +230,13 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 			}
 		}
 		
-		var kind = FVar(macro: Array<String>,macro $v{langs});
-		fields.push({name: "langs", access: access, kind: kind, pos: pos, doc: null, meta: []});
+		kind = FVar(macro: Array<String>,macro $v{langs});
+		fields.push(mkField("langs",kind,access,pos));
 		kind = FVar(macro: Array<String>,macro $v{id});
-		fields.push({name: "id", access: access, kind: kind, pos: pos, doc: null, meta: []});
+		fields.push(mkField("id",kind,access,pos));
 		kind = FVar(macro: Array<Array<String>>,macro $v{words});
-		fields.push({name: "words", access: access, kind: kind, pos: pos, doc: null, meta: []});
+		fields.push(mkField("words",kind,access,pos));
 
-		
         return fields;
 	}// buildLang()
 
@@ -229,15 +262,16 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 	static function getConfig(file:String)
 	{
 		var r:Dynamic = null;
-		var name = basename(Sys.getCwd());
+		var name = ST.basename(ST.delSlash(ST.pwd()));
 
-		if(isFile(file)) r = getJson(file);
+		if(ST.isFile(file)) r = getJson(file);
 		
 		if(r == null)r = {name:name};
 			
 		if(!Reflect.hasField(r,"pack"))Reflect.setField(r,"pack","");
 		if(!Reflect.hasField(r,"name"))Reflect.setField(r,"name",name);
-		if(!Reflect.hasField(r,"main"))Reflect.setField(r,"main","");
+		if(!Reflect.hasField(r,"main"))Reflect.setField(r,"main","App");
+		if(!Reflect.hasField(r,"src"))Reflect.setField(r,"src",["src"]);
 		if(!Reflect.hasField(r,"width"))Reflect.setField(r,"width",0);
 		if(!Reflect.hasField(r,"height"))Reflect.setField(r,"height",0);
 		if(!Reflect.hasField(r,"ups"))Reflect.setField(r,"ups",0);
@@ -249,116 +283,207 @@ var file = "bin/android/app/build/generated/source/r/debug/com/tondy/snake/R.jav
 	
 	static function getJson(file:String)
 	{
-		var r:Dynamic = null;
-		if(!isFile(file))return r;
-
-		try r = Json.parse(File.getContent(file))catch(m:Dynamic){trace(m);}
+		var r:Dynamic = ST.getJson(file);
 		if(r == null)throw "No valid json!";
 
-		var props = Reflect.fields(r); 
-
-		for(f in props){ 
-			if(f.charAt(0) == "#")Reflect.deleteField(r,f);
-		}
-	
 		return r;
 	}// getJson()
 	
-	static function getDir(dir:String)
-	{// TODO: getDir
-		var r:Array<String> = [];
-		
-		return r;
-		
-	}// getDir()
-	
-	static function isFile(f:String)
-	{
-		return FileSystem.exists(f) && !FileSystem.isDirectory(f);
-	}// isFile()
-	
-	static function basename(path:String,ext=true)
-	{
-		var r = "";
-		var sep = "/";
-		var dir = dirname(path);
-		r = path.replace(dir,"");
-		r = r.replace(sep,"");
-
-		if(!ext){
-			var t = r.split(".");
-			r = t[0];
-		}
-		
-		return r;
-	}// basename()
-	
-	static function dirname(path:String)
-	{
-		var sep = "/";
-		var r = "";
-		var a = path.trim().split(sep); 
-		if(a.length > 1){
-			var last = a.pop();
-			if(last == "")last = a.pop();
-			r = a.join(sep) + sep;
-		}
-		return r;
-	}// dirname()
-	
-	static function embedText(f:String)
+	static inline function embedText(f:String)
 	{ 
-		var s = File.getContent(f); 
+		var s = ST.open(f); 
 		var rgx = ~/[ ][ ]+/g;
 		s = rgx.replace(s," "); 
 		Context.addResource(f,Bytes.ofString(s));
 	}// embedText()
 
-	static function embedImage(f:String)
+	static inline function embedImage(f:String)
 	{// TODO: embedImage
 	}// embedImage()
 
-	static function embedFont(f:String)
+	static inline function embedFont(f:String)
 	{// TODO: embedFont
 	}// embedFont()
 	
-	static function getFileType(f:String)
-	{
-		var r = "";
-		var txt = ["css","htm","html","json","txt"];
-		var img = ["jpg","jpeg","png","gif","bmp"];
-		var font = ["ttf"];
-		
-		for(ext in txt)if(f.endsWith(ext)) r = "txt";
-		if(r == "")for(ext in img)if(f.endsWith(ext)) r = "img";
-		else if(r == "")for(ext in font)if(f.endsWith(ext)) r = "font";
-		
-		return r;
-	}// getFileType()
-	
-
+/**
+ * Boot
+ */
 	macro public static function buildBoot():Array<Field>
 	{
-		var fields = Context.getBuildFields();
-		var pos = Context.currentPos();
-		var access = [AStatic,APublic];
-		if(cfg == null) cfg = getConfig(configFile);
-		var app = "new " + cfg.pack+"."+cfg.main + " ()";
+		fields = Context.getBuildFields();
+		pos = Context.currentPos();
+		access = [AStatic,APublic];
+		if(cfg == null) cfg = getConfig(ST.CFG_FILE);
+		var app = "new " + cfg.main + " ()"; // cfg.pack+"."+
 #if !(android || ios || engine)
-		var expr = Context.parse("{var app = "+app+";}",pos); 
+		expr = Context.parse("{var app = "+app+";}",pos); 
 #else	
-		var expr = macro {}; 
+		expr = macro {}; 
 #end
-		var kind = FFun({ args : [], expr : expr, params : [], ret : null });
-		fields.push({name: "main", access: access, kind: kind, pos: pos, doc: null, meta: []});
+		kind = FFun({ args : [], expr : expr, params : [], ret : null });
+		fields.push(mkField("main",kind,access,pos));
 #if (android || ios || engine)
 		kind = FVar(null,Context.parse(app,pos));
-		fields.push({name: "app", access: access, kind: kind, pos: pos, doc: null, meta: []});
+		fields.push(mkField("app",kind,access,pos));
 #end
 
 		return fields;
 	}// buildBoot()
-	
-	
-  	
+/**
+ * Traits
+ */
+	macro public static function addTraits():Array<Field>
+	{
+        fields 	= Context.getBuildFields();
+        pos    	= Context.currentPos();
+        var cur    	= Context.getLocalClass().get();
+        var cls 	= cur.name; // Context.getLocalModule()
+        var parent 	= "";
+        var trait 	= "";
+        var s 		= "";
+        var d:Dynamic;
+        var a:Array<String>;
+
+        if(cur.isInterface){
+        	parent = cur.interfaces[0].t.get().name; 
+        	if(parent == TRAIT)parent = ""; 
+        }else{
+        	d = Reflect.field(cur,'superClass'); 
+        	if(d != null) parent = d.t.get().name; 
+    	}
+    	
+    	if(!parentsMap.exists(cls))parentsMap.set(cls,parent); 
+    	else ST.error(ST.getText(7),cls);
+ //trace(cls+":"+getParents(cls));
+ 
+ 		if(!fieldsMap.exists(cls)){
+			fieldsMap.set(cls,new Map());
+			for(it in fields){
+				s = cur.isInterface ? cls + "." + it.name : it.name;
+				fieldsMap[cls].set(s,it);
+			}
+			for(it in getParents(cls)){
+				for(k in fieldsMap[it].keys()) fieldsMap[cls].set(k,fieldsMap[it][k]);
+			}
+		}else{
+		  ST.error(ST.getText(7),cls);
+		}
+
+		if(!cur.isInterface){
+			ST.debug("Implementing.. .",null,null); 
+			for(it in cur.interfaces){
+				trait = it.t.get().name; 
+				for(k in fieldsMap[trait].keys()){ 
+					a = k.split(".");  
+					if(!fieldsMap[cls].exists(a[1])){
+						s = TPATH + ".T" + a[0].substr(1);
+						field = copyField(s,cls,fieldsMap[trait][k]);
+						addField(cls,field,fields);
+						// setter/getter
+						for(it in mkGetSet(cls,field))addField(cls,it,fields);
+					}
+				}
+				ST.debug("trait",trait,null); 
+			}
+#if log
+			s = cls + "{";
+			for(k in fieldsMap[cls].keys()) s += fieldsMap[cls][k].name +", ";
+			s += "}";
+			ST.log(s,null,null);
+#end
+		}
+
+if(cls == "ITree"){
+//	trace(fieldsMap[cls]["ttt"]);
+//	trace(Context.parse("abv.factory.TTree",Context.currentPos()));
+}
+		return fields;
+	}// addTraits()
+
+    static inline function getParents(cls:String) 
+    { 
+    	var r:Array<String> = [];
+    	if(parentsMap.exists(cls)){
+    		var p = "";
+    		var cur = cls;
+    		while(parentsMap[cur] != ""){
+    			p = parentsMap[cur];
+    			r.push(p);
+    			cur = p;
+    		}
+    	}
+    	return r;
+    }// getParents()
+
+    static inline function mkGetSet(cls:String,f:Field) 
+    { 
+    	var r:Array<Field>  = [];
+    	pos = Context.currentPos();
+    	var pvar = "_" + f.name;
+    	var name:String;
+
+		switch(f.kind){
+          	case FProp(get,set,t,e): 
+				if((get == "get")&&(set == "set")){ // private var
+					if(!fieldsMap[cls].exists(pvar))r.push(mkField(pvar,FVar(t,e)));
+				}
+				if(set == "set"){ // setter
+					args = [{ name: "v", type: t, opt: false, value: null }];
+    				expr = Context.parse("{return "+pvar+"= v;}",pos);
+        			kind = FFun({expr: expr, args: args, ret: null, params: null});
+        			name = "set_" + f.name;
+					if(!fieldsMap[cls].exists(name))r.push(mkField(name,kind));
+				}
+				if(get == "get"){ // getter
+    				expr = Context.parse("{return "+pvar+";}",pos);
+        			kind = FFun({expr: expr, args: [], ret: null, params: null});
+        			name = "get_" + f.name;
+					if(!fieldsMap[cls].exists(name))r.push(mkField(name,kind));
+				}
+           	default:{};
+		}
+
+    	return r;
+    }// mkGetSet()
+
+    static inline function mkField(name:String, kind: FieldType, access: Null<Array<Access>>=null, 
+    	pos: Position=null, doc:Null<Null<String>>= null, meta:Null<Metadata>= null) 
+    {  //if(name == "childrenTree") trace(meta);
+    	if(access == null)access = [];
+    	if(pos == null)pos = Context.currentPos();
+   		if(meta == null)meta = [];
+       	return {name: name, kind: kind, access: access, pos: pos, doc: doc, meta: meta};
+    }// mkField()
+
+    static inline function addField(cls:String,field:Field,fields:Array<Field>) 
+    {
+		fieldsMap[cls].set(field.name,field);
+		fields.push(field); //trace(field.name);
+    }// addField()
+
+	static inline function copyField(trait:String,cls:String,field:Field):Field 
+	{  
+    	kind = switch(field.kind){
+	                case FFun(f): FFun(copyFunc(trait,field.name,f));
+	                default: field.kind;
+	            }
+    	return mkField(field.name,kind,field.access.copy(),field.pos,field.doc,field.meta);
+	}// copyField()
+
+	static inline function copyFunc(trait:String,name:String,fn:Function):Function 
+	{ 
+    	var body = "{return " + trait + "." + name + "(this"; 
+    	for(i in 0...fn.args.length) body += "," + fn.args[i].name;
+    	body += ");}";   
+    	expr = Context.parse(body,Context.currentPos());
+        return {expr: expr, args: fn.args, ret: fn.ret, params: fn.params};
+	}// copyFunc()
+
+	static inline function print(d:Dynamic) 
+    { 
+    	if(d != null){
+    		var s = d + "";
+    		Sys.println(s);
+    	}
+    }
 }// abv.macro.BM

@@ -2,29 +2,17 @@ package abv.ds;
 /**
  * DataTools
  **/
-using abv.lib.CC;
+using abv.sys.ST;
 using abv.ds.TP;
-using abv.lib.math.MT;
+using abv.math.MT;
 
 @:dce
 class DT{
 	static inline var m1 = "Only Anonymous structures!";
 	
-	inline function new(){ }
-
-	public static inline function good<T>(v:Array<T>,msg="")
+	public static inline function good<T>(v:Array<T>)
 	{ 
-		var r = true;
-		
-		if(v == null){
-			if(msg != "")trace(ERROR+"Null Array: "+msg); 
-			r = false;
-		}else if(v.length == 0){
-			if(msg != "")trace(WARN+"Empty Array: "+msg);
-			r = false;
-		}
-		
-		return r;
+		return (v != null) && (v.length > 0);
 	}// good<T>()
 	
 	public static inline function fields(o:Dynamic)
@@ -55,7 +43,7 @@ class DT{
 			switch(Type.typeof(o)){
 				case TObject: 
 					if(field.good())r = Reflect.field(o,field);
-					else trace(WARN+"no field: " + field);
+					else ST.warn("no field" , field);
 				default: trace(m1);
 			}
 		}
@@ -69,7 +57,7 @@ class DT{
 			switch(Type.typeof(o)){
 				case TObject: 
 					if(field.good())Reflect.setField(o,field,value);
-					else trace(WARN+"no field: " + field);
+					else ST.warn("no field" , field);
 				default: trace(m1);
 			}
 		}

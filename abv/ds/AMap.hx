@@ -5,7 +5,7 @@ package abv.ds;
 import haxe.Json;
 
 @:dce
-@:forward(exists, good,getIndex,vals,setIndex,add,remove,clear,isPair,keyOf,indexOf,indexOfKey,toString)
+@:forward(exists, good,getIndex,getKey,vals,setIndex,add,remove,clear,keyOf,indexOf,indexOfKey,toString)
 abstract AMap<K,V>(BMap<K,V>){
 
 	public var length(get,never):Int;
@@ -18,7 +18,7 @@ abstract AMap<K,V>(BMap<K,V>){
 	public inline function get(key:K) return this.get(key);
 
 @:arrayAccess 
-	public inline function set(key:K, val:V) this.set(key,val);
+	public inline function set(key:K, val:V) return this.set(key,val);
 	
 // FIXME: (haxe) no iterator call when K is Int/Float [suspect: build macro]
 	public inline function iterator() return this.iterator();
@@ -36,13 +36,37 @@ abstract AMap<K,V>(BMap<K,V>){
 	{
 		var m = new AMap<String,String>();
 		var r:Dynamic = null;
-		try r = Json.parse(json) catch(d:Dynamic){trace(d);}
+		try r = Json.parse(json) catch(e:Dynamic){trace(e);}
 		if(r != null){
 			var keys = Reflect.fields(r); 
 			for(it in keys) m.set(it+"",Reflect.field(r,it)+"");
 		}
 		return m;
 	}// fromJson()
+	
+	public static inline function fromJsonSI(json:String)
+	{
+		var m = new AMap<String,Int>();
+		var r:Dynamic = null;
+		try r = Json.parse(json) catch(e:Dynamic){trace(e);}
+		if(r != null){
+			var keys = Reflect.fields(r); 
+			for(it in keys) m.set(it+"",Reflect.field(r,it));
+		}
+		return m;
+	}// fromJsonSI()
+	
+	public static inline function fromJsonIS(json:String)
+	{
+		var m = new AMap<Int,String>();
+		var r:Dynamic = null;
+		try r = Json.parse(json) catch(e:Dynamic){trace(e);}
+		if(r != null){
+			var keys = Reflect.fields(r); 
+			for(it in keys) m.set(Std.parseInt(it),Reflect.field(r,it)+"");
+		}
+		return m;
+	}// fromJsonIS()
 	
 	
 }// abv.ds.AMap

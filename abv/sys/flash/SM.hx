@@ -1,56 +1,40 @@
 package abv.sys.flash;
 
-import abv.interfaces.IComm;
+import abv.factory.IComm;
 import abv.bus.*;
-import abv.ui.*; 
-import abv.lib.anim.*;
-import abv.lib.comp.*;
-import abv.lib.math.Point;
-import abv.lib.style.Style;
-import abv.*;
-import abv.lib.*;
-import abv.io.Terminal3D;
-import abv.io.*;
+import abv.anim.Juggler;
+import abv.io.AD;
 import abv.cpu.Timer;
-import abv.ui.Gui;
-import abv.ds.AMap;
-import abv.lib.Enums;
 
 import flash.display.*;
 import flash.events.*;
 import flash.geom.Matrix;
 import flash.Lib;
 
-using abv.lib.CC;
-using abv.ds.TP;
+using abv.sys.ST;
 
+@:dce
 class SM extends Sprite implements IComm {
 
 	var width_:Float 	= CC.WIDTH;
 	var height_:Float 	= CC.HEIGHT;
 // unique id
 	public var id(get, never):Int;
-	var _id = -1;
-	function get_id() return _id;
+	function get_id() return MS.getID(name);
 //
-	public var sign(null,null):Int;
-	public var msg(default,null):MS.MsgProp;
+	public var msg(default,null) = new MsgProp();
 		
 	var last:Float;
 	var sp:Sprite;
-	var term:Terminal3D;
-	var gui:Gui;
 	
-	public function new(id:String)
+	public function new(name:String)
 	{
 		super();
-		addEventListener (Event.ADDED_TO_STAGE, addedToStage);
 
-		_id = MS.subscribe(this,id);
-		msg = {accept:MD.NONE,action:new AMap()};
-// customMessage register
-		MS.cmCode("cmSound");
+		if(!MS.add(this,name)) throw name + ": no ID";
+		this.name = name;
 		
+		addEventListener (Event.ADDED_TO_STAGE, addedToStage);
 		Lib.current.addChild (this);
  	}// new()
 
@@ -65,70 +49,44 @@ class SM extends Sprite implements IComm {
 		onCreate();
 	}// addedToStage()
 	
-	inline function update_()
-	{   
+	function onEnterFrame(e:Event)
+	{	 
 		Timer.update();
+		Juggler.update();
+		AD.update();
 		update();
-	}// update_()
-	
-	public function update()
-	{   
-		last += Timer.stamp() - last;
-	}// update()
-
-	function onEnterFrame(e:Event){	update_(); }
-
-	function dispatch(md:MD)
-	{
-		switch(md.msg) {
-			case MD.MSG: 
-				var cm = md.f[0];
-				if(cm ==  MS.cmCode("cmSound")){
-					AM.sound = md.f[1] == 1?false:true;
-				}
-		}
 	}
+
+	public function update(){ }
 	
-	public inline function exec(md:MD)
+	function dispatch(md:MD){ }
+	
+	public inline function call(md:MD)
 	{ 
-		if(!MS.isSender(md))return;
+		if(!MS.has(md.from.id))return;
 		var m = md.msg & msg.accept; 
 		
 		dispatch(md); 
 		if(msg.action.exists(m) &&  (msg.action.get(m) != null))
-			MS.exec(msg.action.get(m).clone());
+			MS.call(msg.action.get(m).clone());
 	}// exec()
 	
-	function setBackground()
+	function fill()
 	{ 
-		var m = new Matrix();
+/*		var m = new Matrix();
 		m.createGradientBox(width_, height_, Math.PI/2,0,0);
 		graphics.beginGradientFill(GradientType.LINEAR,[0xAAAAAA, 0xEEEEEE],[1, 1],[0x00, 0xCC],m);
-		graphics.drawRect(0, 0, width_, height_);
-	}// setBackground()
+		graphics.drawRect(0, 0, width_, height_); */
+	}// fill()
 
 	inline function onCreate() 
-	{ 
+	{  
 		last = Timer.stamp();
-
-		term = new Terminal3D(); 
-		addChild(term.monitor);
-		Screen.addTerminal(term); 
-		term.initListeners(); 
-		
-		setSize();
-		create(); 
-		onResize();		
+		create();  
 	}// onCreate() 
 	
-	function create() 
-	{
-		//LG.screen = screen;
-		gui = new Gui(width_,height_); 
-		gui.context = CTX_1D;
-		Screen.addRoot(gui);
-	}// create()
-
+	function create() { }
+	
 	inline function _onResize(e:Event){ onResize(); }
 
 	inline function onResize()
@@ -137,9 +95,9 @@ class SM extends Sprite implements IComm {
 //		screenH = Math.ceil(Lib.current.stage.stageHeight / dpi);
 		setSize();
 		resize();
-		setBackground();
+		fill();
 
-		Screen.resize();
+		AD.resize();
 	}// onResize()
 
 	function resize() { };
@@ -162,11 +120,13 @@ class SM extends Sprite implements IComm {
 	inline function onDestroy() { destroy(); };
 	function destroy() { };
 
+	public dynamic function on2D(){ trace("fallback to 2D");}
+
 	function setSize()
 	{
 		width_ = stage.stageWidth; 
 		height_ = stage.stageHeight;  
 	}// setSize()
 	
-}// abv.sys.flash.AM
+}// abv.sys.flash.SM
 

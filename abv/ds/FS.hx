@@ -1,19 +1,16 @@
 package abv.ds;
 
-#if (flash && engine)
+#if flash
 	typedef FS = abv.sys.flash.FS;
-#elseif (ios || engine)
-	typedef FS = abv.sys.engine.FS;
-#elseif flash
-	typedef FS = abv.sys.flash.FS;
-#elseif (js && gui)
-	typedef FS = abv.sys.jsgui.FS;
+#elseif js
+	typedef FS = abv.sys.js.FS;
 #elseif android
 	typedef FS = abv.sys.android.FS;
-#elseif (java && gui)
-	typedef FS = abv.sys.javagui.FS;
-#elseif (cpp && gui)
-	typedef FS = abv.sys.cppgui.FS;
-#else
+#elseif java
+	typedef FS = abv.sys.java.FS;
+#elseif (ios || engine)
+	typedef FS = abv.sys.engine.FS;
+#elseif (cpp || neko)
+	typedef FS = abv.sys.cpp.FS;
 #end
-//
+// abv.ds.FS

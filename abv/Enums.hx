@@ -1,0 +1,50 @@
+package abv;
+/**
+ * Enums
+ **/
+
+enum States{
+	DISABLED;
+	NORMAL;
+	ACTIVE;
+	VISITED;
+	HOVER;
+	FOCUS;
+	LINK;
+	PRESSED;
+	CLICK;
+}
+
+enum RenderKind{
+	BOX;
+	VBOX;
+	HBOX;
+	FBOX;
+	BUTTON;
+	LABEL;
+	IMAGE;
+	DIALOG;
+	POINT;
+	RECT;
+	CIRCLE;
+	ELLIPSE;
+	LINE;
+	POLYLINE;
+	POLYGON;
+	PATH;
+	RK_NONE;
+}
+
+enum ValType{
+	INT;
+	FLOAT;
+	STRING;
+	ARRAY_INT;
+	ARRAY_FLOAT;
+	ARRAY_STRING;
+	UNKNOWN;
+}
+
+
+
+// abv.Enums

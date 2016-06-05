@@ -1,17 +1,13 @@
 package abv.bus;
-
-import abv.cpu.Timer;
-import abv.interfaces.*;
-import abv.ds.AMap;
-
-
-using abv.lib.CC;
-
-typedef MsgProp = { accept:Int, action:AMap<Int,MD> }
-
 /**
  * Message System
  **/
+import abv.cpu.Timer;
+import abv.factory.*;
+import haxe.PosInfos;
+
+using abv.sys.ST;
+
 @:dce
 class MS{
 
@@ -21,33 +17,32 @@ class MS{
 	static var cmMap:Array<String> = [];
 // inbox
 	static var inbox = setInbox();
-	static var subscribers = new AMap<Int,IComm>();
-	static var names = setNames();
-	static var slots = new AMap<Int,List<IComm>>();
+	static var subscribers     = new Map<String,IComm>();
+	static var nameID   = ["" => -1, "abv" => 0];
+	static var subscribersID = [-1 => "", 0 => "abv"];
+	static var slots = new Map<Int,List<IComm>>();
 	static var trash = new List<MD>();
+	static var oid = 1;
 	
-	inline function new(){ }
-
-	public static inline function setNames()
+	public static inline function getComm(id:Int,name="")
 	{
-		var m = new AMap<String,Int>();
-		m.set("",-1);
-		m.set("abv",0);
-		return m;
-	}// setNames()
+		var r:IComm = null;
+		if(!name.good()) name = getName(id);
+		if(name.good())r = subscribers[name];
+		return r;
+	}// getComm()
 	
 	public static inline function getName(id:Int)
 	{
 		var r = "";
-		var key = names.keyOf(id);
-		if(key != null)r = key;
+		if (subscribersID.exists(id)) r = subscribersID[id];
 		return r;
 	}// getName()
 	
 	public static inline function getID(name:String)
 	{
-		var r = -1;
-		if(names.exists(name)) r = names[name];
+		var r = -1; 
+		if(nameID.exists(name)) r = nameID[name];
 		return r;
 	}// getID()
 	
@@ -70,38 +65,48 @@ class MS{
 		return r;
 	}// cmCode()
 	
-	public static inline function msgName(m:Int)return msgMap.keyOf(m);
-
-	public static inline function msgCode(n:String)return msgMap[n];
-
-	public static inline function subscribe(obj:IComm,name:String)
-	{ 
-#if debug var m = "";
-		if(obj.isNull())m += "Null Subscriber! ";
-		else if(!name.good())m += "No name! ";
-		else if(names.exists(name))m += "Subscriber ("+name+") exist! ";
-		if(m != "")trace(ERROR+m); 
-#end		
-		var ts = Timer.stamp()- Std.int(Timer.stamp());
-		var id = Std.int(1000000*(ts + Math.random())); 
-		subscribers.set(id,obj);  
-		names.set(name,id);  
-
-		return id;
-	}// subscribe()
-
-	public static inline function unsubscribe(id:Int)
+	public static inline function msgName(m:Int)
 	{
-		if(subscribers.exists(id)){
-			var o = subscribers[id];
-			names.remove(getName(o.id));
-			subscribers.remove(id);
-		}
-	}// unsubscribe()
-	
-	public static inline function send(md:MD)setBox(md);
+		var r = "";
+		for (k in msgMap.keys()) if (msgMap[k] == m) r = k;
+		return r;
+	}
 
-	public static inline function exec(md:MD)setBox(md, true); 
+	public static inline function msgCode(n:String)
+	{
+		return msgMap[n];
+	}
+
+	public static inline function add(obj:IComm,name:String)
+	{ 
+		var r = false;
+		
+		if(obj == null)ST.errNullObject();
+		else if(!name.good())ST.errBadName();
+		else if(subscribers.exists(name))ST.errObjectExists(name);
+		else{
+			subscribers.set(name,obj);
+			nameID.set(name,oid);
+			subscribersID.set(oid,name);
+			oid++;
+			r = true;  
+		} 
+		return r;
+	}// add()
+
+	public static inline function remove(name:String)
+	{
+		if(ST.good(name)){
+			var id = nameID[name];
+			subscribers.remove(name);
+			nameID.remove(name);
+			subscribersID.remove(id);
+		}
+	}// remove()
+	
+	public static inline function send(md:MD,?p:PosInfos)setBox(md,false, p);
+
+	public static inline function call(md:MD,?p:PosInfos)setBox(md, true,p); 
 
 	static inline function emptyTrash(md:MD)
 	{
@@ -132,60 +137,50 @@ class MS{
 		}
 	}// setSlot()
 	
-	static inline function objExec(o:IComm,md:MD)
-	{  //trace(getName(o.id)+":"+md);
-		try o.exec(md) catch(d:Dynamic)trace(ERROR+" "+getName(o.id)+": "+d);
+	static inline function objExec(md:MD,p:PosInfos)
+	{ // trace(getName(md.from.id)+" -> "+md.to);
+		var o = md.from; 
+		try o.call(md) catch(e:Dynamic)ST.error(ST.getText(8),getName(o.id),p);
 		md.dispose(); 
 		md = null;
 	}// objExec()
 	
-	static inline function setBox(md:MD,exec=false)
+	static inline function setBox(md:MD,exec=false,p:PosInfos)
 	{ 
-		if(isSender(md)){ 
-			var to = -1;
-			if(names.exists(md.to)) to = names[md.to];  
+		if(has(md.from.id)){ 
+			var to = -1;  
+			if(md.to.good()) to = getID(md.to);  
 			if(to == -1){ 
-				for(o in getSlot(md.msg)){ 
-					objExec(o,md);
+				for(it in getSlot(md.msg)){
+					md.from = it; 
+					objExec(md,p);
 				}
-			}else if(isSubscriber(to)){ 
+			}else{ 
 				checkBox(to);
 				if (exec) { 
-					md.from = subscribers[to].id; 
-					objExec(subscribers[to],md);
+					md.from = getComm(to); 
+					objExec(md,p);
 				}else inbox.get(to).add(md.clone());  
 			} 
 		}
 	}// setBox()
 	
-	public static inline function isSender(md:MD)
+	public static inline function has(id:Int)
 	{
-		var r = true;
-		if(md == null){
-			trace(FATAL+"Null data?!"); 
-			r = false;
-		}else if(!subscribers.exists(md.from)){ 
-			trace(ERROR+"Fake sign!"); 
-			r = false;
-		}
-		return r;
-	}// isSender()
-	
-	public static inline function isSubscriber(id:Int)
-	{
-		return subscribers.exists(id) && (subscribers[id] != null);
-	}// isSubscriber()
+		var key = getName(id);
+		return subscribers.get(key) != null;
+	}// has()
 	
 	public static inline function accept(id:Int,cmd:Int)
 	{
 		var r = false; 
-		if((isSubscriber(id))&&(subscribers[id].msg.accept & cmd  != 0))r = true;
+		if((has(id))&&(getComm(id).msg.accept & cmd  != 0))r = true;
 		return r;
 	}// accept()
 	
 	static inline function checkBox(id:Int)
 	{
-		inbox.add(id,new List<MD>());
+		inbox.set(id,new List<MD>());
 	}// checkBox()
 	
 /**
@@ -194,7 +189,7 @@ class MS{
 	public static inline function recv(to:Int)
 	{
 		var r = new List<MD>();
-		if(isSubscriber(to)){
+		if(has(to)){
 			checkBox(to);
 			if(!inbox.get(to).isEmpty()){ //trace(inbox);
 				for(m in inbox.get(to)){
@@ -210,7 +205,7 @@ class MS{
 	
 	static inline function setMsgMap()
 	{
-		var m = new AMap<String,Int>();
+		var m = new Map<String,Int>();
 		m.set("NONE" , MD.NONE);
 		m.set("MSG" , MD.MSG);
 		m.set("KEY_UP" , MD.KEY_UP);
@@ -241,7 +236,7 @@ class MS{
 	}
 	static inline function setInbox()
 	{
-		var m = new AMap();
+		var m = new Map();
 		m.set(0,new List<MD>());
 		return m;
 	}//

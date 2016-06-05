@@ -19,10 +19,10 @@ class Boot{
 @:headerCode
 	public static function resize(w:Int,h:Int)
 	{ 
-			AM.colors = false;
-			AM.WIDTH 	= w;
-			AM.HEIGHT 	= h; 
-			if(ready)app.onResize();		
+		AM.colors = false;
+		AM.WIDTH  = w;
+		AM.HEIGHT = h; 
+		if(ready)app.onResize();		
 	}// setSize()
 	
 @:headerCode

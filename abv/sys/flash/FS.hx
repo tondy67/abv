@@ -1,35 +1,31 @@
 package abv.sys.flash;
 
-import abv.lib.math.Rect;
-import abv.lib.math.MT;
-import abv.ds.AMap;
+import abv.math.Rect;
+import abv.math.MT;
+import abv.ds.VFS;
 
-import haxe.Resource;
 import flash.text.Font;
 import flash.display.BitmapData;
 import flash.display.Loader;
 import flash.events.*;
 import flash.net.*;
 
-using abv.lib.CC;
+using haxe.io.Path;
+using abv.sys.ST;
 
 @:font("../res/ui/default/font/regular.ttf") class DefaultFont extends Font {}
 
-@:build(abv.macro.BM.embedResources())
 class FS{
 
-	static var textures = new AMap<String,BitmapData>();
-	static var bmd = new AMap<String,BitmapData>();
-	static var texts = new AMap<String,String>();
+	static var textures = new Map<String,BitmapData>();
+	static var bmd = new Map<String,BitmapData>();
+	static var texts = new MapSS();
 	static var err = false;
 	static var names = new List<String>();
 	
-	inline function new(){ }
-
-	public static function getText(id:String)
+	public static function getText(path:String)
 	{
-		var r = Resource.getString(id);
-		return r;
+		return VFS.open(path);
 	}// getText()
 
 	public static function loadText(url:String)
@@ -45,7 +41,7 @@ class FS{
 			loader.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
 
 			var request = new URLRequest(url); 
-			loader.load(request); trace(url);
+			loader.load(request);  
 			texts.set(url,"");
 		}
 		
@@ -64,7 +60,7 @@ class FS{
 	
 	static function onLoadError(e:IOErrorEvent)
 	{
-		trace("error: " + e.target);
+		ST.error("load text error",e.target+"");
 	}// onLoadError()
 
 
@@ -75,14 +71,14 @@ class FS{
 	}// getFont()
 
 	public static function getTexture(id:String)
-	{
+	{ 
 		var bd:BitmapData = null;
-//trace(id+":"+textures);
-		if(!id.good()){
-			trace("no id?");
+
+		if(!ST.good(id)){
+			ST.error(ST.getText(19));
 			return bd;
 		}
-		names.add(id);
+		names.add(id); 
 		if (textures.exists(id)) { 
 			bd = textures[id]; 
 		}else {
@@ -98,8 +94,8 @@ class FS{
 
 	static function onComplete(e:Event)
 	{ 
-		var bdir = CC.dirname(e.target.loaderURL);
-		var id = StringTools.replace(e.target.url,bdir, ""); 
+		var bdir = Path.directory(e.target.loaderURL).addTrailingSlash(); 
+		var id = StringTools.replace(e.target.url,bdir, "");  
 		var bd = e.target.loader.content.bitmapData; 
 		if (id.good() && (bd != null)) { 
 			textures.set(id,bd);  
@@ -110,8 +106,8 @@ class FS{
 	static function onError(e:IOErrorEvent)
 	{
 		if(!err){
-			err = true;
-			trace("can't load: " + names);
+			err = true; 
+			ST.error("can't load",names+"");
 			names.clear();
 		}
 	}// onError()

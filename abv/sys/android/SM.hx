@@ -1,19 +1,15 @@
 package abv.sys.android;
 
-import abv.interfaces.IComm;
 import abv.bus.*;
 import abv.ui.*; 
-import abv.lib.anim.*;
-import abv.lib.comp.*;
-import abv.lib.math.Point;
-import abv.lib.style.Style;
+import abv.anim.*;
+import abv.factory.*;
+import abv.math.Point;
+import abv.style.Style;
 import abv.*;
-import abv.lib.*;
-import abv.io.Terminal3D;
 import abv.io.*;
-import abv.ui.Gui;
 import abv.cpu.Timer;
-import abv.ds.AMap;
+
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -22,9 +18,9 @@ import android.os.Message;
 import android.view.Window;
 import android.view.Display;
 import android.graphics.Point as AndroidPoint;
-import 	android.content.res.Configuration;
+import android.content.res.Configuration;
 
-using abv.lib.CC;
+using abv.sys.ST;
 using abv.ds.TP;
 
 class SM extends Activity  implements IComm {
@@ -33,14 +29,16 @@ class SM extends Activity  implements IComm {
 	var height_:Float 	= CC.HEIGHT;
 		
 	var last = .0;
-	var term:Terminal3D;
-	var gui:Gui;
 	var fps = CC.UPS;
-	public static var trace = haxe.Log.trace; 
 // unique id
-	public var id(null, null):Int;
+	public var id(get, never):Int;
+	function get_id() return MS.getID(name);
+
+	public var name(get,never):String;
+	var _name = "";
+	function get_name() return _name;
 //
-	public var msg(default,null):MS.MsgProp;
+	public var msg(default,null) = new MsgProp();
 
 	var updateHandler = new UpdateHandler();
 	var view:AppView;
@@ -48,20 +46,19 @@ class SM extends Activity  implements IComm {
 	public function new(id:String)
 	{
 		super();
-		haxe.Log.trace = ST.trace;
 
-		this.id = MS.subscribe(this,id);
-		msg = {accept:MD.NONE,action:new AMap()};
-// customMessage register
-		MS.cmCode("cmSound");
+		if(!MS.add(this,name)) throw name + ": no ID";
+		_name = name;
+		
+//		view = new AppView();
 	}// new()
 
     
 	public function onUpdate()
 	{
+		Timer.update();
 		update();
-		view.update();
-		updateHandler.sleep(this,1000/fps);
+		if(fps > 0)updateHandler.sleep(this,1000/fps);
 	}// onUpdate()
 	
 	public function update(){}
@@ -77,15 +74,15 @@ class SM extends Activity  implements IComm {
 		}
 	}// dispatch()
 	
-	public inline function exec(md:MD)
+	public inline function call(md:MD)
 	{ 
-		if(!MS.isSender(md))return;
+		if(!MS.has(md.from.id))return;
 		var m = md.msg & msg.accept; 
 		
 		dispatch(md); 
-		if(msg.action.exists(m) &&  (msg.action[m] != null))
-			MS.exec(msg.action[m].clone());
-	}// exec()
+		if(msg.action.exists(m) &&  (msg.action.get(m) != null))
+			MS.call(msg.action.get(m).clone());
+	}// call()
 
 ///
 @:overload
@@ -101,26 +98,22 @@ class SM extends Activity  implements IComm {
 	{
 		super.onCreate(savedInstanceState);
 
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		term = new Terminal3D(); 
- 		Screen.addTerminal(term);
+//		term = new Terminal(); 
+// 		Screen.addTerminal(term);
  		
-		view = new AppView(this, null);
-		view.term = term;
-		term.view = view;
+//		view.term = term;
+//		term.view = view;
 		setContentView(view);
 
-		setSize();
-		create();
-		onUpdate();
+//		setSize();
+//		create();
+//		onUpdate();
 	}// onCreate()
 
 	function create() 
 	{
-		gui = new Gui(width_,height_); 
-		Screen.addRoot(gui);
-		
 		onResize();		
 
 	}// create()
@@ -129,9 +122,9 @@ class SM extends Activity  implements IComm {
 	{ 
 		setSize();
 		resize(); 
-		Screen.resize(); 
 	}// onResize()
 	function resize() { };
+	public dynamic function on2D(){ CC.debug("fallback to 2D");}
 
 @:overload
 	public override function onStart() 

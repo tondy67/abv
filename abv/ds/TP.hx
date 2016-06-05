@@ -5,25 +5,22 @@ package abv.ds;
 import haxe.Utf8;
 
 using StringTools;
-using abv.lib.CC;
-using abv.lib.math.MT;
+using abv.sys.ST;
+using abv.math.MT;
 
 @:dce
 class TP{
 
-	inline function new(){ }
-
 	public static inline function length(s:String)
 	{
-		var r = Utf8.length(s);
-		return r;
+		return Utf8.length(s);
 	}// length()
 
 	public static inline function chr(code:Int)
 	{
 		var r = new Utf8();
 
-		if(code.good('chr'))r.addChar(code);
+		if(code.good())r.addChar(code);
 
 		return r+"";
 	}// chr()
@@ -33,26 +30,43 @@ class TP{
 		var r:Null<Int> = null;
 
 		try r = Utf8.charCodeAt(char,0) 
-		catch(m:Dynamic)trace(ERROR+char);
+		catch(m:Dynamic)ST.error(char,m);
 
 		return r;
 	}// chr()
 
-	public static inline function splitt(v:String,sep=",")
+	public static inline function explode(v:String,sep=",")
 	{ 
 		var a:Array<String> = [];
-		if(v.good()){
-			a = v.trim().split(sep); 
-			for(i in 0...a.length)a[i] = a[i].trim();
+		if(ST.good(v)){
+			v = v.trim();
+			if (sep != ""){
+				a = v.split(sep); 
+				for (i in 0...a.length)a[i] = a[i].trim();
+			}else{
+				for (i in 0...length(v)) a[i] = substr(v,i,1);
+			}
 		}
 		return a;
-	}// splitt()
+	}// explode()
 	
-	public static inline function substr(s:String, pos:Int, len:Int)
+	public static inline function char(s:String, pos = 0)
 	{
 		var r = "";
 
-		if(s.good()&&pos.good()&&len.good())r = Utf8.sub(s, pos, len);
+		if(ST.good(s) && MT.good(pos))r = Utf8.sub(s, pos, 1);
+		
+		return r;
+	}// substr()
+	
+	public static inline function substr(s:String, pos:Int, len=0)
+	{
+		var r = "";
+
+		if(ST.good(s) && MT.good(pos) && MT.good(len)){
+			if (len == 0) len = length(s);
+			r = Utf8.sub(s, pos, len);
+		}
 		
 		return r;
 	}// substr()
@@ -63,12 +77,12 @@ class TP{
 		return rgx.replace(s,sp); 
 	}// reduceSpaces()
 	
-	public static inline function isUtf8(s:Null<String>,msg="")
+	public static inline function isUtf8(s:Null<String>)
 	{
 		var r = false;
-		if(s.good(msg)){
+		if(s.good()){
 			r = haxe.Utf8.validate(s);
-			if(!r)trace(ERROR+msg + " Not utf8"); 
+			if(!r)ST.error(" Not utf8"); 
 		}
 		return r;
 	}// isUtf8()
@@ -126,18 +140,18 @@ class TP{
 		return StringTools.ltrim(s);
 	}// ltrim()
 
-	public static inline function starts(s:String, start:String,msg="")
+	public static inline function starts(s:String, start:String)
 	{
 		var r = false; 
-		if(s.good(msg) && start.good(msg) &&
+		if(ST.good(s) && ST.good(start) &&
 			StringTools.startsWith(s, start)) r = true; 
 		return r;
 	}// startsWith()
 
-	public static inline function ends(s:String, end:String,msg="")
+	public static inline function ends(s:String, end:String)
 	{
 		var r = false;
-		if(s.good(msg) && end.good(msg) &&
+		if(s.good() && end.good() &&
 			 StringTools.endsWith(s, end)) r = true;
 		return r;
 	}// endsWith()
@@ -146,7 +160,7 @@ class TP{
 	{
 		var r = "";
 		try r = StringTools.hex(n,digits) 
-		catch(m:Dynamic) trace(ERROR+m);
+		catch(m:Dynamic) ST.error(m);
 		return r;
 	}// ltrim()
 
@@ -171,11 +185,11 @@ class TP{
 		return StringTools.rpad(s,c,l);
 	}//rpad()
 	
-	public static inline function replace(s:String, sub:String, by:String,msg="")
+	public static inline function replace(s:String, sub:String, by:String)
 	{// todo: regex
 		var r = "";
 
-		if(s.good(msg)) r = StringTools.replace(s,sub,by);
+		if(s.good()) r = StringTools.replace(s,sub,by);
 		
 		return r;
 	}// replace()
@@ -214,9 +228,9 @@ class TP{
 
 	public static inline function search(src:String,what:String,start=0)
 	{// todo: regex
-		var r = CC.ERR;
+		var r = -1;
 
-		if(src.good() && what.good(what)){
+		if(src.good() && what.good()){
 			var len = src.length;
 			start = Std.int(start.range(len-1));
 			var i = src.indexOf(what,start);
@@ -230,7 +244,7 @@ class TP{
 	{// TODO: regex
 		var r:Array<Int> = [];
 
-		if(src.good("src") && what.good(what)){
+		if(src.good() && what.good()){
 			var srclen = length(src);
 			if(len == 0)len = srclen;
 			start = Std.int(start.range(srclen,0));
@@ -241,7 +255,7 @@ class TP{
  
 			while(cur < str.length){ 
 				i = str.indexOf(what,cur); 
-				if(i == CC.ERR)cur = str.length;
+				if(i == -1)cur = str.length;
 				else{
 					cur = i+what.length-1;
 					r.push(length(src.substr(0,i)));
@@ -255,31 +269,31 @@ class TP{
 	public static inline function extract(src:String,open="",close="")
 	{	
 		var a:Array<String> = [];
-		if(src.good()){
+		if(ST.good(src)){
 			var o = 0, c = 0, s = "";
 			var len = src.length;
  	
 			if(!open.good()){
 				if(close.good()){
 					c = src.indexOf(close);  
-					if(c != CC.ERR)a.push(src.substring(0,c));
+					if(c != -1)a.push(src.substring(0,c));
 				}
 			}else if(!close.good()){
 				if(open.good()){
 					o = src.indexOf(open);  
-					if(o != CC.ERR)a.push(src.substr(o+open.length));
+					if(o != -1)a.push(src.substr(o+open.length));
 				}
 			}else{
 				while(o < len-1){ 
 					o = src.indexOf(open,o);
-					if(o == CC.ERR)break;
+					if(o == -1)break;
 					else{
 						c = src.indexOf(close,o);
 						if(c > o){
 							s = src.substring(o + open.length, c);
-							if(s.indexOf(open) == CC.ERR)a.push(s);
+							if(s.indexOf(open) == -1)a.push(s);
 							o = c+1; 
-						}else if(c == CC.ERR)break;
+						}else if(c == -1)break;
 					}
 				}
 			}
@@ -287,7 +301,7 @@ class TP{
 		
 		return a;
 	}// extract()
-	public static inline function map2str(m:AMap<String,String>,sep1=CC.SEP1,sep3=CC.SEP3)
+	public static inline function map2str(m:MapSS,sep1=CC.SEP1,sep3=CC.SEP3)
 	{   
 		var r = "";
 		for(k in m.keys()) r += k + sep1 + m[k] + sep3;
@@ -296,15 +310,15 @@ class TP{
 	}// map2str()
 
 	public static inline function str2map(s:String,sep1=CC.SEP1,sep3=CC.SEP3)
-	{   
-		var r = new AMap<String,String>();
+	{
+		var r = new MapSS();
 		var a:Array<String>;
 		var t:Array<String>;
 		var v = "";
 		if(s.good()){
-			a = splitt(s,sep3);
+			a = explode(s,sep3);
 			for(i in a){
-				t = splitt(i,sep1);
+				t = explode(i,sep1);
 				if(t[0].good()){
 					if(t[1].good())v = t[1];
 					if(r.exists(t[0]))r[t[0]] += CC.SEP1 + v;
@@ -325,10 +339,36 @@ class TP{
 		return a == b ? 0 : a < b ? -1:1;
 	}
 
-	public static function sortAZ(a:Array<String>)
+	public static inline function sortAZ(a:Array<String>)
 	{
 		if((a != null)&&(a.length > 0))haxe.ds.ArraySort.sort(a, cmpString);
 	}// sortAZ()
+	
+	public static inline function diff(s1:String,s2:String)
+	{
+		var p = "", s = "", l = "", r = "";
+		var len = Math.min(length(s1),length(s2)).i();
+		var cur:Int; 
+		if (s1 == s2){
+			p = s1;
+		}else{
+			for (i in 0...len){
+				cur = len - i;
+				s = substr(s1,0,cur); 
+				if (s == substr(s2,0,cur)){
+					p = s;
+					l = substr(s1,cur);
+					r = substr(s2,cur);
+					break;
+				}
+			}
+			if (p == ""){
+				l = s1; 
+				r = s2;
+			}
+		}
+		return {root:p,left:l,right:r};
+	}// diff()
 	
 
 }// abv.ds.TP

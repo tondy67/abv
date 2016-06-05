@@ -1,7 +1,6 @@
 package abv.sys.android;
 
-import abv.ui.Shape;
-import abv.ds.AMap;
+
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -17,20 +16,20 @@ import android.graphics.RectF;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-using abv.lib.CC;
-using abv.lib.math.MT;
-using abv.lib.style.Color;
+using abv.sys.ST;
+using abv.math.MT;
+using abv.style.Color;
 using abv.ds.TP;
 
 class AppView extends View {
 
 	var paint = new Paint();
 
-@:allow(abv.sys.android.SM)
-	var term:Terminal2D = null;
+//@:allow(abv.sys.android.SM)
+//	var term:Terminal2D = null;
 	
-	var shapes = new List<Shape>();
-	var images = new AMap<String,Bitmap>();
+//	var shapes = new List<Shape>();
+	var images = new Map<String,Bitmap>();
 
 	public function new( context:Context,	attrs:AttributeSet) {
 		super(context, attrs);
@@ -39,8 +38,8 @@ class AppView extends View {
 		paint.setStrokeWidth(1.);
 		
 //		paint.setStyle(Paint.Style.STROKE);
-//		paint.setStrokeJoin(Paint.Join.ROUND);
-//		update();
+//		paint.strokeJoin(Paint.Join.ROUND);
+		update();
 	}
 	
 @:overload
@@ -49,7 +48,7 @@ class AppView extends View {
 		var img:Bitmap = null;
 		var rect = new RectF(0,0,0,0);
 		var x:Float, y:Float, w:Float, h:Float, r:Float, scale:Float;
-
+/*
         for(shape in shapes){ 
 			x = shape.x;
 			y = shape.y;
@@ -86,7 +85,7 @@ class AppView extends View {
 					img = images[src]; 
 				}else{
 					try img = BitmapFactory.decodeResource(getResources(), nameID)
-					catch(d:Dynamic){trace(ERROR+ "no img: " + d);}
+					catch(e:Dynamic){trace(ERROR+ "no img: " + d);}
 					if(img != null)images.set(src,img);
 				}
 				
@@ -112,6 +111,7 @@ class AppView extends View {
 				canvas.drawText(shape.text.src,x+4,y+20,paint);
 			}
 		}
+*/
 	}// onDraw()
 
 @:overload
@@ -119,29 +119,29 @@ class AppView extends View {
 	{
 		var x = event.getX();
 		var y = event.getY();
-			
+/*			
 		switch(event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				if(term != null) term.onMouseDown_(x,y);
+//				if(term != null) term.onMouseDown_(x,y);
 			case MotionEvent.ACTION_MOVE:
-				if(term != null) term.onMouseMove_(x,y);
+//				if(term != null) term.onMouseMove_(x,y);
 			case MotionEvent.ACTION_UP:
-				if(term != null) term.onMouseUp_(x,y);
+//				if(term != null) term.onMouseUp_(x,y);
 			default: return false;
 		}
-
+*/
 		invalidate();
 		return true;
 	}// onTouchEvent()
 	
-	public function redraw(shape:Shape)
+	public function redraw()
 	{ 
-		shapes.add(shape);
+//		shapes.add(shape);
 	}
 	
 	public function clear()
 	{
-		shapes.clear();
+//		shapes.clear();
 	}//
 	
 	public function update()

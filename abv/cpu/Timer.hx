@@ -18,8 +18,8 @@ class Timer{
     {
 		this.repeat = repeat;
 		time = ms / 1000;
-		start = cur = stamp();
-		id = set(this);
+		start = cur = stamp(); 
+		id = set(this); 
 	}// new()
 
 	public dynamic function run() { }
@@ -32,7 +32,7 @@ class Timer{
 
 	static inline function set(tm:Timer)
 	{ 
-		var r = timers.push(tm) - 1;
+		var r = timers.push(tm) - 1; 
 		return r;
 	}// set()
 	
@@ -80,12 +80,6 @@ class Timer{
 				if((it.repeat > 0)&&(it.count >= it.repeat))remove(it.id);
 			}
 		}
-/*		cur = stamp();
-		if ((cur - last) > ms) { 
-			last = cur;
-			run();
-		}
-*/
 	}// update()
 	
 	public static inline function stamp()
@@ -101,4 +95,4 @@ class Timer{
 		return r;
 	}// stamp()
 	
-}// Timer
+}// abv.cpu.Timer

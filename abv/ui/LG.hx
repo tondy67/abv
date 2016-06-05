@@ -2,11 +2,11 @@ package abv.ui;
 /**
  * Lang
  **/
-import abv.lib.comp.Container;
-import abv.interfaces.IStates;
+import abv.factory.Component;
+import abv.factory.IStates;
 import abv.bus.MS;
 
-using abv.lib.CC;
+using abv.sys.ST;
 using abv.ds.TP;
 
 @:build(abv.macro.BM.buildLang())
@@ -14,18 +14,16 @@ class LG{
 
 	public static var cur = 0;
 	
-	inline function new(){ }
-
-	public static function set(lg:Int,o:Container)
+	public static function set(lg:Int,o:Component)
 	{
 		if((lg < 0)||(lg > (langs.length - 1)))return;
 		
-		var ix = CC.ERR, s = "";
+		var ix = -1, s = "";
 
 		var l = o.getChildren(); 
 		for(it in l){ 
 			ix = id.indexOf(it.name);
-			if(ix != CC.ERR){ 
+			if(ix != -1){ 
 				if(Std.is(it,IStates)){
 					var st = cast(it,IStates).states; 
 					for(i in 0...st.length){
