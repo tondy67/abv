@@ -26,7 +26,10 @@ typedef MapSS = Map<String,String>;
 typedef MapIS = Map<Int,String>;
 typedef MapSI = Map<String,Int>;
 typedef MapSB = Map<String,Bytes>;
-
+/* chmod +x gradlew
+ * ./gradlew installDebug
+ * adb -d logcat com.tondy.snake:I *:S
+ */
 @:dce
 class ST {
 
@@ -101,6 +104,7 @@ class ST {
  #elseif android "android" #elseif ios "ios" #elseif java "java" #end ;
 #else 	
 	var arch = "";
+	var CONN = " --connect 6000 ";
 	static inline var FLASH 	= "flash";
 	static inline var JS 		= "js";
 	static inline var NEKO 		= "neko";
@@ -187,7 +191,8 @@ class ST {
 			for(l in a)res.push(l);
 		}
 
-		if((cfg.width == null) || (cfg.height == null)) NOGUI = true;
+		if((cfg.width == null) || (cfg.height == null) || 
+			(cfg.ups == null) || (cfg.ups == 0)) NOGUI = true;
 		COLORS = args.join(",").indexOf("nocolor") == -1 ? true : false;
  
 		var c = "";
@@ -213,6 +218,13 @@ class ST {
 			case ENGINE	: 	ENGINE;
 			default: "";
 		}
+
+		if (command("haxe",["--connect","6000"]) != 0){
+			neko.vm.Thread.create(exec.bind("haxe",["--wait","6000","&"]));
+			log("Start","haxe server");
+		}
+				
+
 	}// init()
 	
 	function pathLib(name:String)
@@ -347,6 +359,9 @@ class ST {
 		
 		println('[b][blue]Build [white]${cfg.name}[blue] on $OS ([cyan]$target[blue])');
 		var s = getOptions()  +  out; 
+		switch(target){
+			case NEKO, FLASH, JS: s = CONN + s;
+		}
 		warn("haxe " + s,null,null);
 		var arg = s.split(" "); 
 		command("haxe",arg);
@@ -669,11 +684,12 @@ class ST {
 		else logs.push(s);
 	}// println()
 
-// errors
+// aliases
+	public static inline function toBytes(s:String) return Bytes.ofString(s);
 	public static inline function errNullObject(s="",?p:PosInfos) error(T[20],s,p);
 	public static inline function errBadName(s="",?p:PosInfos) error(T[14],s,p);
 	public static inline function errObjectExists(s="",?p:PosInfos) error(T[9],s,p);
-
+//
 	public static inline function error(s:Dynamic,d:Dynamic=null,?p:PosInfos)
 	{ 
 		if(VERBOSE >= ERROR){  
@@ -1233,6 +1249,7 @@ class ST {
 		}
 		return r;
 	}// unzipVFS()
+
 
 	public static inline function ip2int(s:String)
 	{

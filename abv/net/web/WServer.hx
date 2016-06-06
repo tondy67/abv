@@ -222,7 +222,7 @@ abv.sys.ST.saveFile(count+".dbg",msg.body);count++;
 			WT.mkFile(ctx);
 		}else{
 			r = WT.mkPage('<p>${WT.LHOME}</p>'+WT.dirIndex(ROOT + path));
-			ctx.body = Bytes.ofString(r);
+			ctx.body = r.toBytes(); 
 		}
 	}// mkDir()
 	
@@ -252,7 +252,7 @@ abv.sys.ST.saveFile(count+".dbg",msg.body);count++;
 		ctx.mime = "css";
 //		ctx.r["body"] = ST.open("bin/abv.css");
 		var td = "text-decoration", ls = "list-style-type", va = "vertical-align";
-		ctx.body = Bytes.ofString('a:link{$td:none;}a:visited{$td:none;}a:hover{$td:underline;}ul.circle{$ls:circle;}ul.no{margin:0;padding-top:0;padding-left:20px;$ls:none;}table td, table td *{$va:top;}.red{color:#f00;}');
+		ctx.body = 'a:link{$td:none;}a:visited{$td:none;}a:hover{$td:underline;}ul.circle{$ls:circle;}ul.no{margin:0;padding-top:0;padding-left:20px;$ls:none;}table td, table td *{$va:top;}.red{color:#f00;}'.toBytes(); 
 	}// mkCss()
 
 ///
@@ -260,7 +260,7 @@ abv.sys.ST.saveFile(count+".dbg",msg.body);count++;
 	{
 		ctx.mime = "";
 		var body = '<br><a href="/?d=${Std.random(10000)}">refresh</a><p><a href="/exit">Exit</a></p>';
-		ctx.body = Bytes.ofString(WT.mkPage(body));
+		ctx.body = WT.mkPage(body).toBytes(); 
 	}// app();
 
 	public dynamic function log(s:String)

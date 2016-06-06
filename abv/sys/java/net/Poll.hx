@@ -18,7 +18,7 @@ class Poll {
 	}
 
 	public function poll( a: Array<Socket>, ?t : Float ) : Array<Socket> 
-	{
+	{// TODO: Map sockets register
 		var r: Array<Socket> = [];
 		var key:SelectionKey;
 		

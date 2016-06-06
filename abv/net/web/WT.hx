@@ -269,7 +269,7 @@ class WT{
 		header = HTTP_11 + " " + code + CC.LF;
 
 		if(ctx.status != 200){
-			ctx.body = Bytes.ofString(mkPage('<center>${ctx.request}<h1>$code</h1><hr>${WServer.SIGN}</center>',code));
+			ctx.body = mkPage('<center>${ctx.request}<h1>$code</h1><hr>${WServer.SIGN}</center>',code).toBytes(); 
 		}
 
 		if(ctx.status == 304){
@@ -298,10 +298,10 @@ class WT{
 		var r:Bytes;
 		if (ctx.body != null){
 			r = Bytes.alloc(header.length + ctx.body.length);
-			r.blit(0,Bytes.ofString(header),0,header.length);
+			r.blit(0,header.toBytes(),0,header.length);
 			r.blit(header.length,ctx.body,0,ctx.body.length);
 		}else{
-			r = Bytes.ofString(header);
+			r = header.toBytes(); 
 		}
 		 
 		return r;

@@ -32,7 +32,8 @@ class DBG{
 			cur = Timer.stamp();
 		}
 		if (v != null) s += ": " + v;
-		log(Std.string(d).substr(0,9),s);
+		log(pad(d,9),s);
+		return d;
 	}// watch()
 
 	public static inline function call(s:String)
@@ -58,6 +59,12 @@ class DBG{
 		logs.add('$s,$m');
 	}// log()
 
+	static inline function pad(v:Float,len:Int)
+	{
+		var z = "0.0000000000000000";
+		var s = v == 0? z : v + "";
+		return s.substr(0,len);
+	}
 ///
 }// abv.DBG
 

@@ -81,7 +81,7 @@ class TServer<Client,Message> extends TPool {
 				var infos: ClientInfo<Client> = s.custom;
 				try{
 					readClientData(infos);
-				}catch( e: Dynamic ) { trace("remove: "+e);
+				}catch( e: Dynamic ) {
 					t.socks.remove(s);
 					if( !Std.is(e,haxe.io.Eof) && 
 						!Std.is(e,haxe.io.Error) ) logError(e); 
