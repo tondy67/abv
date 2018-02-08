@@ -1,0 +1,44 @@
+{
+  "name": "abv",
+  "version": "0.0.2",
+  "description": "Abvos client-server gui",
+  "main": "index.js",
+  "scripts": {
+    "start": "node samples/Basic/server.js",
+    "test": "node samples/Basic/ws.js",
+    "ttt": "browserify samples/Basic/node.js -o samples/Basic/tmp.js && uglifyjs samples/Basic/tmp.js  -b -m -o samples/Basic/bundle.js",
+    "dist": "browserify index.js -o dist/tmp.js && uglifyjs dist/tmp.js -c -m -o dist/abv.0.0.1.js",
+    "dev": "browserify index.js -o dist/tmp.js && uglifyjs dist/tmp.js  -b -m -o dist/abv.0.0.1.js"
+  },
+  "keywords": [
+    "abv",
+    "abvos",
+    "gui",
+    "browser"
+  ],
+  "author": {
+    "name": "Todor Angelov",
+    "email": "abv@tondy.com",
+    "url": "http://tondy.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tondy67/abv.git"
+  },
+  "dependencies": {
+    "abv-ts": "tondy67/abv-ts"
+  },
+  "bugs": {
+    "url": "https://github.com/tondy67/abv/issues"
+  },
+  "homepage": "https://github.com/tondy67/abv#readme",
+  "devDependencies": {
+    "browserify": "^14.4.0",
+    "uglify-es": "^3.1.3",
+    "abv-spa": "tondy67/abv-spa",
+    "abv-node": "tondy67/abv-node",
+    "abv-core": "tondy67/abv-core",
+    "ws": "^3.2.0"
+  }
+}
